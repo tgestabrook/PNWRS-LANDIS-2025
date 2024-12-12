@@ -11,9 +11,15 @@ echo $dirName
 # re="^scenario_(.+).txt$"
 # if [[ $scenarioFile =~ $re ]]; then echo ${BASH_REMATCH[1]}; fi
 
+maxsims=$3
 
+for i in `seq 1 $maxsims`
+do
+    echo "$i"
+    mkdir ${dirName}_$date_time&i
 
-echo $scenarioname2
+    
+done
 # scenarioname2= sed -e 's|scenario_||; s|.txt||' "${scenarioFile}"
 # echo $scenarioname2
 
