@@ -7,30 +7,30 @@ Timestep  10
 
 SeedingAlgorithm  WardSeedDispersal
 
-InitialCommunities      ../INITIAL_COMMUNITIES_NECN.txt
-InitialCommunitiesMap   ../INITIAL_COMMUNITIES_OkaMet.tif
-ClimateConfigFile 	../zClimate_Library/ClimateGenerator_RCP85.txt	
+InitialCommunities      ../OkaMet/INITIAL_COMMUNITIES_NECN.txt
+InitialCommunitiesMap   ../OkaMet/INITIAL_COMMUNITIES_OkaMet.tif
+ClimateConfigFile 	../OkaMet/zClimate_Library/ClimateGenerator_RCP85.txt	
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>>>>          SOIL INPUT MAPS             >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-SoilDepthMapName			../NECN_input_maps/SoilDepth_cm.tif
-SoilDrainMapName			../NECN_input_maps/SoilDrain.tif
-SoilBaseFlowMapName			../NECN_input_maps/SoilBaseFlow.tif
-SoilStormFlowMapName			../NECN_input_maps/SoilStormFlow.tif
-SoilFieldCapacityMapName		../NECN_input_maps/SoilFieldCapacity.tif
-SoilWiltingPointMapName			../NECN_input_maps/SoilWiltingPoint.tif
-SoilPercentSandMapName			../NECN_input_maps/SoilPercentSand.tif
-SoilPercentClayMapName			../NECN_input_maps/SoilPercentClay.tif
-InitialSOM1CsurfMapName			../NECN_input_maps/SOM1Csurf.tif
-InitialSOM1NsurfMapName			../NECN_input_maps/SOM1Nsurf.tif
-InitialSOM1CsoilMapName			../NECN_input_maps/SOM1Csoil.tif
-InitialSOM1NsoilMapName			../NECN_input_maps/SOM1Nsoil.tif
-InitialSOM2CMapName			../NECN_input_maps/SOM2Csoil.tif
-InitialSOM2NMapName			../NECN_input_maps/SOM2Nsoil.tif
-InitialSOM3CMapName			../NECN_input_maps/SOM3Csoil.tif
-InitialSOM3NMapName			../NECN_input_maps/SOM3Nsoil.tif
-InitialDeadWoodSurfaceMapName		../NECN_input_maps/DeadWoodSurface.tif
-InitialDeadCoarseRootsMapName		../NECN_input_maps/DeadWoodSoil.tif
+SoilDepthMapName			../OkaMet/NECN_input_maps/SoilDepth_cm.tif
+SoilDrainMapName			../OkaMet/NECN_input_maps/SoilDrain.tif
+SoilBaseFlowMapName			../OkaMet/NECN_input_maps/SoilBaseFlow.tif
+SoilStormFlowMapName			../OkaMet/NECN_input_maps/SoilStormFlow.tif
+SoilFieldCapacityMapName		../OkaMet/NECN_input_maps/SoilFieldCapacity.tif
+SoilWiltingPointMapName			../OkaMet/NECN_input_maps/SoilWiltingPoint.tif
+SoilPercentSandMapName			../OkaMet/NECN_input_maps/SoilPercentSand.tif
+SoilPercentClayMapName			../OkaMet/NECN_input_maps/SoilPercentClay.tif
+InitialSOM1CsurfMapName			../OkaMet/NECN_input_maps/SOM1Csurf.tif
+InitialSOM1NsurfMapName			../OkaMet/NECN_input_maps/SOM1Nsurf.tif
+InitialSOM1CsoilMapName			../OkaMet/NECN_input_maps/SOM1Csoil.tif
+InitialSOM1NsoilMapName			../OkaMet/NECN_input_maps/SOM1Nsoil.tif
+InitialSOM2CMapName			../OkaMet/NECN_input_maps/SOM2Csoil.tif
+InitialSOM2NMapName			../OkaMet/NECN_input_maps/SOM2Nsoil.tif
+InitialSOM3CMapName			../OkaMet/NECN_input_maps/SOM3Csoil.tif
+InitialSOM3NMapName			../OkaMet/NECN_input_maps/SOM3Nsoil.tif
+InitialDeadWoodSurfaceMapName		../OkaMet/NECN_input_maps/DeadWoodSurface.tif
+InitialDeadCoarseRootsMapName		../OkaMet/NECN_input_maps/DeadWoodSoil.tif
 
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -57,7 +57,7 @@ DecayRateSOM3			0.001
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>>>>  Species and functional group parameters  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-SpeciesParameters              ../ext_NECN8_Species_Table.csv
+SpeciesParameters              ../OkaMet/ext_NECN8_Species_Table.csv
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>>>>           Other                           >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
