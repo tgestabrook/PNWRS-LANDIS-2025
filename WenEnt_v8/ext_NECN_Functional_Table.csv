@@ -1,7 +1,0 @@
-FunctionalGroupName,FunctionalGroupIndex,TemperatureCurve1,TemperatureCurve2,TemperatureCurve3,TemperatureCurve4,FractionANPPtoLeaf,LeafBiomassToLAI,KLAI,MaximumLAI,MoistureCurve2,MoistureCurve3,WoodDecayRate,MonthlyWoodMortality,LongevityMortalityShape,FoliageDropMonth,CoarseRootFraction,FineRootFraction
-Conifers_subalpine,1,14,27,5,1,0.3,-0.8,25000,6,0.8,0.7,0.11,0.00005,15,10,0.3,0.76
-Conifers_mesic,2,16,33,3,3,0.3,-0.8,33000,8,0.7,0.6,0.11,0.00005,15,10,0.3,0.76
-Confiers_xeric,3,20,37,1,5,0.3,-0.8,22000,7,0.6,0.5,0.11,0.00005,15,10,0.3,0.76
-Hardwood_mesic,4,16,36,5,1,0.32,-0.8,26000,6,1.5,0.8,0.11,0.00005,15,10,0.3,0.76
-Hardwood_xeric,5,20,38,1,5,0.32,-0.8,15000,5,0.7,0.7,0.11,0.00005,15,10,0.3,0.76
-NonTree,6,22,40,2,2,0.3,-0.8,4000,2,0.5,0.6,0.11,0.00005,15,10,0.3,0.76
