@@ -3,7 +3,7 @@ scenarioFile=$1
 extent=$2
 scenarioname=$3
 climate=$4
-dirName="LANDIS_Sim_${2}_${3}"
+dirName="LANDIS_Sim_${2}_${4}_${3}"
 
 ## GET DATE TIME AND CREATE NEW FOLDER
 date_time="$(date +'%Y%m%d_%H%M')"
