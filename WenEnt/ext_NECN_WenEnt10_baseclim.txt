@@ -56,7 +56,7 @@ DecayRateSOM3			0.001
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>>>>  Species and functional group parameters  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-SpeciesParameters              ../ext_NECN8_Species_Table.csv
+SpeciesParameters              ../WenEnt/ext_NECN8_Species_Table.csv
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>>>>           Other                           >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
