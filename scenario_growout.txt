@@ -1,0 +1,29 @@
+LandisData     "Scenario"
+
+Duration       100
+
+Species         ../SPECIES.txt
+
+Ecoregions      ../EXTENT/ECOREGIONS.txt
+EcoregionsMap   ../EXTENT/ECOREGIONS_EXTENT.tif
+
+CellLength     90 << meters
+
+>>  Succession Extension    Initialization File
+>> ----------------------   -------------------
+	"NECN Succession"	    ../EXTENT/ext_NECN_EXTENT10.txt 
+
+>> Disturbance Extensions   Initialization File
+>> ----------------------   -------------------
+
+DisturbancesRandomOrder  no  << optional parameter; default = no
+
+
+>>  Other Extensions       	Initialization File
+>>  ---------------------- 	-------------------
+    "Output Biomass"	 	../ext_Output_Biomass10.txt
+    "Output Cohort Statistics"	../ext_Output_CohortStats10.txt
+>>    "Output Biomass Community"	../ext_Output_IC.txt	
+
+
+>> RandomNumberSeed  4357  << optional parameter; default = the seed is randomly generated using the current time
