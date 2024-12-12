@@ -11,7 +11,7 @@ CellLength     90 << meters
 
 >>  Succession Extension    Initialization File
 >> ----------------------   -------------------
-	"NECN Succession"	    ../EXTENT/ext_NECN_EXTENT10.txt 
+	"NECN Succession"	    ../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt 
 
 >> Disturbance Extensions   Initialization File
 >> ----------------------   -------------------
