@@ -2,6 +2,7 @@
 scenarioFile=$1
 extent=$2
 scenarioname=$3
+climate=$4
 dirName="LANDIS_Sim_${2}_${3}"
 
 ## GET DATE TIME AND CREATE NEW FOLDER
@@ -33,6 +34,7 @@ cp -p ../$2/zClimate_Library/ClimateGenerator_baseline.txt 		./Input_file_archiv
 
 ## CREATE SCENARIO FILE WITH CORRECT EXTENT
 sed -i "s|EXTENT|$2|g" ./Input_file_archive/$scenarioFile
+sed -i "s|CLIMATE|$4|g" ./Input_file_archive/$scenarioFile
 
 ## RUN LANDIS-II SCENARIO
 echo Running LANDIS-II scenario...
