@@ -1,0 +1,21 @@
+LandisData "Climate Config"				
+		
+>> Future climate data
+ClimateTimeSeries			Daily_SequencedYears
+>>ClimateFile				../zClimate_Library/empty_for_trial_runs.csv
+ClimateFile				../zClimate_Library/CLIMATE_2020-2120_baseline_WenEnt.csv
+ClimateFileFormat			Daily_Temp-C_Precip-mmDay
+
+>> Historical climate data
+SpinUpClimateTimeSeries			Daily_SequencedYears
+>>SpinUpClimateFile			../zClimate_Library/empty_for_trial_runs.csv
+SpinUpClimateFile			../zClimate_Library/CLIMATE_1980-2019_baseline_WenEnt.csv
+SpinUpClimateFileFormat			Daily_Temp-C_Precip-mmDay
+
+
+UsingFireClimate			yes << Indicates whether Climate Library prepares data for calculating Fire Weather Index
+FineFuelMoistureCode			85  << Initial value for FWI calculation 
+DuffMoistureCode			20  << Initial value for FWI calculation 
+DroughtCode				100 << Initial value for FWI calculation 
+FirstDayFire				30  << Julian day of earliest possible fire
+LastDayFire				320 << Julian day of latest possible fire
