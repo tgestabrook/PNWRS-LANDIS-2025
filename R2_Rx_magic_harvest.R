@@ -9,20 +9,29 @@ suppressWarnings(suppressMessages(library(tidyterra)))
 #fireDir <- './scrapple-fire'
 
 flipIfNeeded <- function(r){
-  r2<-r  # do test not on raw data
+  r2 <- r  # do test not on raw data
   crs(r2) <- crs(ecos.r); ext(r2) <- ext(ecos.r)
-  
-  overlay_normal <- ifel(ecos.r==0&r2!=0, 1, 0)  # make a raster of cells where 
+  overlay_normal <- ifel(ecos.r==0&r2!=0, 1, 0)  # make a raster of cells where
   overlay_flip <- ifel(ecos.r==0&flip(r2)!=0, 1, 0)
-  
-  if(sum(values(overlay_normal, na.rm=T))>sum(values(overlay_flip, na.rm=T))){
+  if (sum(values(overlay_normal, na.rm=T)) > sum(values(overlay_flip, na.rm=T))) {
     return(flip(r2))
-  }else{
+  } else {
     return(r2)
   }
 }
 
-LANDIS.EXTENT <- 'OkaMet'
+
+# Load magic harvest command inputs
+args <- commandArgs(trailingOnly = TRUE)
+print("Input args:")
+print(args)
+
+timestep <- as.numeric(args[1]); print(paste('Timestep:', timestep))
+last_year <- timestep - 1
+scenario_rx_name <- args[2]
+mh_file_name <- args[4]
+LANDIS.EXTENT <- args[5]
+
 fireDir <- './social-climate-fire'
 harvestDir <- './Harvest'
 
@@ -36,18 +45,8 @@ base_stands.r <- rast(file.path('./Input_file_archive', paste0('ext_BiomassHarve
 mgmt.r <- rast(file.path('./MagicHarvest', paste0('MH_mgmt_areas.tif'))) + 0
 #stands.r <- rast(file.path('./MagicHarvest', paste0('MH_stands.tif'))) + 0
 
-severity.thresholds<-c(5, 41,176,376,2001);names(severity.thresholds)<-c('Unburned','Low','Moderate','High','max') # SCRPPLE v3.2.1
-severity.reclass.df<-data.frame('from'=c(severity.thresholds[1:4]),'to'=c(severity.thresholds[2:5]),'becomes'=c(1,2,3,4))
-
-# Load magic harvest command inputs
-args <- commandArgs(trailingOnly = TRUE)
-print("Input args:")
-print(args)
-
-timestep <- as.numeric(args[1]); print(paste('Timestep:', timestep))
-last_year = timestep - 1
-scenario_rx_name <- args[2]
-mh_file_name <- args[4]
+severity.thresholds <- c(5, 41, 176, 376, 2001); names(severity.thresholds) <- c('Unburned', 'Low', 'Moderate', 'High', 'max')
+severity.reclass.df <- data.frame('from'=c(severity.thresholds[1:4]), 'to'=c(severity.thresholds[2:5]), 'becomes'=c(1,2,3,4))
 
 fire_cooldown <- 7  # possibly set to 6 or 7
 thin_cooldown <- as.numeric(args[3])  # 20 for 5% or 50 for 2%
@@ -296,7 +295,7 @@ writeRaster(new_rx.r, file.path('./MagicHarvest', 'RxIgnProb_dynamic.tif'), over
 mgmtCols<-data.frame('value'=c(1,2,3,4,6,7,9), 
                      'color'=c('goldenrod',  # Dry 1
                              'olivedrab4',  # Moist 2
-                             'dodgerblue4',  # Cold 3 
+                             'dodgerblue4',  # Cold 3
                              'tomato4',  # Industrial 4
                              'orchid1',  # Salvage 6
                              'slateblue2',   # WA DNR 7
@@ -327,7 +326,7 @@ harvestColsClassified<-data.frame('value'=1:14,
                                   'id'=1:14,
                                   'Treatment'=c('None', 'MBValley', 'MBMesic', 'MBXeric', 'Industrial', 'PCTgeneric', 'Salvage','WA DNR', 'PCTdry', 'PCTmoist', 'PCTcold', 'CTdry', 'CTmoist', 'CTcold'))
 
-severityColsClassified<-colorRampPalette(c('darkgreen','darkseagreen','goldenrod1','firebrick4'))(4)
+severityColsClassified <- colorRampPalette(c('darkgreen', 'darkseagreen', 'goldenrod1', 'firebrick4'))(4)
 
 patchCols <- colorRampPalette(c("#000000","#FFFF00","#1CE6FF","#FF34FF","#FF4A46",
                                 "#008941","#006FA6","#A30059","#FFDBE5","#7A4900",
@@ -389,30 +388,30 @@ eligible_salvage.r[ecos.r==0]<-NA
 #last_year_harvest_prescrip.r[1:10,1:130] <- rep(2:14, 100)
 last_year_harvest_prescrip.r[last_year_harvest_prescrip.r==0]<-NA
 last_year_harvest_prescrip.r <- terra::as.factor(last_year_harvest_prescrip.r)
-levels(last_year_harvest_prescrip.r) <- harvestColsClassified[,c(3,4)]
+levels(last_year_harvest_prescrip.r) <- harvestColsClassified[, c(3, 4)]
 
-new_zones.r[is.na(last_year_harvest_prescrip.r)]<-NA
+new_zones.r[is.na(last_year_harvest_prescrip.r)] <- NA
 new_zones.r <- terra::as.factor(new_zones.r)
-levels(new_zones.r) <- mgmtCols[,c(3,4)]
+levels(new_zones.r) <- mgmtCols[, c(3, 4)]
 
-last_year_fire_severity.r[1:4]<- c(1,2,3,4)
+last_year_fire_severity.r[1:4] <- c(1, 2, 3, 4)
 
 fire_cooldown.r[ecos.r==0] <- NA
 fire_cooldown.r[rx_zone.r==0] <- NA
-fire_cooldown.r[1:fire_cooldown]<- 1:fire_cooldown
+fire_cooldown.r[1:fire_cooldown] <- 1:fire_cooldown
 thinning_cooldown.r[ecos.r==0] <- NA
 thinning_cooldown.r[1:cold_cooldown] <- 1:cold_cooldown
 #new_zones.r[1:10,1:70] <- rep(c(1,2,3,4,6,7,9), 100)
 
 ### Load ignition type and fine fuels
 if(timestep>1){
-  ignition_type.r <- rast(file.path(fireDir, paste0('ignition-type-',last_year,'.img'))) %>% flipIfNeeded() %>% ifel(.>0, ., NA) %>% terra::as.factor()
+  ignition_type.r <- rast(file.path(fireDir, paste0('ignition-type-', last_year, '.img'))) %>% flipIfNeeded() %>% ifel(.>0, ., NA) %>% terra::as.factor()
   crs(ignition_type.r) <- crs(ecos.r)
   ext(ignition_type.r) <- ext(ecos.r)
   levels(ignition_type.r) <- data.frame('id'=c(1,2,3,4), 'ignition'=c('None', 'Acc.', 'Lgt.', 'Rx'))
   ignition_type.r[ecos.r==0] <- NA
   
-  fine_fuels.r <- rast(file.path(fireDir, paste0('fine-fuels-',last_year,'.img'))) %>% flipIfNeeded()
+  fine_fuels.r <- rast(file.path(fireDir, paste0('fine-fuels-', last_year, '.img'))) %>% flipIfNeeded()
   crs(fine_fuels.r) <- crs(ecos.r)
   ext(fine_fuels.r) <- ext(ecos.r)
   fine_fuels.r[ecos.r==0] <- NA

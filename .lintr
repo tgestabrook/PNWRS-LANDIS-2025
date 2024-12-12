@@ -1,0 +1,8 @@
+linters: linters_with_defaults(
+    object_name_linter = NULL,
+    line_length_linter = NULL,
+    quotes_linter = NULL,
+    semicolon_linter = NULL,
+    trailing_whitespace_linter = NULL
+  )
+
