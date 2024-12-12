@@ -11,4 +11,10 @@
     1. Scenario file (must start with `scenario_` and end with `.txt`; whatever is in the middle will be used as the scenario name)
     2. Extent ('OkaMet' or 'WenEnt')
     3. Climate ('baseclim' or 'rcp85')
+    4. Number of repeated simulations (can be 1 for a single simulation)
 
+## Examples
+Run five calibration tests for Wenatchee-Entiat:
+```shell
+./_RUN_SIM.sh "scenario_fire_calibration.txt" "WenEnt" "baseclim" 5
+```
