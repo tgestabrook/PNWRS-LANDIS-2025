@@ -25,7 +25,7 @@ RUN apt update && apt upgrade \
 ENV C_INCLUDE_PATH=/usr/include/gdal
 ENV CPLUS_INCLUDE_PATH=/usr/include/gdal
 
-# INSTALLING DOTNET SDK AND RUNTIME 2.2
+# INSTALLING DOTNET SDK AND RUNTIME 8.0
 RUN mkdir /bin/.dotnet/ && cd /bin/.dotnet/ \
 && wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh \
 && chmod +x ./dotnet-install.sh \
@@ -114,55 +114,9 @@ RUN cd /bin/LANDIS_Linux \
 && dotnet $LANDIS_EXTENSIONS_TOOL add "NECN_Succession8.txt" \
 && cd /bin/LANDIS_Linux/ && rm -r Extension-NECN-Succession
 
-# # PnET Succession
-# Currently left until https://github.com/LANDIS-II-Foundation/Extension-PnET-Succession/issues/17 is fixed.
-# RUN cd /bin/LANDIS_Linux \
-# # Commit 13ffece64f0b0180490aaa96cf91bd212e9e2e50 is the most recent at date of writing..
-# && ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-PnET-Succession.git 13ffece64f0b0180490aaa96cf91bd212e9e2e50 /src \ 
-# && cd /bin/LANDIS_Linux/Extension-PnET-Succession/src \
-# && python /bin/LANDIS_Linux/editing_csproj_LANDIS-II_files.py ./PnET-Succession.csproj \
-# # A definition seems to be missing in Plugin.cs, even on newer versions; I add it here. Strange ?
-# # && cd /bin/LANDIS_Linux/Extension-PnET-Succession/src && sed -i '57i        public int ThreadCount;' PlugIn.cs \
-# # We need to remove the .sln file; it's not useful to build, and is full of bad/missing references to other projects.
-# && rm /bin/LANDIS_Linux/Extension-PnET-Succession/src/PnET-Succession.sln
-# RUN cd /bin/LANDIS_Linux/Extension-PnET-Succession/src \
-# && dotnet build -c Release \
-# && cd /bin/LANDIS_Linux/ && rm -r Extension-PnET-Succession \
-# # To finish, we have to transfer some "Default files" of PnET in the extension folder
-# && ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-PnET-Succession.git 13ffece64f0b0180490aaa96cf91bd212e9e2e50 /deploy \ 
-# && cp -r /bin/LANDIS_Linux/Extension-PnET-Succession/deploy/Defaults /bin/LANDIS_Linux/build/extensions \
-# && wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-PnET-Succession/13ffece64f0b0180490aaa96cf91bd212e9e2e50/deploy/installer/PnET-Succession.txt \
-# && dotnet $LANDIS_EXTENSIONS_TOOL add "PnET-Succession.txt" \
-# && cd /bin/LANDIS_Linux/ && rm -r Extension-PnET-Succession
-
-# # # Forest Carbon Succession (ForCS)
-# Not yet ready for corev8 as of writing. Will have to wait.
-
-
-# # DGS Succession extension : Not yet ready for v8.
-
-
 #### DISTURBANCE EXTENSIONS
 
 ## FIRE
-
-# Base Fire
-RUN cd /bin/LANDIS_Linux \
-# Commit 40169a04b62be126e109c7990fa6a6d64a8ff895 is latest as of writing this.
-&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-Base-Fire.git 40169a04b62be126e109c7990fa6a6d64a8ff895 /src \ 
-&& cd /bin/LANDIS_Linux/Extension-Base-Fire/src \
-&& python /bin/LANDIS_Linux/editing_csproj_LANDIS-II_files.py ./original-fire.csproj \
-# We remove the .sln as it's not useful for the build
-&& rm original-fire.sln \
-# We got to add two lines to indicate where the support libraries are
-&& sed -i '31i    <HintPath>..\\..\\build\\extensions\\Landis.Library.UniversalCohorts-v1.dll</HintPath>' original-fire.csproj \
-&& sed -i '37i    <HintPath>..\\..\\build\\extensions\\Landis.Library.Parameters-v2.dll</HintPath>' original-fire.csproj \
-&& dotnet build -c Release \
-&& wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-Base-Fire/40169a04b62be126e109c7990fa6a6d64a8ff895/deploy/installer/Original%20Fire%205.txt \
-&& dotnet $LANDIS_EXTENSIONS_TOOL add "Original Fire 5.txt" \
-&& cd /bin/LANDIS_Linux/ && rm -r Extension-Base-Fire
-
-# # BFOLDS Fire - Not ready yet for v8, to check with Marc Ouelette.
 
 # Climate-social Fire
 RUN cd /bin/LANDIS_Linux \
@@ -176,34 +130,6 @@ RUN cd /bin/LANDIS_Linux \
 && wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-Social-Climate-Fire/b463ea378f1bcde4369907a408dfe64b9cc52c7a/deploy/installer/Scrapple%204.txt \
 && dotnet $LANDIS_EXTENSIONS_TOOL add "Scrapple 4.txt" \
 && cd /bin/LANDIS_Linux/ && rm -r Extension-Social-Climate-Fire
-
-# # Dynamic Fuel system - Not referenced anymore in the LANDIS-II extension, but is only refered as "Dynamic Fuels & Fire System" with a link to 	http://landis-ii-foundation.github.io/Extension-Dynamic-Fire-System/. Will let this one be. Seems to have been replaced by dynamic biomass fuels ?
-
-# # Dynamic Biomass Fuels
-RUN cd /bin/LANDIS_Linux \
-# Commit 06dd67482b20a74a0e075782e66b09b4fe42c248 is latest as of writing this.
-&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-Dynamic-Biomass-Fuels.git 06dd67482b20a74a0e075782e66b09b4fe42c248 /src \ 
-&& cd /bin/LANDIS_Linux/Extension-Dynamic-Biomass-Fuels/src \
-&& python /bin/LANDIS_Linux/editing_csproj_LANDIS-II_files.py ./dynamic-fuels.csproj \
-&& dotnet build -c Release \
-&& wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-Dynamic-Biomass-Fuels/06dd67482b20a74a0e075782e66b09b4fe42c248/deploy/installer/Dynamic%20Fuels%204.txt \
-&& dotnet $LANDIS_EXTENSIONS_TOOL add "Dynamic Fuels 4.txt" \
-&& cd /bin/LANDIS_Linux/ && rm -r Extension-Dynamic-Biomass-Fuels
-
-# Dynamic Fire System
-RUN cd /bin/LANDIS_Linux \
-# Commit 4970f846bd2b22f014f201ba2af2278436aefd7c is latest as of writing this.
-&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-Dynamic-Fire-System.git 4970f846bd2b22f014f201ba2af2278436aefd7c /src \ 
-&& cd /bin/LANDIS_Linux/Extension-Dynamic-Fire-System/src \
-&& python /bin/LANDIS_Linux/editing_csproj_LANDIS-II_files.py ./dynamic-fire.csproj \
-# We got to add two lines to indicate where the support libraries are
-&& sed -i '37i    <HintPath>..\\..\\build\\extensions\\Landis.Library.UniversalCohorts-v1.dll</HintPath>' dynamic-fire.csproj \
-&& sed -i '40i    <HintPath>..\\..\\build\\extensions\\Landis.Library.Parameters-v2.dll</HintPath>' dynamic-fire.csproj \
-&& dotnet build -c Release \
-&& wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-Dynamic-Fire-System/4970f846bd2b22f014f201ba2af2278436aefd7c/deploy/installer/Dynamic%20Fire%20Component%204.txt \
-&& dotnet $LANDIS_EXTENSIONS_TOOL add "Dynamic Fire Component 4.txt" \
-&& cd /bin/LANDIS_Linux/ && rm -r Extension-Dynamic-Fire-System
-
 
 # ## HARVEST
 
@@ -222,21 +148,6 @@ RUN cd /bin/LANDIS_Linux \
 
 # # SOSIEL Harvest - Not ready for v8 as time of writing
 
-# FRS Module
-RUN cd /bin/LANDIS_Linux \
-# Commit b2f1345f33bf0d089dabba75f8a1afe5de2d9d26 is latest as of writing this.
-# Not using the download script here as the repo is organized differently (source code is in the root)
-&& git clone https://github.com/Klemet/LANDIS-II-Forest-Roads-Simulation-extension.git \
-&& cd /bin/LANDIS_Linux/LANDIS-II-Forest-Roads-Simulation-extension && git checkout b2f1345f33bf0d089dabba75f8a1afe5de2d9d26 \
-&& rm /bin/LANDIS_Linux/LANDIS-II-Forest-Roads-Simulation-extension/Forest-Roads-Extension.sln
-# Sadly, the csproj file here is completly wrong for compiling on Linux. 
-# I got to replace it entirely by something that is more in line with the other extensions.
-COPY files_to_help_compilation/Forest-Roads-Extension.csproj /bin/LANDIS_Linux/LANDIS-II-Forest-Roads-Simulation-extension
-RUN cd /bin/LANDIS_Linux/LANDIS-II-Forest-Roads-Simulation-extension && dotnet build -c Release \
-&& wget https://raw.githubusercontent.com/Klemet/LANDIS-II-Forest-Roads-Simulation-extension/b2f1345f33bf0d089dabba75f8a1afe5de2d9d26/Deploy/Installation%20Files/plug-ins-installer-files/Forest%20Roads%20Simulation%202.0.txt \
-&& dotnet $LANDIS_EXTENSIONS_TOOL add "Forest Roads Simulation 2.0.txt" \
-&& cd /bin/LANDIS_Linux/ && rm -r LANDIS-II-Forest-Roads-Simulation-extension
-
 # # Magic harvest
 RUN cd /bin/LANDIS_Linux \
 # Commit 4def8fc98e3d816367f8ba2ec6d2b8ea76d279f6 is latest as of writing this.
@@ -253,46 +164,6 @@ RUN cd /bin/LANDIS_Linux/LANDIS-II-Magic-Harvest && dotnet build -c Release \
 && cd /bin/LANDIS_Linux/ && rm -r LANDIS-II-Magic-Harvest
 
 ## WIND
-
-# Base Wind - Now called Original wind
-RUN cd /bin/LANDIS_Linux \
-# Commit e0796d577a6221c78b10502da4fc7dd0ddfe08e9 is latest as of writing this.
-&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-Base-Wind.git e0796d577a6221c78b10502da4fc7dd0ddfe08e9 /src \ 
-&& cd /bin/LANDIS_Linux/Extension-Base-Wind/src \
-&& python /bin/LANDIS_Linux/editing_csproj_LANDIS-II_files.py ./original-wind.csproj \
-# We need to add a line to the csproj.
-&& sed -i '35i    <HintPath>..\\..\\build\\extensions\\Landis.Library.UniversalCohorts-v1.dll</HintPath>' original-wind.csproj \
-&& dotnet build -c Release \
-&& wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-Base-Wind/e0796d577a6221c78b10502da4fc7dd0ddfe08e9/deploy/installer/Original%20Wind%204.txt \
-&& dotnet $LANDIS_EXTENSIONS_TOOL add "Original Wind 4.txt" \
-&& cd /bin/LANDIS_Linux/ && rm -r Extension-Base-Wind
-
-# Linear Wind
-RUN cd /bin/LANDIS_Linux \
-# Commit b8efe5ca20ca386fc978db97670e50424941153e is latest as of writing this.
-&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-LinearWind.git b8efe5ca20ca386fc978db97670e50424941153e /src \ 
-&& cd /bin/LANDIS_Linux/Extension-LinearWind/src \
-&& python /bin/LANDIS_Linux/editing_csproj_LANDIS-II_files.py ./linear-wind.csproj \
-# We need to add a line to the csproj.
-&& sed -i '37i    <HintPath>..\\..\\build\\extensions\\Landis.Library.UniversalCohorts-v1.dll</HintPath>' linear-wind.csproj \
-&& dotnet build -c Release \
-&& wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-LinearWind/b8efe5ca20ca386fc978db97670e50424941153e/deploy/installer/Linear%20Wind%203.txt \
-&& dotnet $LANDIS_EXTENSIONS_TOOL add "Linear Wind 3.txt" \
-&& cd /bin/LANDIS_Linux/ && rm -r Extension-LinearWind
-
-# # Hurricane
-RUN cd /bin/LANDIS_Linux \
-# Commit a12806d77d4b251d8800766f124c39adf90541be is latest as of writing this.
-&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-Biomass-Hurricane.git a12806d77d4b251d8800766f124c39adf90541be /src \ 
-&& cd /bin/LANDIS_Linux/Extension-Biomass-Hurricane/src \
-&& python /bin/LANDIS_Linux/editing_csproj_LANDIS-II_files.py ./hurricane-extension.csproj \
-# We need to add a line to the csproj.
-&& sed -i '31i    <HintPath>..\\..\\build\\extensions\\Landis.Library.UniversalCohorts-v1.dll</HintPath>' hurricane-extension.csproj \
-&& sed -i '34i    <HintPath>..\\..\\build\\extensions\\Landis.Library.Metadata-v2.dll</HintPath>' hurricane-extension.csproj \
-&& dotnet build -c Release \
-&& wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-Biomass-Hurricane/a12806d77d4b251d8800766f124c39adf90541be/deploy/current/Hurricane%203.txt \
-&& dotnet $LANDIS_EXTENSIONS_TOOL add "Hurricane 3.txt" \
-&& cd /bin/LANDIS_Linux/ && rm -r Extension-Biomass-Hurricane
 
 
 ## DISEASES, INSECTS AND OTHERS
@@ -314,59 +185,7 @@ RUN cd /bin/LANDIS_Linux \
 
 # Root rot - Not yet available for v8
 
-# # Biomass Browse - Not yet available for v8
-
-# # Land-use plus
-RUN cd /bin/LANDIS_Linux \
-# Commit 574940aa6382ed9e5840b78b0544300bf5a40cd2 is latest as of writing this.
-&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-Land-Use-Plus.git 574940aa6382ed9e5840b78b0544300bf5a40cd2 /src \ 
-&& cd /bin/LANDIS_Linux/Extension-Land-Use-Plus/src \
-&& python /bin/LANDIS_Linux/editing_csproj_LANDIS-II_files.py ./land-use.csproj \
-&& dotnet build -c Release \
-&& wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-Land-Use-Plus/574940aa6382ed9e5840b78b0544300bf5a40cd2/deploy/installer/Land%20Use%204.txt \
-&& dotnet $LANDIS_EXTENSIONS_TOOL add "Land Use 4.txt" \
-&& cd /bin/LANDIS_Linux/ && rm -r Extension-Land-Use-Plus
-
 ### OUTPUT EXTENSIONS
-
-# Max species Age
-RUN cd /bin/LANDIS_Linux \
-# Commit bba5b5a4879d0d6cbfbcce4867702bd4df3ac350 is latest as of writing this.
-&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-Output-Max-Species-Age.git bba5b5a4879d0d6cbfbcce4867702bd4df3ac350 /src \ 
-&& cd /bin/LANDIS_Linux/Extension-Output-Max-Species-Age/src \
-&& python /bin/LANDIS_Linux/editing_csproj_LANDIS-II_files.py ./max-species-age.csproj \
-# We need to add a line to the csproj.
-&& sed -i '37i    <HintPath>..\\..\\build\\extensions\\Landis.Library.UniversalCohorts-v1.dll</HintPath>' max-species-age.csproj \
-&& dotnet build -c Release \
-&& wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-Output-Max-Species-Age/bba5b5a4879d0d6cbfbcce4867702bd4df3ac350/deploy/installer/Output%20MaxSpeciesAge%204.txt \
-&& dotnet $LANDIS_EXTENSIONS_TOOL add "Output MaxSpeciesAge 4.txt" \
-&& cd /bin/LANDIS_Linux/ && rm -r Extension-Output-Max-Species-Age
-
-# Biomass-by-age
-RUN cd /bin/LANDIS_Linux \
-# Commit 0419cc64634f57ad3660590408ded3aef88ecf9d is latest as of writing this.
-&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-Output-Biomass-By-Age.git 0419cc64634f57ad3660590408ded3aef88ecf9d /src \ 
-&& cd /bin/LANDIS_Linux/Extension-Output-Biomass-By-Age/src \
-&& python /bin/LANDIS_Linux/editing_csproj_LANDIS-II_files.py ./output-biomass-by-age.csproj \
-# We need to add a line to the csproj.
-&& sed -i '37i    <HintPath>..\\..\\build\\extensions\\Landis.Library.UniversalCohorts-v1.dll</HintPath>' output-biomass-by-age.csproj \
-&& dotnet build -c Release \
-&& wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-Output-Biomass-By-Age/0419cc64634f57ad3660590408ded3aef88ecf9d/deploy/installer/Output%20Biomass-by-Age%204.txt \
-&& dotnet $LANDIS_EXTENSIONS_TOOL add "Output Biomass-by-Age 4.txt" \
-&& cd /bin/LANDIS_Linux/ && rm -r Extension-Output-Biomass-By-Age
-
-# Biomass Community
-RUN cd /bin/LANDIS_Linux \
-# Commit 58252f441cc393cc1e63ea6c36175e15bba93916 is latest as of writing this.
-&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-Output-Biomass-Community.git 58252f441cc393cc1e63ea6c36175e15bba93916 /src \ 
-&& cd /bin/LANDIS_Linux/Extension-Output-Biomass-Community/src \
-&& python /bin/LANDIS_Linux/editing_csproj_LANDIS-II_files.py ./output-biomass-community.csproj \
-# We need to add a line to the csproj.
-&& sed -i '36i    <HintPath>..\\..\\build\\extensions\\Landis.Library.UniversalCohorts-v1.dll</HintPath>' output-biomass-community.csproj \
-&& dotnet build -c Release \
-&& wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-Output-Biomass-Community/58252f441cc393cc1e63ea6c36175e15bba93916/deploy/installer/Output%20Biomass%20Community%203.txt \
-&& dotnet $LANDIS_EXTENSIONS_TOOL add "Output Biomass Community 3.txt" \
-&& cd /bin/LANDIS_Linux/ && rm -r Extension-Output-Biomass-Community
 
 # Biomass Output
 RUN cd /bin/LANDIS_Linux \
@@ -378,17 +197,6 @@ RUN cd /bin/LANDIS_Linux \
 && wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-Output-Biomass/d5cb256f7669df36a76d9337c779cdc7f1cdbd0b/deploy/installer/Output%20Biomass%204.txt \
 && dotnet $LANDIS_EXTENSIONS_TOOL add "Output Biomass 4.txt" \
 && cd /bin/LANDIS_Linux/ && rm -r Extension-Output-Biomass
-
-# Biomass reclassification
-RUN cd /bin/LANDIS_Linux \
-# Commit fad7e9f7e39b9cf72e1e55210cb0e8cd09082671 is latest as of writing this.
-&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-Output-Biomass-Reclass.git fad7e9f7e39b9cf72e1e55210cb0e8cd09082671 /src \ 
-&& cd /bin/LANDIS_Linux/Extension-Output-Biomass-Reclass/src \
-&& python /bin/LANDIS_Linux/editing_csproj_LANDIS-II_files.py ./output-biomass.csproj \
-&& dotnet build -c Release \
-&& wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-Output-Biomass-Reclass/fad7e9f7e39b9cf72e1e55210cb0e8cd09082671/deploy/installer/Output%20Biomass%20Reclass%204.txt \
-&& dotnet $LANDIS_EXTENSIONS_TOOL add "Output Biomass Reclass 4.txt" \
-&& cd /bin/LANDIS_Linux/ && rm -r Extension-Output-Biomass-Reclass
 
 # # Cohort statistics outputs
 RUN cd /bin/LANDIS_Linux \
@@ -402,32 +210,6 @@ RUN cd /bin/LANDIS_Linux \
 && wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-Output-Cohort-Statistics/045272850c77b8b5e8c36ba1fe8c5041b7a523c2/deploy/installer/Output%20Cohort%20Statistics%204.txt \
 && dotnet $LANDIS_EXTENSIONS_TOOL add "Output Cohort Statistics 4.txt" \
 && cd /bin/LANDIS_Linux/ && rm -r Extension-Output-Cohort-Statistics
-
-# # Landscape habitat Output - Not yet available for v8
-
-# Local habitat suitability
-RUN cd /bin/LANDIS_Linux \
-# Commit 1366a092625e0a26fff870e16529c1fe3e071c14 is latest as of writing this.
-&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-Local-Habitat-Suitability-Output.git 1366a092625e0a26fff870e16529c1fe3e071c14 /src \ 
-&& cd /bin/LANDIS_Linux/Extension-Local-Habitat-Suitability-Output/src \
-&& python /bin/LANDIS_Linux/editing_csproj_LANDIS-II_files.py ./local-habitat-output.csproj \
-&& dotnet build -c Release \
-&& wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-Local-Habitat-Suitability-Output/1366a092625e0a26fff870e16529c1fe3e071c14/deploy/installer/Local%20Habitat%20Output.txt \
-&& dotnet $LANDIS_EXTENSIONS_TOOL add "Local Habitat Output.txt" \
-&& cd /bin/LANDIS_Linux/ && rm -r Extension-Local-Habitat-Suitability-Output
-
-# # PnET Output - Not yet available for v8
-
-# Wildlife habitat Output
-RUN cd /bin/LANDIS_Linux \
-# Commit 695a03ba11a21d8a12eb714a6c8759a8284290f2 is latest as of writing this.
-&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-Output-Wildlife-Habitat.git 695a03ba11a21d8a12eb714a6c8759a8284290f2 /src \ 
-&& cd /bin/LANDIS_Linux/Extension-Output-Wildlife-Habitat/src \
-&& python /bin/LANDIS_Linux/editing_csproj_LANDIS-II_files.py ./wildlife-habitat.csproj \
-&& dotnet build -c Release \
-&& wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-Output-Wildlife-Habitat/695a03ba11a21d8a12eb714a6c8759a8284290f2/deploy/installer/Wildlife%20Habitat%20Output%203.txt \
-&& dotnet $LANDIS_EXTENSIONS_TOOL add "Wildlife Habitat Output 3.txt" \
-&& cd /bin/LANDIS_Linux/ && rm -r Extension-Output-Wildlife-Habitat
 
 # ################################################################
 # # RECOMPILING SOME THINGS TO SOLVE METADATALIBRARY ERROR
@@ -534,10 +316,10 @@ RUN cd /bin/LANDIS_Linux \
 
 # Biomass Succession
 RUN cd /bin/LANDIS_Linux \
-# Commit 58ad3673e02abe82f437a6b68c44220c51351091 is latest at time of writing.
-&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-Biomass-Succession.git 58ad3673e02abe82f437a6b68c44220c51351091 /testings \ 
-&& cd /bin/LANDIS_Linux/Extension-Biomass-Succession/testings/CoreV8.0-BiomassSuccession7.0 \
-&& dotnet $LANDIS_CONSOLE scenario.txt
+# # Commit 58ad3673e02abe82f437a6b68c44220c51351091 is latest at time of writing.
+# && ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-Biomass-Succession.git 58ad3673e02abe82f437a6b68c44220c51351091 /testings \ 
+# && cd /bin/LANDIS_Linux/Extension-Biomass-Succession/testings/CoreV8.0-BiomassSuccession7.0 \
+# && dotnet $LANDIS_CONSOLE scenario.txt
 
 
 
