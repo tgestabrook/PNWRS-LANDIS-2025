@@ -69,7 +69,7 @@ COPY ./files_to_help_compilation/editing_csproj_LANDIS-II_files.py /bin/LANDIS_L
 
 # Transfering the sh script that allows us to only download one folder from one commit from github
 COPY ./files_to_help_compilation/downloadSpecificGitCommitAndFolder.sh /bin/LANDIS_Linux
-
+RUN chmod +x /bin/LANDIS_Linux/downloadSpecificGitCommitAndFolder.sh
 
 ###### COMPILING AND REGISTERING EXTENSIONS 
 # INFO: The files necessary for the compilation are downloaded through the script downloadSpecificGitCommitAndFolder.sh
@@ -89,16 +89,16 @@ COPY ./files_to_help_compilation/downloadSpecificGitCommitAndFolder.sh /bin/LAND
 
 #### SUCCESSION EXTENSIONS
 
-# Biomass Succession
-RUN cd /bin/LANDIS_Linux \
-# Commit 58ad3673e02abe82f437a6b68c44220c51351091 is latest at time of writing.
-&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-Biomass-Succession.git 58ad3673e02abe82f437a6b68c44220c51351091 /src \ 
-&& cd /bin/LANDIS_Linux/Extension-Biomass-Succession/src \
-&& python /bin/LANDIS_Linux/editing_csproj_LANDIS-II_files.py ./biomass-succession.csproj \
-&& dotnet build -c Release \
-&& wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-Biomass-Succession/9d13943847328e6fc8968120bc46802c8581541b/deploy/installer/Biomass%20Succession%207.txt \
-&& dotnet $LANDIS_EXTENSIONS_TOOL add "Biomass Succession 7.txt" \
-&& cd /bin/LANDIS_Linux/ && rm -r Extension-Biomass-Succession 
+# # Biomass Succession
+# RUN cd /bin/LANDIS_Linux \
+# # Commit 58ad3673e02abe82f437a6b68c44220c51351091 is latest at time of writing.
+# && ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-Biomass-Succession.git 58ad3673e02abe82f437a6b68c44220c51351091 /src \ 
+# && cd /bin/LANDIS_Linux/Extension-Biomass-Succession/src \
+# && python /bin/LANDIS_Linux/editing_csproj_LANDIS-II_files.py ./biomass-succession.csproj \
+# && dotnet build -c Release \
+# && wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-Biomass-Succession/9d13943847328e6fc8968120bc46802c8581541b/deploy/installer/Biomass%20Succession%207.txt \
+# && dotnet $LANDIS_EXTENSIONS_TOOL add "Biomass Succession 7.txt" \
+# && cd /bin/LANDIS_Linux/ && rm -r Extension-Biomass-Succession 
 
 # # NECN Succession
 RUN cd /bin/LANDIS_Linux \
@@ -313,7 +313,7 @@ RUN cd /bin/LANDIS_Linux \
 # # # The test files for v6 works perfectly.
 
 # Biomass Succession
-RUN cd /bin/LANDIS_Linux \
+RUN cd /bin/LANDIS_Linux
 # # Commit 58ad3673e02abe82f437a6b68c44220c51351091 is latest at time of writing.
 # && ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-Biomass-Succession.git 58ad3673e02abe82f437a6b68c44220c51351091 /testings \ 
 # && cd /bin/LANDIS_Linux/Extension-Biomass-Succession/testings/CoreV8.0-BiomassSuccession7.0 \
@@ -323,9 +323,9 @@ RUN cd /bin/LANDIS_Linux \
 
 # # RUN cd $LANDIS_FOLDER/Extension-Biomass-Succession/testings/CoreV7.0-BiomassSuccession6.0 \
 # # && dotnet $LANDIS_CONSOLE scenario.txt
-
-# # RUN cd $LANDIS_FOLDER/Extension-NECN-Succession/testing/Core7-NECN7-Landscape \
-# # && dotnet $LANDIS_CONSOLE scenario_landscape.txt
+RUN ./downloadSpecificGitCommitAndFolder.shhttps://github.com/LANDIS-II-Foundation/Extension-NECN-Succession.git 37ce246c37bab3448e3db134373deb56063e14ac /testing \
+&& cd $LANDIS_FOLDER/Extension-NECN-Succession/testing/Core8-NECN8-Landscape \
+&& dotnet $LANDIS_CONSOLE scenario_LTB_landscape.txt
 
 # # For PnET, there are many test folders; I use one of the simplest ones.
 # # Problem : Many files are misnamed compared to how they are called in the parameter files.
