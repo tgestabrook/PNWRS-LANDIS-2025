@@ -101,14 +101,23 @@ RUN chmod +x /bin/LANDIS_Linux/downloadSpecificGitCommitAndFolder.sh
 # && cd /bin/LANDIS_Linux/ && rm -r Extension-Biomass-Succession 
 
 # # NECN Succession
+# RUN cd /bin/LANDIS_Linux \
+# # Commit 37ce246c37bab3448e3db134373deb56063e14ac is latest at time of writing.
+# && ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-NECN-Succession.git 37ce246c37bab3448e3db134373deb56063e14ac /src \ 
+# && cd /bin/LANDIS_Linux/Extension-NECN-Succession/src \
+# && python /bin/LANDIS_Linux/editing_csproj_LANDIS-II_files.py ./NECN-succession.csproj \
+# # The devellopers of NECN forgot to add a line referencing the location of one of the support libraries.
+# # I add it here manually at the right place in the file.
+# && cd /bin/LANDIS_Linux/Extension-NECN-Succession/src && sed -i '39i    <HintPath>..\\..\\build\\extensions\\Landis.Library.Climate-v5.dll</HintPath>' NECN-succession.csproj \
+# && dotnet build -c Release \
+# && wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-NECN-Succession/37ce246c37bab3448e3db134373deb56063e14ac/deploy/installer/NECN_Succession8.txt \
+# && dotnet $LANDIS_EXTENSIONS_TOOL add "NECN_Succession8.txt" \
+# && cd /bin/LANDIS_Linux/ && rm -r Extension-NECN-Succession
+
 RUN cd /bin/LANDIS_Linux \
 # Commit 37ce246c37bab3448e3db134373deb56063e14ac is latest at time of writing.
-&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-NECN-Succession.git 37ce246c37bab3448e3db134373deb56063e14ac /src \ 
-&& cd /bin/LANDIS_Linux/Extension-NECN-Succession/src \
-&& python /bin/LANDIS_Linux/editing_csproj_LANDIS-II_files.py ./NECN-succession.csproj \
-# The devellopers of NECN forgot to add a line referencing the location of one of the support libraries.
-# I add it here manually at the right place in the file.
-&& cd /bin/LANDIS_Linux/Extension-NECN-Succession/src && sed -i '39i    <HintPath>..\\..\\build\\extensions\\Landis.Library.Climate-v5.dll</HintPath>' NECN-succession.csproj \
+&& git clone -b fine_plus_coarse https://github.com/tgestabrook/NECN-v8-LINUX \ 
+&& cd /bin/LANDIS_Linux/NECN-v8-LINUX/src \
 && dotnet build -c Release \
 && wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-NECN-Succession/37ce246c37bab3448e3db134373deb56063e14ac/deploy/installer/NECN_Succession8.txt \
 && dotnet $LANDIS_EXTENSIONS_TOOL add "NECN_Succession8.txt" \
@@ -313,7 +322,6 @@ RUN cd /bin/LANDIS_Linux \
 # # # The test files for v6 works perfectly.
 
 # Biomass Succession
-RUN cd /bin/LANDIS_Linux
 # # Commit 58ad3673e02abe82f437a6b68c44220c51351091 is latest at time of writing.
 # && ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-Biomass-Succession.git 58ad3673e02abe82f437a6b68c44220c51351091 /testings \ 
 # && cd /bin/LANDIS_Linux/Extension-Biomass-Succession/testings/CoreV8.0-BiomassSuccession7.0 \
@@ -323,7 +331,8 @@ RUN cd /bin/LANDIS_Linux
 
 # # RUN cd $LANDIS_FOLDER/Extension-Biomass-Succession/testings/CoreV7.0-BiomassSuccession6.0 \
 # # && dotnet $LANDIS_CONSOLE scenario.txt
-RUN ./downloadSpecificGitCommitAndFolder.shhttps://github.com/LANDIS-II-Foundation/Extension-NECN-Succession.git 37ce246c37bab3448e3db134373deb56063e14ac /testing \
+RUN cd /bin/LANDIS_Linux \
+&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-NECN-Succession.git 37ce246c37bab3448e3db134373deb56063e14ac /testing \
 && cd $LANDIS_FOLDER/Extension-NECN-Succession/testing/Core8-NECN8-Landscape \
 && dotnet $LANDIS_CONSOLE scenario_LTB_landscape.txt
 
