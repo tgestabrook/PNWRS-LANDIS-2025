@@ -121,7 +121,7 @@ RUN cd /bin/LANDIS_Linux \
 && dotnet build -c Release \
 && wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-NECN-Succession/37ce246c37bab3448e3db134373deb56063e14ac/deploy/installer/NECN_Succession8.txt \
 && dotnet $LANDIS_EXTENSIONS_TOOL add "NECN_Succession8.txt" \
-&& cd /bin/LANDIS_Linux/ && rm -r Extension-NECN-Succession
+&& cd /bin/LANDIS_Linux/ && rm -r NECN-v8-LINUX
 
 #### DISTURBANCE EXTENSIONS
 
