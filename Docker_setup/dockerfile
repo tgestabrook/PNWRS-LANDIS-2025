@@ -183,8 +183,6 @@ RUN cd /bin/LANDIS_Linux \
 && dotnet $LANDIS_EXTENSIONS_TOOL add "Climate BDA 5.txt" \
 && cd /bin/LANDIS_Linux/ && rm -r Extension-Base-BDA
 
-# Root rot - Not yet available for v8
-
 ### OUTPUT EXTENSIONS
 
 # Biomass Output
