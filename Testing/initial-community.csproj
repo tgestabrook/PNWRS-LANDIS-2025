@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Landis.Library.InitialCommunity.Universal</RootNamespace>
+    <AssemblyName>Landis.Library.InitialCommunity.Universal</AssemblyName>
+    <AssemblyTitle>Landis.Library.InitialCommunity.Biomass</AssemblyTitle>
+    <AssemblyCompany>LANDIS-II Foundation</AssemblyCompany>
+    <AssemblyProduct>Landis.Library.InitialCommunity.Biomass</AssemblyProduct>
+    <AssemblyCopyright>LANDIS-II Foundation</AssemblyCopyright>        
+    <AssemblyDescription>Initial Communities Library for LANDIS-II</AssemblyDescription>
+    <AssemblyVersion>1.1</AssemblyVersion>
+    <Version>1.1</Version>
+    <FileVersion>1.1</FileVersion>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <RepositoryUrl>https://github.com/LANDIS-II-Foundation/Library-Initial-Community</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseUrl>https://github.com/LANDIS-II-Foundation/Library-Initial-Community/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>http://www.landis-ii.org</PackageProjectUrl>
+    <NeutralLanguage>English</NeutralLanguage>
+    <Authors>LANDIS-II Foundation</Authors>
+    <Product>InitialCommunity Library</Product>
+    <Copyright>LANDIS-II Foundation</Copyright>
+    <PackageTags>LANDIS-II;Landis;Library;InitialCommunity</PackageTags>
+    <Description>InitialCommunity Library for LANDIS-II</Description>
+    <PackageReleaseNotes>.NET Standard 2.0 update.</PackageReleaseNotes>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Landis.Core" Version="3.0.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Landis.Library.UniversalCohorts-v1">
+      <HintPath>lib\Landis.Library.UniversalCohorts-v1.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  
+</Project>
