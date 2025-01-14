@@ -238,58 +238,58 @@ RUN cd /bin/LANDIS_Linux \
 # && dotnet build -c Release \
 # && cd /bin/LANDIS_Linux/ && rm -r Library-Metadata
 
-# # Recompiling the core as per https://github.com/CU-ESIIL/ExtremeWildfire/blob/main/docker/landis2/Dockerfile
-# RUN cd /bin/LANDIS_Linux && git clone https://github.com/LANDIS-II-Foundation/Core-Model-v8-LINUX.git \
-# && sed -i '/<\/Project>/i \
-# <ItemGroup>\n\
-#     <Reference Include="Landis.Extension.Succession.Biomass-v7.dll">\n\
-#         <HintPath>../../../build/extensions/Landis.Extension.Succession.Biomass-v7.dll</HintPath>\n\
-#     </Reference>\n\
-#     <Reference Include="Landis.Library.Metadata-v2">\n\
-#         <HintPath>../../../build/extensions/Landis.Library.Metadata-v2.dll</HintPath>\n\
-#     </Reference>\n\
-#     <Reference Include="Landis.Library.Succession-v9.dll">\n\
-#         <HintPath>../../../build/extensions/Landis.Library.Succession-v9.dll</HintPath>\n\
-#     </Reference>\n\
-#     <Reference Include="Landis.Extension.Succession.NECN-v8.dll">\n\
-#         <HintPath>../../../build/extensions/Landis.Extension.Succession.NECN-v8.dll</HintPath>\n\
-#     </Reference>\n\
-#     <Reference Include="Landis.Extension.SocialClimateFire-v4.dll">\n\
-#         <HintPath>../../../build/extensions/Landis.Extension.SocialClimateFire-v4.dll</HintPath>\n\
-#     </Reference>\n\
-#     <Reference Include="Landis.Extension.Output.Biomass-v4.dll">\n\
-#         <HintPath>../../../build/extensions/Landis.Extension.Output.Biomass-v4.dll</HintPath>\n\
-#     </Reference>\n\
-#     <Reference Include="Landis.Extension.Output.BiomassCommunity-v3.dll">\n\
-#         <HintPath>../../../build/extensions/Landis.Extension.Output.BiomassCommunity-v3.dll</HintPath>\n\
-#     </Reference>\n\
-#     <Reference Include="Landis.Extension.Output.BiomassReclass-v4.dll">\n\
-#         <HintPath>../../../build/extensions/Landis.Extension.Output.BiomassReclass-v4.dll</HintPath>\n\
-#     </Reference>\n\
-#     <Reference Include="Landis.Library.BiomassHarvest-v3.dll">\n\
-#         <HintPath>../../../build/extensions/Landis.Library.BiomassHarvest-v3.dll</HintPath>\n\
-#     </Reference>\n\
-#     <Reference Include="Landis.Library.Climate-v5.dll">\n\
-#         <HintPath>../../../build/extensions/Landis.Library.Climate-v5.dll</HintPath>\n\
-#     </Reference>\n\
-#     <Reference Include="Landis.Library.HarvestManagement-v4.dll">\n\
-#         <HintPath>../../../build/extensions/Landis.Library.HarvestManagement-v4.dll</HintPath>\n\
-#     </Reference>\n\
-#     <Reference Include="Landis.Library.HarvestManagement-v4.dll">\n\
-#         <HintPath>../../../build/extensions/Landis.Library.HarvestManagement-v4.dll</HintPath>\n\
-#     </Reference>\n\
-#     <Reference Include="log4net.dll">\n\
-#         <HintPath>../../../build/extensions/log4net.dll</HintPath>\n\
-#     </Reference>\n\
-#     <Reference Include="Landis.Library.UniversalCohorts-v1.dll">\n\
-#         <HintPath>../../../build/extensions/Landis.Library.UniversalCohorts-v1.dll</HintPath>\n\
-#     </Reference>\n\
-# </ItemGroup>' /bin/LANDIS_Linux/Core-Model-v8-LINUX/Tool-Console/src/Console.csproj \
-# && cp /bin/LANDIS_Linux/build/extensions/extensions.xml /bin/LANDIS_Linux \
-# && cd /bin/LANDIS_Linux/Core-Model-v8-LINUX/Tool-Console/src && dotnet build -c Release \
-# && cp -r /bin/LANDIS_Linux/Core-Model-v8-LINUX/build/* /bin/LANDIS_Linux/build \
-# && cp /bin/LANDIS_Linux/extensions.xml /bin/LANDIS_Linux/build/extensions/ \
-# && rm -r /bin/LANDIS_Linux/Core-Model-v8-LINUX
+# Recompiling the core as per https://github.com/CU-ESIIL/ExtremeWildfire/blob/main/docker/landis2/Dockerfile
+RUN cd /bin/LANDIS_Linux && git clone https://github.com/LANDIS-II-Foundation/Core-Model-v8-LINUX.git \
+&& sed -i '/<\/Project>/i \
+<ItemGroup>\n\
+    <Reference Include="Landis.Extension.Succession.Biomass-v7.dll">\n\
+        <HintPath>../../../build/extensions/Landis.Extension.Succession.Biomass-v7.dll</HintPath>\n\
+    </Reference>\n\
+    <Reference Include="Landis.Library.Metadata-v2">\n\
+        <HintPath>../../../build/extensions/Landis.Library.Metadata-v2.dll</HintPath>\n\
+    </Reference>\n\
+    <Reference Include="Landis.Library.Succession-v9.dll">\n\
+        <HintPath>../../../build/extensions/Landis.Library.Succession-v9.dll</HintPath>\n\
+    </Reference>\n\
+    <Reference Include="Landis.Extension.Succession.NECN-v8.dll">\n\
+        <HintPath>../../../build/extensions/Landis.Extension.Succession.NECN-v8.dll</HintPath>\n\
+    </Reference>\n\
+    <Reference Include="Landis.Extension.SocialClimateFire-v4.dll">\n\
+        <HintPath>../../../build/extensions/Landis.Extension.SocialClimateFire-v4.dll</HintPath>\n\
+    </Reference>\n\
+    <Reference Include="Landis.Extension.Output.Biomass-v4.dll">\n\
+        <HintPath>../../../build/extensions/Landis.Extension.Output.Biomass-v4.dll</HintPath>\n\
+    </Reference>\n\
+    <Reference Include="Landis.Extension.Output.BiomassCommunity-v3.dll">\n\
+        <HintPath>../../../build/extensions/Landis.Extension.Output.BiomassCommunity-v3.dll</HintPath>\n\
+    </Reference>\n\
+    <Reference Include="Landis.Extension.Output.BiomassReclass-v4.dll">\n\
+        <HintPath>../../../build/extensions/Landis.Extension.Output.BiomassReclass-v4.dll</HintPath>\n\
+    </Reference>\n\
+    <Reference Include="Landis.Library.BiomassHarvest-v3.dll">\n\
+        <HintPath>../../../build/extensions/Landis.Library.BiomassHarvest-v3.dll</HintPath>\n\
+    </Reference>\n\
+    <Reference Include="Landis.Library.Climate-v5.dll">\n\
+        <HintPath>../../../build/extensions/Landis.Library.Climate-v5.dll</HintPath>\n\
+    </Reference>\n\
+    <Reference Include="Landis.Library.HarvestManagement-v4.dll">\n\
+        <HintPath>../../../build/extensions/Landis.Library.HarvestManagement-v4.dll</HintPath>\n\
+    </Reference>\n\
+    <Reference Include="Landis.Library.HarvestManagement-v4.dll">\n\
+        <HintPath>../../../build/extensions/Landis.Library.HarvestManagement-v4.dll</HintPath>\n\
+    </Reference>\n\
+    <Reference Include="log4net.dll">\n\
+        <HintPath>../../../build/extensions/log4net.dll</HintPath>\n\
+    </Reference>\n\
+    <Reference Include="Landis.Library.UniversalCohorts-v1.dll">\n\
+        <HintPath>../../../build/extensions/Landis.Library.UniversalCohorts-v1.dll</HintPath>\n\
+    </Reference>\n\
+</ItemGroup>' /bin/LANDIS_Linux/Core-Model-v8-LINUX/Tool-Console/src/Console.csproj \
+&& cp /bin/LANDIS_Linux/build/extensions/extensions.xml /bin/LANDIS_Linux \
+&& cd /bin/LANDIS_Linux/Core-Model-v8-LINUX/Tool-Console/src && dotnet build -c Release \
+&& cp -r /bin/LANDIS_Linux/Core-Model-v8-LINUX/build/* /bin/LANDIS_Linux/build \
+&& cp /bin/LANDIS_Linux/extensions.xml /bin/LANDIS_Linux/build/extensions/ \
+&& rm -r /bin/LANDIS_Linux/Core-Model-v8-LINUX
 
 # # Universal cohorts library
 # RUN cd /bin/LANDIS_Linux \
