@@ -85,54 +85,6 @@ RUN wget -O master.zip https://github.com/LANDIS-II-Foundation/Extension-Output-
     cd /opt/Core-Model-v8-LINUX-main/build/extensions/Extension-Output-Biomass-Community-master/deploy/installer; dotnet /opt/Core-Model-v8-LINUX-main/build/Release/Landis.Extensions.dll add "Output Biomass Community 3.txt" && \
     cp /opt/Core-Model-v8-LINUX-main/build/extensions/Extension-Output-Biomass-Community-master/src/obj/Release/netstandard2.0/Landis.Extension.Output.BiomassCommunity-v3.dll /opt/Core-Model-v8-LINUX-main/build/extensions/.
 
-# Output Biomass Succession
-RUN wget -O master.zip https://github.com/LANDIS-II-Foundation/Extension-Biomass-Succession/archive/refs/heads/master.zip && \
-    unzip master.zip -d /opt/Core-Model-v8-LINUX-main/build/extensions/ && \
-    rm master.zip && \
-    cp /opt/Core-Model-v8-LINUX-main/build/extensions/Support-Library-Dlls-v8-main/*.dll /opt/Core-Model-v8-LINUX-main/build/extensions/Extension-Biomass-Succession-master/src/lib/ && \
-    cd /opt/Core-Model-v8-LINUX-main/build/extensions/Extension-Biomass-Succession-master/src; sed -i -e 's/lib\\Landis.Library/..\\..\\Support-Library-Dlls-v8-master\\Landis.Library/g' biomass-succession.csproj && \
-    cd /opt/Core-Model-v8-LINUX-main/build/extensions/Extension-Biomass-Succession-master/src; dotnet build -c Release biomass-succession.csproj && \
-    cd /opt/Core-Model-v8-LINUX-main/build/extensions/Extension-Biomass-Succession-master/deploy/installer; dotnet /opt/Core-Model-v8-LINUX-main/build/Release/Landis.Extensions.dll add "/opt/Core-Model-v8-LINUX-main/build/extensions/Extension-Biomass-Succession-master/deploy/installer/Biomass Succession 7.txt" && \
-    cp /opt/Core-Model-v8-LINUX-main/build/extensions/Extension-Biomass-Succession-master/src/obj/Release/netstandard2.0/Landis.Extension.Succession.Biomass-v7.dll /opt/Core-Model-v8-LINUX-main/build/extensions/.
-
-# Output Biomass Reclass
-RUN wget -O master.zip https://github.com/LANDIS-II-Foundation/Extension-Output-Biomass-Reclass/archive/refs/heads/master.zip && \
-    unzip master.zip -d /opt/Core-Model-v8-LINUX-main/build/extensions/ && \
-    rm master.zip && \
-    cp /opt/Core-Model-v8-LINUX-main/build/extensions/Support-Library-Dlls-v8-main/*.dll /opt/Core-Model-v8-LINUX-main/build/extensions/Extension-Output-Biomass-Reclass-master/src/lib/ && \
-    cd /opt/Core-Model-v8-LINUX-main/build/extensions/Extension-Output-Biomass-Reclass-master/src; sed -i -e 's/lib\\Landis.Library/..\\..\\Support-Library-Dlls-v8-master\\Landis.Library/g' output-biomass.csproj && \
-    cd /opt/Core-Model-v8-LINUX-main/build/extensions/Extension-Output-Biomass-Reclass-master/src; dotnet build -c Release output-biomass.csproj && \
-    cd /opt/Core-Model-v8-LINUX-main/build/extensions/Extension-Output-Biomass-Reclass-master/deploy/installer; dotnet /opt/Core-Model-v8-LINUX-main/build/Release/Landis.Extensions.dll add "Output Biomass Reclass 4.txt" && \
-    cp /opt/Core-Model-v8-LINUX-main/build/extensions/Extension-Output-Biomass-Reclass-master/src/obj/Release/netstandard2.0/Landis.Extension.Output.BiomassReclass-v4.dll /opt/Core-Model-v8-LINUX-main/build/extensions/.
-
-# GIPL (WORKS)
-RUN wget https://github.com/LANDIS-II-Foundation/Library-GIPL/archive/master.zip && \
-    unzip master.zip -d /opt/Core-Model-v8-LINUX-main/build/extensions/ && \
-    rm master.zip && \
-    mv /opt/Core-Model-v8-LINUX-main/build/extensions/Library-GIPL-master/ /opt/Core-Model-v8-LINUX-main/build/extensions/Library-GIPL/ && \
-    cd /opt/Core-Model-v8-LINUX-main/build/extensions/Library-GIPL/src; sed -i -e 's/lib\\Landis.Library/..\\..\\Support-Library-Dlls-v8-master\\Landis.Library/g' GiplDamm.csproj && \
-    cd /opt/Core-Model-v8-LINUX-main/build/extensions/Library-GIPL/src; dotnet build -c Release GiplDamm.csproj && \
-    cp /opt/Core-Model-v8-LINUX-main/build/extensions/Library-GIPL/src/bin/Debug/netstandard2.0/Landis.Extension.GiplDamm.dll /opt/Core-Model-v8-LINUX-main/build/extensions/.  
- 
-# SHAW (WORKS)
-RUN wget https://github.com/LANDIS-II-Foundation/Library-Shaw/archive/refs/heads/master.zip && \
-    unzip master.zip -d /opt/Core-Model-v8-LINUX-main/build/extensions/ && \
-    rm master.zip && \
-    mv /opt/Core-Model-v8-LINUX-main/build/extensions/Library-Shaw-master/ /opt/Core-Model-v8-LINUX-main/build/extensions/Library-Shaw/ && \
-    cd /opt/Core-Model-v8-LINUX-main/build/extensions/Library-Shaw/src; sed -i -e 's/lib\\Landis.Library/..\\..\\Support-Library-Dlls-v8-master\\Landis.Library/g' ShawDammNewInputs.csproj && \
-    cd /opt/Core-Model-v8-LINUX-main/build/extensions/Library-Shaw/src; dotnet build -c Release ShawDammNewInputs.csproj && \
-    cp /opt/Core-Model-v8-LINUX-main/build/extensions/Library-Shaw/src/bin/Debug/netstandard2.0/Landis.Extension.ShawDamm.dll /opt/Core-Model-v8-LINUX-main/build/extensions/. 
-
-# DGS (WORKS)
-RUN wget https://github.com/LANDIS-II-Foundation/Extension-DGS-Succession/archive/refs/heads/master.zip && \
-    unzip master.zip -d /opt/Core-Model-v8-LINUX-main/build/extensions/ && \
-    rm master.zip && \
-    mv /opt/Core-Model-v8-LINUX-main/build/extensions/Extension-DGS-Succession-master/ /opt/Core-Model-v8-LINUX-main/build/extensions/Extension-DGS-Succession/ && \
-    cd /opt/Core-Model-v8-LINUX-main/build/extensions/Extension-DGS-Succession/src; sed -i -e 's/lib\\Landis.Library/..\\..\\Support-Library-Dlls-v8-master\\Landis.Library/g' DGS-succession.csproj && \
-    cd /opt/Core-Model-v8-LINUX-main/build/extensions/Extension-DGS-Succession/src; dotnet build -c Release DGS-succession.csproj && \
-    cd /opt/Core-Model-v8-LINUX-main/build/extensions/Extension-DGS-Succession/deploy/installer; dotnet /opt/Core-Model-v8-LINUX-main/build/Release/Landis.Extensions.dll add "DGS_Succession 1.102.txt" && \
-    cp /opt/Core-Model-v8-LINUX-main/build/extensions/Extension-DGS-Succession/src/bin/Debug/netstandard2.0/Landis.Extension.Succession.DGS.dll /opt/Core-Model-v8-LINUX-main/build/extensions/. 
-
 # NECN (WORKS)
 RUN wget https://github.com/LANDIS-II-Foundation/Extension-NECN-Succession/archive/refs/heads/master.zip && \
     unzip master.zip -d /opt/Core-Model-v8-LINUX-main/build/extensions/ && \
