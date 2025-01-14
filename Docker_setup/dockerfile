@@ -54,11 +54,18 @@ ENV LANDIS_FOLDER="/bin/LANDIS_Linux"
 
 ###### COMPILING THE CORE 
 
+# RUN mkdir /bin/LANDIS_Linux \
+# && cd /bin/LANDIS_Linux && git clone https://github.com/LANDIS-II-Foundation/Core-Model-v8-LINUX.git \
+# && cd /bin/LANDIS_Linux/Core-Model-v8-LINUX/Tool-Console/src && dotnet build -c Release \
+# && mkdir /bin/LANDIS_Linux/build && mv /bin/LANDIS_Linux/Core-Model-v8-LINUX/build/* /bin/LANDIS_Linux/build \
+# && rm -r /bin/LANDIS_Linux/Core-Model-v8-LINUX
+
 RUN mkdir /bin/LANDIS_Linux \
-&& cd /bin/LANDIS_Linux && git clone https://github.com/LANDIS-II-Foundation/Core-Model-v8-LINUX.git \
+&& cd /bin/LANDIS_Linux && git clone https://github.com/tgestabrook/Core-Model-v8-LINUX.git \
 && cd /bin/LANDIS_Linux/Core-Model-v8-LINUX/Tool-Console/src && dotnet build -c Release \
 && mkdir /bin/LANDIS_Linux/build && mv /bin/LANDIS_Linux/Core-Model-v8-LINUX/build/* /bin/LANDIS_Linux/build \
 && rm -r /bin/LANDIS_Linux/Core-Model-v8-LINUX
+
 # Downloading support libraries and installing them
 RUN cd /bin/LANDIS_Linux && git clone https://github.com/LANDIS-II-Foundation/Support-Library-Dlls-v8.git \
 && mv /bin/LANDIS_Linux/Support-Library-Dlls-v8/* /bin/LANDIS_Linux/build/extensions \
