@@ -33,7 +33,7 @@ RUN apt-get install -y r-base r-base-dev
 # Add CRAN repo, apt key, and backports repository
 # Update apt indices and install two helper packages we need
 RUN apt update -qq 
-RUN apt install --no-install-recommends software-properties-common dirmngr
+RUN apt install -y --no-install-recommends software-properties-common dirmngr
 # Add the secure apt key
 RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc \
 # Verify the key:
@@ -58,7 +58,7 @@ RUN apt-get install -y r-base-core=4.4.1\* \
 # Install R packages
 # First, install system dependencies:
 RUN apt-get install -y libudunits2-dev libgeos-dev libproj-dev libfontconfig1-dev gfortran imagemagick libmagick++-dev
-RUN apt install libssl-dev libcurl4-openssl-dev unixodbc-dev libxml2-dev libmariadb-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev
+RUN apt install -y libssl-dev libcurl4-openssl-dev unixodbc-dev libxml2-dev libmariadb-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev
 # To install R packages from within R (this might be troublesome):
 RUN R -e "install.packages('tidyr',repo='https://cloud.r-project.org')" 
 RUN R -e "install.packages('ggplot2',repo='https://cloud.r-project.org')"
@@ -147,6 +147,10 @@ RUN dotnet $HOME/Core-Model-v7-LINUX/build/Release/Landis.Extensions.dll add $HO
 # Force use of later dotnet version
 RUN dotnet new globaljson --sdk-version 6.0.420 --force
 
+#### Test NECN
+RUN cd $HOME/Core-Model-v7-LINUX/Linux-LANDIS-II-Extension-NECN-Succession-v6.8/src \
+# && cd $HOME/Core-Model-v7-LINUX/Linux-Extension-NECN-Succession/src \
+&&
 
 
 
