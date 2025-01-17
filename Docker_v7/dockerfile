@@ -90,8 +90,6 @@ RUN mkdir /bin/LANDIS_Linux \
 && cd /bin/LANDIS_Linux/Core-Model-v7-LINUX \
 && cp -a ./Support-Library-Dlls-v7/. ./build/extensions
 
-RUN ldd /bin/LANDIS_Linux/.nuget/packages/gdal.core/1.0.0/runtimes/linux-x64/native/gdal_wrap.so
-
 RUN cd /bin/LANDIS_Linux/Core-Model-v7-LINUX \ 
 && git clone https://github.com/tucker-furniss/Linux-LANDIS-II-Extension-NECN-Succession-v6.8.git \
 # Clone other extensions
