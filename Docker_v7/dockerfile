@@ -133,6 +133,7 @@ RUN cd /bin/LANDIS_Linux/Core-Model-v7-LINUX/Linux-LANDIS-II-Extension-Output-Co
 && dotnet build -c Release
 # Install Magic Harvest
 RUN cd /bin/LANDIS_Linux/Core-Model-v7-LINUX/LANDIS-II-Magic-Harvest-linux \
+&& rm -f "Magic Harvest.sln" \
 && dotnet build -c Release
 # Add LANDIS-II-v7 Extension information to extensions.xml
 # Add NECN 6.8 or 7 (Uncomment preferred version)
