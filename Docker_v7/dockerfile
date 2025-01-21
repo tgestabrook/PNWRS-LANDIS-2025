@@ -133,8 +133,7 @@ RUN cd /bin/LANDIS_Linux/Core-Model-v7-LINUX/Linux-LANDIS-II-Extension-Output-Co
 && dotnet build -c Release
 # Install Magic Harvest
 RUN cd /bin/LANDIS_Linux/Core-Model-v7-LINUX/LANDIS-II-Magic-Harvest-linux \
-&& rm -f "Magic Harvest.sln" \
-&& dotnet build -c Release
+&& dotnet build 'Magic Harvest.csproj' -c Release
 # Add LANDIS-II-v7 Extension information to extensions.xml
 # Add NECN 6.8 or 7 (Uncomment preferred version)
 RUN dotnet /bin/LANDIS_Linux/Core-Model-v7-LINUX/build/Release/Landis.Extensions.dll add /bin/LANDIS_Linux/Core-Model-v7-LINUX/Linux-LANDIS-II-Extension-NECN-Succession-v6.8/deploy/installer/"NECN_Succession 6.txt" \
@@ -145,16 +144,16 @@ RUN dotnet /bin/LANDIS_Linux/Core-Model-v7-LINUX/build/Release/Landis.Extensions
 && dotnet /bin/LANDIS_Linux/Core-Model-v7-LINUX/build/Release/Landis.Extensions.dll add /bin/LANDIS_Linux/Core-Model-v7-LINUX/Linux-LANDIS-II-Extension-Output-Biomass-Community/deploy/installer/"Output Biomass Community 2.0.txt" \
 && dotnet /bin/LANDIS_Linux/Core-Model-v7-LINUX/build/Release/Landis.Extensions.dll add /bin/LANDIS_Linux/Core-Model-v7-LINUX/Linux-LANDIS-II-Extension-Output-Cohort-Statistics/deploy/installer/"Output Cohort Statistics 3.0.txt" \
 #dotnet /bin/LANDIS_Linux/Core-Model-v7-LINUX/build/Release/Landis.Extensions.dll add /bin/LANDIS_Linux/Core-Model-v7-LINUX/Extension-Base-Harvest/deploy/installer/"Base Harvest 5.0.txt" \
-&& dotnet /bin/LANDIS_Linux/Core-Model-v7-LINUX/build/Release/Landis.Extensions.dll add /bin/LANDIS_Linux/Core-Model-v7-LINUX/LANDIS-II-Magic-Harvest-linux/Deploy/"Installation Files"/plug-ins-installer-files/"Magic harvest v1.3.txt" \
+&& dotnet /bin/LANDIS_Linux/Core-Model-v7-LINUX/build/Release/Landis.Extensions.dll add /bin/LANDIS_Linux/Core-Model-v7-LINUX/LANDIS-II-Magic-Harvest-linux/Deploy/"Installation Files"/plug-ins-installer-files/"Magic harvest v1.3.txt"
 # Force use of later dotnet version
 RUN dotnet new globaljson --sdk-version 6.0.420 --force
 
 #### Test NECN
 RUN cd /bin/LANDIS_Linux/Core-Model-v7-LINUX/Linux-LANDIS-II-Extension-NECN-Succession-v6.8/testing/Core7-NECN6.8 \
 # && cd /bin/LANDIS_Linux/Core-Model-v7-LINUX/Linux-Extension-NECN-Succession/src \
-&& dotnet /bin/LANDIS_Linux/Core-Model-v7-LINUX/build/Release/Landis.Console.dll scenario_LTB_landscape.txt
+&& dotnet /bin/LANDIS_Linux/Core-Model-v7-LINUX/build/Release/Landis.Console.dll scenario_landscape.txt
 
 
-
-
+ENTRYPOINT [ "dotnet",  "/bin/LANDIS_Linux/Core-Model-v7-LINUX/build/Release/Landis.Console.dll"]
+CMD ["dotnet", "/bin/LANDIS_Linux/Core-Model-v7-LINUX/build/Release/Landis.Console.dll"]
 
