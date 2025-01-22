@@ -44,7 +44,7 @@ RUN git config --global http.version HTTP/1.1 \
 && git config --global http.lowSpeedTime 999999
 
 # PREPARING VARIABLE FOR MORE EASY COMMANDS 
-ENV LANDIS_EXTENSIONS_TOOL="/bin/LANDIS_Linux/build/Release/Landis.Extensions.dll"
+ENV LANDIS_EXTENSIONS_TOOL="/bin/LANDIS_Linux/Core-Model-v8-LINUX/build/Release/Landis.Extensions.dll"
 ENV LANDIS_CONSOLE="/bin/LANDIS_Linux/build/Release/Landis.Console.dll"
 ENV LANDIS_FOLDER="/bin/LANDIS_Linux"
 
@@ -294,7 +294,7 @@ RUN sed -i '/<\/Project>/i \
 </ItemGroup>' /bin/LANDIS_Linux/Core-Model-v8-LINUX/Tool-Console/src/Console.csproj \
 # && cp /bin/LANDIS_Linux/build/extensions/extensions.xml /bin/LANDIS_Linux \
 && cd /bin/LANDIS_Linux/Core-Model-v8-LINUX/Tool-Console/src && dotnet build -c Release \
-&& cp -r /bin/LANDIS_Linux/Core-Model-v8-LINUX/build/* /bin/LANDIS_Linux/build 
+&& mkdir /bin/LANDIS_Linux/build && && cp -r /bin/LANDIS_Linux/Core-Model-v8-LINUX/build/* /bin/LANDIS_Linux/build 
 # && cp /bin/LANDIS_Linux/extensions.xml /bin/LANDIS_Linux/build/extensions/ \
 # && rm -r /bin/LANDIS_Linux/Core-Model-v8-LINUX
 
@@ -324,7 +324,7 @@ RUN sed -i '/<\/Project>/i \
 # # RUN cd $LANDIS_FOLDER/Extension-Biomass-Succession/testings/CoreV7.0-BiomassSuccession6.0 \
 # # && dotnet $LANDIS_CONSOLE scenario.txt
 RUN cd /bin/LANDIS_Linux \
-&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-NECN-Succession.git 37ce246c37bab3448e3db134373deb56063e14ac /testing \
+&& /bin/LANDIS_Linux/Core-Model-v8-LINUX/downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-NECN-Succession.git 37ce246c37bab3448e3db134373deb56063e14ac /testing \
 && cd $LANDIS_FOLDER/Extension-NECN-Succession/testing/Core8-NECN8-Landscape \
 && dotnet $LANDIS_CONSOLE scenario_LTB_landscape.txt
 
