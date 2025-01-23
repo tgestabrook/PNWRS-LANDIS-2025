@@ -14,6 +14,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update && apt upgrade \
 && apt-get update && apt-get -y upgrade \
 && apt-get install -y wget vim pip nano git python3 python-is-python3 \
+&& apt-get install -y build-essential \
 && apt-get install -y libjpeg62 \
 && apt-get install -y libpng16-16 \
 && apt-get install -y gdal-bin \
