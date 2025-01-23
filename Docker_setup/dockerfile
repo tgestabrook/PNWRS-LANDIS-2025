@@ -37,19 +37,22 @@ ENV DOTNET_ROOT=/bin/.dotnet
 ENV PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools
 
 # Install R
+RUN add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/" \
+&& wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
+RUN apt update
 RUN apt-get install -y r-base r-base-dev
 # Add CRAN repo, apt key, and backports repository
 # Update apt indices and install two helper packages we need
 RUN apt update -qq 
 RUN apt install -y --no-install-recommends software-properties-common dirmngr
 # Add the secure apt key
-RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc \
+# RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc \
 # Verify the key:
-&& gpg --show-keys /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc \
+# && gpg --show-keys /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc \
 # The fingerprint should be E298A3A825C0D65DFD57CBB651716619E084DAB9
 # Add CRAN to repository list
-&& echo "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/" | tee -a /etc/apt/sources.list \
-&& apt-get update
+#&& echo "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/" | tee -a /etc/apt/sources.list \
+# && apt-get update
 # Activate the backports repositories:
 RUN echo "deb http://ubuntu.osuosl.org/ubuntu/ $(lsb_release -cs)-backports main restricted universe" | tee -a /etc/apt/sources.list \
 && apt-get update
