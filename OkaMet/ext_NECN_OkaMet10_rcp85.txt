@@ -7,7 +7,7 @@ Timestep  10
 
 SeedingAlgorithm  WardSeedDispersal
 
-InitialCommunities      ../OkaMet/INITIAL_COMMUNITIES_NECN.txt
+InitialCommunities      ../OkaMet/INITIAL_COMMUNITIES_OkaMet.csv
 InitialCommunitiesMap   ../OkaMet/INITIAL_COMMUNITIES_OkaMet.tif
 ClimateConfigFile 	../OkaMet/zClimate_Library/ClimateGenerator_RCP85.txt	
 
