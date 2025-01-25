@@ -7,10 +7,10 @@ extent=$2
 climate=$3
 maxsims=$4
 
-re="^scenario_(.+).txt$"
-if [[ $scenarioFile =~ $re ]]; then scenarioname=${BASH_REMATCH[1]}; fi
+#re="^scenario_(.+).txt$"
+#if [[ $scenarioFile =~ $re ]]; then scenarioname=${BASH_REMATCH[1]}; fi
 
-dirName="LANDIS_Sim_${2}_${3}_${scenarioname}"
+dirName="LANDIS_Sim_${2}_${3}_Sc${1}"
 
 ## Set starting directory
 set back=$PWD
@@ -31,6 +31,7 @@ do
     ## SET DIRECTORY
     echo Creating directory: ${dirName}_$date_time
     mkdir ${dirName}_$date_time
+    Rscript ./Build_Scenario.R $scenarioFile ${dirName}_$date_time
     cd ./${dirName}_$date_time
 
     ## COPY INPUT FILES INTO NEW DIR FOR ARCHIVING
@@ -46,8 +47,8 @@ do
     cp -p ../$extent/zClimate_Library/ClimateGenerator_baseline.txt 		./Input_file_archive 
 
     ## CREATE SCENARIO FILE WITH CORRECT EXTENT
-    sed -i "s|EXTENT|$extent|g" ./Input_file_archive/$scenarioFile
-    sed -i "s|CLIMATE|$climate|g" ./Input_file_archive/$scenarioFile
+    sed -i "s|EXTENT|$extent|g" ./Input_file_archive/scenario.txt
+    sed -i "s|CLIMATE|$climate|g" ./Input_file_archive/scenario.txt
 
     ## RUN LANDIS-II SCENARIO
     echo Running LANDIS-II scenario...

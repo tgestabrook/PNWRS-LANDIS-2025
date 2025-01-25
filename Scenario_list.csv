@@ -1,0 +1,13 @@
+﻿SCNUM,Duration,Scenario,NECN,SCRPPLE,Harvest,MH
+0,75,CalibRun,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_EXTENT.txt,NA,NA
+1,100,GrowOut,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,NA,NA,NA
+2,100,BAU_Wildfire,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_EXTENT.txt,NA,NA
+3,100,Rx_2pct,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_Rx_EXTENT.txt,NA,../ext_magic_harvest_Rx_only.txt
+4,100,Rx_5pct,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_Rx_EXTENT.txt,NA,../ext_magic_harvest_Rx_only.txt
+5,100,Thin_2pct,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_EXTENT.txt,../ext_BiomassHarvest_mh.txt,../ext_magic_harvest_thin_low.txt
+6,100,Thin_5pct,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_EXTENT.txt,../ext_BiomassHarvest_mh.txt,../ext_magic_harvest_thin_high.txt
+7,100,Thin_Rx_2pct,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_Rx_EXTENT.txt,../ext_BiomassHarvest_mh.txt,../ext_magic_harvest_thin_low.txt
+8,100,Thin_Rx_5pct,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_Rx_EXTENT.txt,../ext_BiomassHarvest_mh.txt,../ext_magic_harvest_thin_high.txt
+9,100,Thin_Rx_Wrx_2pct,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_Rx_EXTENT.txt,../ext_BiomassHarvest_mh.txt,../ext_magic_harvest_thin_wRx_low.txt
+10,100,Thin_Rx_Wrx_5pct,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_Rx_EXTENT.txt,../ext_BiomassHarvest_mh.txt,../ext_magic_harvest_thin_wRx_high.txt
+11,100,Thin_Rx_WFU_5pct,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_WFU_EXTENT.txt,../ext_BiomassHarvest_mh.txt,../ext_magic_harvest_thin_high.txt
