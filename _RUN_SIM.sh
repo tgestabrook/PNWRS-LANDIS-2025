@@ -52,7 +52,8 @@ do
 
     ## RUN LANDIS-II SCENARIO
     echo Running LANDIS-II scenario...
-    dotnet $HOME/Core-Model-v7-LINUX/build/Release/Landis.Console ./Input_file_archive/$scenarioFile
+    $LANDIS_CONSOLE scenario.txt
+    # dotnet $HOME/Core-Model-v7-LINUX/build/Release/Landis.Console ./Input_file_archive/$scenarioFile
 
     ## RUN POST-PROCESSING SCRIPT TO PROJECT OUTPUT MAPS AND CONVERT TO GeoTIFF
     echo Post-processing LANDIS-II Outputs...
