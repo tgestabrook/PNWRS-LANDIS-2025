@@ -1,5 +1,8 @@
+args <- commandArgs(trailingOnly = TRUE)
+
 # read in the scenario list
 scenario_list.df <- read.csv("Scenario_list.csv")
+colnames(scenario_list.df)[1]<- "SCNUM"  # stupid but we gotta fix UTF encoding issue
 selected_scnum <- args[1]
 selected_scenario <- scenario_list.df[scenario_list.df$SCNUM == selected_scnum,]
 

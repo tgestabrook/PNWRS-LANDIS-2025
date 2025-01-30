@@ -15,17 +15,8 @@
 ### Set directories and load packages: ----
 if(!suppressWarnings(suppressMessages(require(terra)))) install.packages('terra',repos="https://cloud.r-project.org")
 suppressWarnings(suppressMessages(library(terra)))
-# if(!suppressWarnings(suppressMessages(require(rgdal)))) install.packages('rgdal',repos="https://cloud.r-project.org")
-# suppressWarnings(suppressMessages(library(rgdal)))
-# if(!suppressWarnings(suppressMessages(require(terra)))) install.packages('terra')
-# suppressWarnings(suppressMessages(library(terra)))
-# if(!suppressWarnings(suppressMessages(require(rgeos)))) install.packages('rgeos',repos="https://cloud.r-project.org")
-# suppressWarnings(suppressMessages(library(rgeos)))
-if(!suppressWarnings(suppressMessages(require(sp)))) install.packages('sp',repos="https://cloud.r-project.org")
-suppressWarnings(suppressMessages(library(sp)))
-
-### To prevent the creation of .tif.aux.xml files:
-#invisible(rgdal::setCPLConfigOption("GDAL_PAM_ENABLED", "FALSE"))
+#if(!suppressWarnings(suppressMessages(require(sp)))) install.packages('sp',repos="https://cloud.r-project.org")
+#suppressWarnings(suppressMessages(library(sp)))
 
 #-----------------------------------------------------------------------------------------------------------------------
 Dir<-getwd() # Location of LANDIS-II Model
@@ -37,10 +28,6 @@ cat('\n#########################################################################
 ############################################################################################################\n')
 extensions<-dir(file.path(R.home(),'../../LANDIS-II-v7/extensions'))
 extensions<-extensions[grepl('.dll',extensions)]
-
-## Old hack:
-# necn.ext<-max(ext[grepl('NECN',ext)])
-# cat('NECN:',substr(necn.ext,nchar(necn.ext)-5,nchar(necn.ext)-4),'\n')
 
 ## Improved version:
 # First, find correct files:
@@ -58,18 +45,6 @@ for(i in c('NECN','SCRAPPLE','BiomassHarvest','Climate')){
     
 }
 
-#necn.ext<-system(paste0("powershell (Get-Command ",file.path(R.home(),'../../LANDIS-II-v7/extensions',ext[grepl('NECN',ext)]),").FileVersionInfo.FileVersion"),intern=T)
-#fire.ext<-system(paste0("powershell (Get-Command ",file.path(R.home(),'../../LANDIS-II-v7/extensions',ext[grepl('SCRAPPLE',ext)]),").FileVersionInfo.FileVersion"),intern=T)
-#harvest.ext<-system(paste0("powershell (Get-Command ",file.path(R.home(),'../../LANDIS-II-v7/extensions',ext[grepl('BiomassHarvest',ext)]),").FileVersionInfo.FileVersion"),intern=T)
-#product version for climate library:
-#climate.ext<-system(paste0("powershell (Get-Command ",file.path(R.home(),'../../LANDIS-II-v7/extensions',ext[grepl('Climate',ext)]),").FileVersionInfo.ProductVersion"),intern=T)
-
-#cat(paste0('NECN: v',necn.ext,'\n'))
-#cat(paste0('SCRAPPLE: v',fire.ext,'\n'))
-#cat(paste0('Biomass Harvest: v',harvest.ext,'\n'))
-#cat(paste0('Climate Library: v',climate.ext,'\n\n'))
-
-# cat('working dir:',getwd(),'\n')
 #-----------------------------------------------------------------------------------------------------------------------
 ### Load ecoregions: ----
 ecos<-dir(file.path('Input_file_archive'))[grepl('.tif',dir(file.path('Input_file_archive')))&grepl('ECOREGIONS',dir(file.path('Input_file_archive')))]
@@ -88,26 +63,6 @@ if(sum(values(overlay_normal, na.rm=T))>sum(values(overlay_flip, na.rm=T))){flip
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-# cat('Moving IC output files to a sub-folder...\n')
-# 
-# if(T %in% grepl('community-input-file',dir())){
-#   dir.create('IC_Output')
-#   for(i in dir()[grepl('community-input-file',dir())|grepl('output-community',dir())]){
-#     invisible(file.copy(i,file.path('IC_Output',i)))
-#     invisible(file.remove(i))
-#   }
-# }
-# 
-# toRemove<-dir('IC_Output')[grepl('.csv',dir('IC_Output')) | 
-#                             grepl('.img',dir('IC_Output')) | 
-#                             grepl('.txt',dir('IC_Output'))]
-# toKeep<-toRemove[#grepl('50.csv',toRemove)|
-#                    grepl('-30.img',toRemove)|grepl('-0.img',toRemove)|
-#                    grepl('-0.txt',toRemove)|grepl('-20.txt',toRemove)|
-#                    grepl('-30.txt',toRemove)|grepl('-40.txt',toRemove)|
-#                    grepl('-50.txt',toRemove)|grepl('-80.txt',toRemove)|grepl('-100.txt',toRemove)]
-# toRemove<-toRemove[!toRemove%in%toKeep]
-# file.remove(file.path('IC_Output',toRemove))
 #-----------------------------------------------------------------------------------------------------------------------
 cat('###################################################################################################################################
  Post-processing LANDIS-II outputs. Assigning CRS, applying LZW compression to .tiff files, and converting .img files to GeoTiff.
@@ -159,78 +114,6 @@ for(folder in c('NECN','scrapple-fire')){  # do this for both the scrapple-fire 
     writeRaster(r,file.path(Dir,folder,i2),overwrite=T)
     
     file.remove(file.path(Dir,folder,i))
-  }
-}
-### Convert IC_Output .img to .tifs: ----
-imgs<-dir(file.path(Dir,'IC_Output'))
-imgs<-imgs[grepl('.img',imgs)]
-for(i in imgs){
-  r<-rast(file.path(Dir,'IC_Output',i))  
-  if(flip_rasters){r <- flip(r)}
-  
-  crs(r)<-crs(ecos)
-  ext(r)<-ext(ecos)
-  r[is.na(r)]<-0
-  
-  i2 <- gsub('.img', '.tif', i)
-  writeRaster(r,file.path(Dir,'IC_Output',i2), datatype = "INT4S",overwrite=T)
-  
-  file.remove(file.path(Dir,'IC_Output',i))
-}
-
-### Fix IC_Output files. Remove duplicate ages. LANDIS code is so F'ing buggy! ----
-cat('Fixing IC_Output files. Remove duplicate ages. LANDIS code is so Fing buggy! Checking text file:')
-
-txt<-dir(file.path(Dir,'IC_Output'))
-txt<-txt[grepl('.txt',txt)]
-for(i in txt){
-  cat('\n     - ',i,'...')
-  
-  ic<-read.delim(file.path(Dir,'IC_Output',i),skip=2,header=F)
-  
-  temp<-ic
-  
-  split<-strsplit(ic[,1]," ")
-  
-  age.biomass<-lapply(split,FUN=function(x)
-    if(x[1]=='MapCode') return(x) else return(paste(x[seq(2,length(x),2)],x[seq(3,length(x),2)],sep=' ')))
-  biomass<-lapply(split,FUN=function(x)
-    if(x[1]=='MapCode') return(x) else return(x[seq(3,length(x),2)]))
-  ages<-lapply(split,FUN=function(x) 
-    if(x[1]=='MapCode') return(x) else return(x[seq(2,length(x),2)]))
-  
-  temp$length<-unlist(lapply(ages,FUN=function(x) return(length((x)))))
-  temp$length.unique<-unlist(lapply(ages,FUN=function(x) return(length(unique(x)))))
-  temp$age.biomass<-unlist(lapply(age.biomass,FUN=function(x) return(paste(unique(x),sep=' ',collapse=" "))))
-  # temp$biomass<-unlist(lapply(biomass,FUN=function(x) return(paste(unique(x),sep=' ',collapse=" "))))
-  
-  # temp$ages<-unlist(lapply(ages,FUN=function(x) return(paste(unique(x),sep=' ',collapse=" "))))
-  temp$duplicated.age<-unlist(lapply(ages,FUN=function(x) return(paste(x[duplicated(x)],sep=' ',collapse=" "))))
-  
-  temp[temp$length!=temp$length.unique,]
-  
-  if(nrow(temp[temp$length!=temp$length.unique,])>0){
-    cat('Removing',nrow(temp[temp$length!=temp$length.unique,]),'duplicate cohorts created by buggy InitialCommunity Output code.')
-    
-    for(j in row.names(temp[temp$length!=temp$length.unique,])){
-      sp<-unlist(strsplit(temp[j,'V1']," "))[1]
-      age.biomass.unique<-unlist(strsplit(temp[j,'age.biomass'],temp[j,'duplicated.age']))
-      age.biomass.unique<-paste(sp,age.biomass.unique[1],temp[j,'duplicated.age'],age.biomass.unique[length(age.biomass.unique)])
-      temp[j,'V1']<-age.biomass.unique
-    }
-    ic[row.names(ic)%in%(row.names(temp[temp$length!=temp$length.unique,])),"V1"]<-temp[temp$length!=temp$length.unique,"V1"]
-  }
-  
-  other.error.rows<-row.names( temp[(substr(temp$age.biomass,nchar(temp$age.biomass),nchar(temp$age.biomass))!=")" & !grepl('MapCode',temp$age.biomass))|
-                                      grepl("[0-9] [0-9]",temp$age.biomass),])
-  
-  if(nrow(temp[temp$length!=temp$length.unique,])>0 | length(other.error.rows)>0){
-    
-    ic<-data.frame(ic[!row.names(ic) %in% other.error.rows,])
-    
-    colnames(ic)<-'LandisData "Initial Communities"'
-    
-    write.table(ic,file=file.path(Dir,'IC_Output',i),row.names=F,quote = F)
   }
 }
 
