@@ -18,6 +18,7 @@ RUN apt update && apt upgrade \
 && apt-get install -y libjpeg62 \
 && apt-get install -y libpng16-16 \
 && apt-get install -y gdal-bin \
+&& apt-get install libmysqlclient-dev \
 && apt-get install -y libgdal-dev \
 # Installing libssl1 sometimes needed for Dotnet
 && wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.0g-2ubuntu4_amd64.deb \
