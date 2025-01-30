@@ -3,3 +3,6 @@ LANDIS*/
 /Data/*
 *.tif
 TEST.sh
+Docker_setup/files_to_help_compilation/obj/*
+Docker_v7/files_to_help_compilation/obj/*
+Testing/obj/*
