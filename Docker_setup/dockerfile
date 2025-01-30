@@ -11,7 +11,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # PREPARING PACKAGES AND UPGRADING, AND INSTALLING DEPENDENCIES OF LANDIS-II
 # apt-get clean and rm -rf /var/lib/apt/lists/* are used to clear the packages folder caches
 # to avoid putting them in the docker layerin system, freeing space
-RUN apt - y update && apt -y upgrade \
+RUN apt -y update && apt -y upgrade \
 && apt-get update && apt-get -y upgrade \
 && apt-get install -y wget vim pip nano git python3 python-is-python3 \
 && apt-get install -y build-essential \
@@ -369,8 +369,7 @@ RUN apt-get install -y r-base-core=4.4.1\* \
 # Install R packages
 # First, install system dependencies:
 RUN apt-get install -y libudunits2-dev libgeos-dev libproj-dev libfontconfig1-dev gfortran imagemagick libmagick++-dev 
-RUN apt install -y libmysqlclient-dev
-RUN apt install -y libssl-dev libcurl4-openssl-dev unixodbc-dev libxml2-dev libmariadb-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev libgdal-dev
+RUN apt install -y -f libssl-dev libcurl4-openssl-dev unixodbc-dev libxml2-dev libmariadb-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev libgdal-dev
 # To install R packages from within R (this might be troublesome):
 RUN R -e "install.packages('tidyr',repo='https://cloud.r-project.org')" 
 RUN R -e "install.packages('ggplot2',repo='https://cloud.r-project.org')"
