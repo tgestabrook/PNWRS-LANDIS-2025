@@ -1,0 +1,9 @@
+LandisData "Magic Harvest"
+
+Timestep 1
+
+HarvestExtensionParameterFile ./Input_file_archive/ext_BiomassHarvest_mh.txt
+
+ProcessToLaunch "C:\Program Files\R\R-4.4.1\bin\Rscript.exe"
+
+ProcessArguments "../R2_Rx_magic_harvest_OkaMet.R {timestep} RxIgnProb_high.tif 20 ext_BiomassHarvest_mh.txt"

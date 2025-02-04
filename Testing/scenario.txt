@@ -1,0 +1,28 @@
+LandisData    "Scenario"
+>>  Scenario:Rx_2pct
+
+Duration     100
+
+Species    ../SPECIES.txt
+
+Ecoregions      ../EXTENT/ECOREGIONS.txt
+
+EcoregionsMap   ../EXTENT/ECOREGIONS_EXTENT.tif
+
+CellLength     90 << meters
+
+>>  Succession Extension    Initialization File
+>> ----------------------   -------------------
+"NECN Succession"     ../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt
+
+>> Disturbance Extensions   Initialization File
+>> ----------------------   -------------------
+"Magic Harvest"     ../ext_magic_harvest_Rx_only.txt
+"Social Climate Fire"     ../EXTENT/ext_SCRAPPLE_Rx_EXTENT.txt
+
+DisturbancesRandomOrder  no
+
+>> Other Extensions   Initialization File
+>> ----------------------   -------------------
+"Output Biomass" ../ext_Output_Biomass10.txt
+"Output Cohort Statistics"../ext_Output_CohortStats10.txt
