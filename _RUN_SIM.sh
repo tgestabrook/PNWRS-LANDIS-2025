@@ -34,6 +34,10 @@ do
     Rscript ./Build_Scenario.R $scenarioFile ${dirName}_$date_time
     cd ./${dirName}_$date_time
 
+    ## CREATE SCENARIO FILE WITH CORRECT EXTENT
+    sed -i "s|EXTENT|$extent|g" ./scenario.txt
+    sed -i "s|CLIMATE|$climate|g" ./scenario.txt    
+
     ## COPY INPUT FILES INTO NEW DIR FOR ARCHIVING
     mkdir Input_file_archive 
     cp -p ./*.txt                                                   ./Input_file_archive 
@@ -47,13 +51,11 @@ do
     cp -p ../$extent/ext_BiomassHarvestStands_*.tif 		                ./Input_file_archive 
     cp -p ../$extent/zClimate_Library/ClimateGenerator_baseline.txt 		./Input_file_archive 
 
-    ## CREATE SCENARIO FILE WITH CORRECT EXTENT
-    sed -i "s|EXTENT|$extent|g" ./Input_file_archive/scenario.txt
-    sed -i "s|CLIMATE|$climate|g" ./Input_file_archive/scenario.txt
+
 
     ## RUN LANDIS-II SCENARIO
     echo Running LANDIS-II scenario...
-    dotnet $LANDIS_CONSOLE scenario.txt
+    dotnet $LANDIS_CONSOLE ./scenario.txt
     # dotnet $HOME/Core-Model-v7-LINUX/build/Release/Landis.Console ./Input_file_archive/$scenarioFile
 
     ## RUN POST-PROCESSING SCRIPT TO PROJECT OUTPUT MAPS AND CONVERT TO GeoTIFF

@@ -12,7 +12,7 @@ outfile <- file.path(modeldir, "scenario.txt")
 
 cat(paste0("LandisData    \"Scenario\"\n>>  Scenario:", 
            selected_scenario$Scenario, 
-           "\n\nDuration     ", selected_scenario$Duration,"\n\nSpecies    ../SPECIES.txt\n\nEcoregions      ../EXTENT/ECOREGIONS.txt\n\nEcoregionsMap   ../EXTENT/ECOREGIONS_EXTENT.tif\n\nCellLength     90 << meters\n\n>>  Succession Extension    Initialization File\n>> ----------------------   -------------------\n"),
+           "\n\nDuration     ", selected_scenario$Duration,"\n\nSpecies    ../SPECIES.txt\n\nEcoregions      ../EXTENT/ECOREGIONS_EXTENT.txt\n\nEcoregionsMap   ../EXTENT/ECOREGIONS_EXTENT.tif\n\nCellLength     90 << meters\n\n>>  Succession Extension    Initialization File\n>> ----------------------   -------------------\n"),
     file=outfile)
 
 cat(paste0("\"NECN Succession\"     ", selected_scenario$NECN, "\n\n"), file=outfile, append=T)
