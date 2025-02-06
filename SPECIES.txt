@@ -3,9 +3,9 @@ LandisData  Species
 >>      	              Sexual    Fire  Seed Disperal Dist  Vegetative   Sprout Age  Post-Fire
 >> 	Name      Longevity   Maturity   Tol.  Effective  Maximum  Reprod Prob  Min   Max   Regen
 >>	----      ---------  --------   ----  ---------  -------  -----------  ----------  --------
-	AbieAmab	540			20		4		2			60	200	0	0	0	none
-	AbieGran	270			20		3		3			60	200	0	0	0	none
-	AbieLasi	290			20		5		2			60	200	0	0	0	none
+	AbieAmab	540			20		2		60			200	0	0	0	none
+	AbieGran	270			20		3		60			200	0	0	0	none
+	AbieLasi	290			20		2		60			200	0	0	0	none
 	AbieProc	510			20		3		60			200	0	0	0	none
 	AcerMacr	120			10		1		60			400	0.5	2	120	resprout
 	AlnuRubr	110			7		1		300			500	0.5	2	100	resprout
