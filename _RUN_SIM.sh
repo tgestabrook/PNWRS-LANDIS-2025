@@ -36,6 +36,7 @@ do
 
     ## COPY INPUT FILES INTO NEW DIR FOR ARCHIVING
     mkdir Input_file_archive 
+    cd -p ./*.txt                                                   ./Input_file_archive 
     cp -p ../*.txt					                                ./Input_file_archive 
     cp -p ../$extent/*.txt					                            ./Input_file_archive
     cp -p ../*.csv 					                                ./Input_file_archive 
@@ -52,7 +53,7 @@ do
 
     ## RUN LANDIS-II SCENARIO
     echo Running LANDIS-II scenario...
-    $LANDIS_CONSOLE scenario.txt
+    dotnet $LANDIS_CONSOLE scenario.txt
     # dotnet $HOME/Core-Model-v7-LINUX/build/Release/Landis.Console ./Input_file_archive/$scenarioFile
 
     ## RUN POST-PROCESSING SCRIPT TO PROJECT OUTPUT MAPS AND CONVERT TO GeoTIFF
