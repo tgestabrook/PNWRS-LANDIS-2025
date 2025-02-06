@@ -3,39 +3,39 @@ LandisData  Species
 >>      	              Sexual    Seed Disperal Dist  Vegetative   Sprout Age  Post-Fire
 >> 	Name      Longevity   Maturity   Effective  Maximum  Reprod Prob  Min   Max   Regen
 >>	----      ---------  --------   ---------  -------  -----------  ----------  --------
-	AbieAmab	540			20		60			200	0	0	0	none
-	AbieGran	270			20		60			200	0	0	0	none
-	AbieLasi	290			20		60			200	0	0	0	none
-	AbieProc	510			20		60			200	0	0	0	none
-	AcerMacr	120			10		60			400	0.5	2	120	resprout
-	AlnuRubr	110			7		300			500	0.5	2	100	resprout
-	BetuOcci	110			30		60			200	0.5	2	100	resprout
-	BetuPapy	180			30		60			200	0.5	2	160	resprout
-	ChamNoot	960			40		60			500	0.05	20	820	resprout
-	CornNutt	70			10		60			200	0.8	2	70	resprout
-	FraxLati	110			30		30			200	0.5	2	110	resprout
-	JuniOcci	140			25		30			100	0	0	0	none
-	JuniScop	190			25		30			100	0	0	0	none
-	LariLyal	680			25		90			400	0	0	0	none
-	LariOcci	450			25		90			400	0	0	0	none
-	PiceEnge	410			30		90			400	0	0	0	none
-	PinuAlbi	490			30		180			500	0	0	0	none
-	PinuCont	300			10		60			400	0	0	0	none
-	PinuMont	330			20		60			400	0	0	0	none
-	PinuPond	470			20		90			500	0	0	0	none
-	PopuBals	280			15		180			500	0.7	2	240	resprout
-	PopuTrem	130			15		180			500	0.9	2	110	resprout
-	PrunEmar	70			15		60			200	0.5	2	70	resprout
-	PseuMenz	500			25		180			500	0	0	0	none
-	QuerGarr	200			40		90			500	0.8	3	180	resprout
-	TaxuBrev	290			20		30			300	0	0	0	none
-	ThujPlic	650			20		60			500	0	0	0	none
-	TsugHete	660			20		180			500	0	0	0	none
-	TsugMert	830			20		180			500	0	0	0	none
-	NonFxr_Resprt	60		5		180			500	0.8	5	60	resprout
-	NonFxr_Seed	60			5		300			500	0.1	0	0	none
-	Nfixer_Resprt	60		5		180			500	0.8	5	60	resprout
-	Grass_Forb	100			2		-1			100	0.95	0	5	resprout
+	AbieAmab	540			20		60			200			0			0	0	none
+	AbieGran	270			20		60			200			0			0	0	none
+	AbieLasi	290			20		60			200			0			0	0	none
+	AbieProc	510			20		60			200			0			0	0	none
+	AcerMacr	120			10		60			400			0.5			2	120	resprout
+	AlnuRubr	110			7		300			500			0.5			2	100	resprout
+	BetuOcci	110			30		60			200			0.5			2	100	resprout
+	BetuPapy	180			30		60			200			0.5			2	160	resprout
+	ChamNoot	960			40		60			500			0.05		20	820	resprout
+	CornNutt	70			10		60			200			0.8			2	70	resprout
+	FraxLati	110			30		30			200			0.5			2	110	resprout
+	JuniOcci	140			25		30			100			0			0	0	none
+	JuniScop	190			25		30			100			0			0	0	none
+	LariLyal	680			25		90			400			0			0	0	none
+	LariOcci	450			25		90			400			0			0	0	none
+	PiceEnge	410			30		90			400			0			0	0	none
+	PinuAlbi	490			30		180			500			0			0	0	none
+	PinuCont	300			10		60			400			0			0	0	none
+	PinuMont	330			20		60			400			0			0	0	none
+	PinuPond	470			20		90			500			0			0	0	none
+	PopuBals	280			15		180			500			0.7			2	240	resprout
+	PopuTrem	130			15		180			500			0.9			2	110	resprout
+	PrunEmar	70			15		60			200			0.5			2	70	resprout
+	PseuMenz	500			25		180			500			0			0	0	none
+	QuerGarr	200			40		90			500			0.8			3	180	resprout
+	TaxuBrev	290			20		30			300			0			0	0	none
+	ThujPlic	650			20		60			500			0			0	0	none
+	TsugHete	660			20		180			500			0			0	0	none
+	TsugMert	830			20		180			500			0			0	0	none
+	NonFxr_Resprt	60		5		180			500			0.8			5	60	resprout
+	NonFxr_Seed	60			5		300			500			0.1			0	0	none
+	Nfixer_Resprt	60		5		180			500			0.8			5	60	resprout
+	Grass_Forb	100			2		-1			100			0.95		0	5	resprout
 
 
   
