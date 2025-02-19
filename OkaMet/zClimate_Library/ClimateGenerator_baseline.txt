@@ -4,7 +4,7 @@ LandisData "Climate Config"
 ClimateTimeSeries			Daily_SequencedYears
 >>ClimateFile				../zClimate_Library/empty_for_trial_runs.csv
 ClimateFile				../zClimate_Library/CLIMATE_2020-2120_baseline_OkaMet.csv
-ClimateFileFormat			Daily_Temp-C_Precip-mmDay
+>>ClimateFileFormat			Daily_Temp-C_Precip-mmDay
 
 >> Historical climate data
 SpinUpClimateTimeSeries			Daily_SequencedYears
