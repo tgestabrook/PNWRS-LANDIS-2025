@@ -1,0 +1,276 @@
+LandisData  "Biomass Harvest"
+>> Version 4.3
+
+>>----------------
+>> REQUIRED INPUTS
+>>-----------------
+Timestep		1
+
+ManagementAreas 	../ext_BiomassHarvestMgmt_Tripod.tif
+
+Stands     		../ext_BiomassHarvestStands_Tripod.tif
+
+
+
+>> -------------------------
+>> HARVESTING PRESCRIPTIONS
+>> -------------------------
+
+>>-----------------------------------------------------------
+>>---- PRESCRIPTION MAP CODE 1 ------------------------------
+>>-----------------------------------------------------------
+	Prescription 			MaxBiomass_Valley << Bigger patches, cut entire patch. Heavy harvest. Similar to north.
+>>
+   	StandRanking 			Random		<< Or, Random, TimeSinceLastFire, Economic, MaxCohortAge, RegulateAges, FireHazard. CAUTION: RegulateAges causes the extension to fail and give a warning message about Int32.
+>>      StandRanking   			Economic
+>> 	 Species 	Economic Rank 	Minimum Age
+>> 	 ------- 	------------- 	-----------
+>>   	 poputrem  	 100          	40    
+
+	MinimumAge 			50		<< Optional
+	MaximumAge 			600		<< Optional
+>>	StandAdjacency 			10		<< Optional
+>>	 AdjacencyType 			StandAge	<< Optional
+>>	 AdjacencyNeighborSetAside 	10		<< Optional
+	MinimumTimeSinceLastHarvest 	50		<< Optional
+
+>>	ForestTypeTable 				<< Criteria are used to qualify and disqualify stands for harvesting.
+>>	 InclusionRule	ageRange	%Cells	species
+>> 	 -------------	--------	------	-------
+>>	 Forbidden	1-131		(60%)	acersacc
+>>	 Required	100-450		(20%)	querrubr 
+
+    	SiteSelection 			PatchCutting 30% 3 << Or, PartialStandSpread 1 1, CompleteStandSpread 40 50, Complete, PatchCutting 10%  1. 
+>>	MinTimeSinceDamage 		20		<< 
+>> 	PreventEstablishment 				<< Suppress post-harvest establishment.
+
+>>	CohortsRemoved 			ClearCut	<< Or, SpeciesList
+	CohortsRemoved			SpeciesList
+>>	 Species	Selection
+>>	 ------- 	---------
+	 LariOcci	1-50(95%) 51-120(50%)
+	 PinuPond	1-50(95%) 51-120(50%)
+	 PseuMenz	1-50(95%) 51-120(50%)  << Or, AllExceptOldest
+	 ChamNoot	1-50(95%) 51-120(50%)
+	 AbieAmab	1-80(95%) 81-120(50%)
+	 AbieGran	1-80(95%) 81-120(50%)
+	 AbieLasi	1-80(95%) 81-120(50%)
+	 AbieProc	1-80(95%) 81-120(50%)
+	 AcerMacr	1-80(95%) 81-120(50%)
+	 PiceEnge	1-80(95%) 81-120(50%)
+	 PinuCont	1-80(95%) 81-120(50%)
+	 PinuMont	1-80(95%) 81-120(50%)
+	 ThujPlic	1-80(95%) 81-120(50%)
+	 TsugHete	1-80(95%) 81-120(50%)
+	 TsugMert	1-80(95%) 81-120(50%)
+	 AlnuRubr	1-120(95%)
+	 BetuOcci	1-120(95%)
+	 BetuPapy	1-120(95%)
+	 JuniOcci	1-120(95%)
+	 JuniScop	1-120(95%)
+	 PopuBals	1-120(95%)
+	 PopuTrem	1-120(95%)
+	 QuerGarr	1-120(95%)
+
+>>	Plant 			PseuMenz PinuPond PinuMont TsugHete ThujPlic AbieAmab AbieGran AlnuRubr PopuBals AcerMacr  << Plant a bunch of stuff
+
+>>	SingleRepeat		<< Optional
+>>	MultipleRepeat		<< Optional
+
+>>-----------------------------------------------------------
+>>---- PRESCRIPTION MAP CODE 2 ------------------------------
+>>-----------------------------------------------------------
+	Prescription 			MaxBiomass_Mesic << Apply to Moist Mixed Conifer and Cold-moist forests, North facing slopes. Cut bigger patches, complete cutting within patch. No stand spreading.
+>>
+   	StandRanking 			Random		
+	MinimumAge 			30		<< Optional
+	MaximumAge 			600		<< Optional
+	MinimumTimeSinceLastHarvest 	30		<< Optional
+   	SiteSelection 			PatchCutting 30% 3 
+	MinTimeSinceDamage 		10		
+
+	CohortsRemoved			SpeciesList
+>>	 Species	Selection
+>>	 ------- 	---------
+	 LariOcci	1-50(95%) 51-120(50%)
+	 PinuPond	1-50(95%) 51-120(50%)
+	 PseuMenz	1-50(95%) 51-120(50%)
+	 ChamNoot	1-50(95%) 51-120(50%)
+	 AbieAmab	1-80(95%) 81-120(50%)
+	 AbieGran	1-80(95%) 81-120(50%)
+	 AbieLasi	1-80(95%) 81-120(50%)
+	 AbieProc	1-80(95%) 81-120(50%)
+	 AcerMacr	1-80(95%) 81-120(50%)
+	 PiceEnge	1-80(95%) 81-120(50%)
+	 PinuCont	1-80(95%) 81-120(50%)
+	 PinuMont	1-80(95%) 81-120(50%)
+	 ThujPlic	1-80(95%) 81-120(50%)
+	 TsugHete	1-80(95%) 81-120(50%)
+	 TsugMert	1-80(95%) 81-120(50%)
+	 AlnuRubr	1-120(95%)
+	 BetuOcci	1-120(95%)
+	 BetuPapy	1-120(95%)
+	 JuniOcci	1-120(95%)
+	 JuniScop	1-120(95%)
+	 PopuBals	1-120(95%)
+	 PopuTrem	1-120(95%)
+	 QuerGarr	1-120(95%)
+
+	Plant 			PseuMenz PinuPond LariOcci
+
+>>-----------------------------------------------------------
+>>---- PRESCRIPTION MAP CODE 3 ------------------------------
+>>-----------------------------------------------------------
+	Prescription 			MaxBiomass_Xeric << Apply to Dry Mixed Conifer and Cold-dry forests, South facing slopes, Ridges. Aggressive thinning of small stems and larger treatments. 
+>>
+   	StandRanking 			Random		<< 
+	MinimumAge 			20		<< 
+	MaximumAge 			600		<< No max age. Treat everything.
+	MinimumTimeSinceLastHarvest 	10		<< 
+    	SiteSelection 			CompleteStandSpread 5 100 << Cut multiple stands at a time, min harvest size 20 ha max harvest size 100 ha
+	MinTimeSinceDamage 		5		
+
+	CohortsRemoved			SpeciesList
+>>	 Species	Selection
+>>	 ------- 	---------
+	 LariOcci	1-20(80%) 21-80(50%) << Thin heavily from below. Thin mature trees by 50%. Dont touch old stuff.
+	 PinuPond	1-20(80%) 21-80(50%) << Thin heavily from below. Thin mature trees by 50%. Dont touch old stuff.
+	 PinuMont	1-20(80%) 21-80(50%)
+
+	 PseuMenz	1-50(95%) 51-120(80%) << Thin shade tolerants pretty heavily. Thin mature trees too. Dont touch really old trees.
+	 ChamNoot	1-50(95%) 51-120(80%)
+	 AbieAmab	1-80(95%) 81-120(80%)
+	 AbieGran	1-80(95%) 81-120(80%)
+	 AbieLasi	1-80(95%) 81-120(80%)
+	 AbieProc	1-80(95%) 81-120(80%)
+	 AcerMacr	1-80(95%) 81-120(80%)
+	 PiceEnge	1-80(95%) 81-120(80%)
+	 PinuCont	1-80(95%) 81-120(80%)
+	 ThujPlic	1-80(95%) 81-120(80%)
+	 TsugHete	1-80(95%) 81-120(80%)
+	 TsugMert	1-80(95%) 81-120(80%)
+	 AlnuRubr	1-120(95%)
+	 BetuOcci	1-120(95%)
+	 BetuPapy	1-120(95%)
+	 JuniOcci	1-120(95%)
+	 JuniScop	1-120(95%)
+	 PopuBals	1-120(95%)
+	 PopuTrem	1-120(95%)
+	 QuerGarr	1-50(80%) 51-100(50%) 
+
+>>	Plant 		PinuPond LariOcci  << Plant drought and fire tolerant species
+
+>>-----------------------------------------------------------
+>>---- PRESCRIPTION MAP CODE 4 ------------------------------
+>>-----------------------------------------------------------
+	Prescription			Industrial
+	StandRanking   			Random
+	MinimumAge 			35		
+	SiteSelection 			Complete
+	CohortsRemoved			ClearCut	
+	Plant	PseuMenz PinuPond LariOcci PinuMont
+
+
+>>-----------------------------------------------------------
+>>---- PRESCRIPTION PRE COMMERCIAL THIN  (5) ----------------
+>>-----------------------------------------------------------
+	Prescription 			PreCommercialThin << Apply to Industrial forests and Mesic forests. No need in Xeric forests because the treatment there is basically a PCT.
+>>
+   	StandRanking 			Random		<< 
+	MinimumAge 			25		<< 
+	MaximumAge 			100		<< Dont apply in mixed-age or mature stands.
+	MinimumTimeSinceLastHarvest 	20		<< 
+    	SiteSelection 			CompleteStandSpread 5 100 << Cut multiple stands at a time, min harvest size 20 ha max harvest size 100 ha
+>>	MinTimeSinceDamage 		15		
+
+	CohortsRemoved			SpeciesList
+>>	 Species	Selection
+>>	 ------- 	---------
+	 LariOcci	1-10(75%)
+	 PinuPond	1-10(75%)
+	 PseuMenz	1-20(75%)
+	 ChamNoot	1-20(75%) 
+	 AbieAmab	1-20(75%) 
+	 AbieGran	1-20(75%) 
+	 AbieLasi	1-20(75%) 
+	 AbieProc	1-20(75%) 
+	 AcerMacr	1-20(75%) 
+	 PiceEnge	1-20(75%) 
+	 PinuCont	1-20(75%) 
+	 PinuMont	1-20(75%) 
+	 ThujPlic	1-20(75%) 
+	 TsugHete	1-20(75%) 
+	 TsugMert	1-20(75%) 
+	 AlnuRubr	1-20(75%)
+	 BetuOcci	1-20(75%)
+	 BetuPapy	1-20(75%)
+	 JuniOcci	1-20(75%)
+	 JuniScop	1-20(75%)
+	 PopuBals	1-20(75%)
+	 PopuTrem	1-20(75%)
+	 QuerGarr	1-20(75%)
+
+>>-----------------------------------------------------------
+>>---- PRESCRIPTION SALVAGE LOGGING (6) ---------------------
+>>-----------------------------------------------------------
+	Prescription 			SalvageLogging  << Apply in all actively managed forests.
+>>
+>>   	StandRanking 			Random
+   	StandRanking 			TimeSinceDisturbance
+	  TimeSinceLastFire 		1		<< Salvage log in the year following the fire
+>>	MinimumAge 			15		<< 
+>>	MaximumAge 			500		<< 
+>>	MinimumTimeSinceLastHarvest 	10		<< Maybe skip if it was recently treated
+    	SiteSelection 			CompleteStandSpread 10 400 << Cut multiple stands at a time, min harvest size 40 ha max harvest size 400 ha	
+
+	CohortsRemoved			PlantOnly << DOES NOT WORK.
+
+
+>>-----------------------------------------------------------
+>>---- PRESCRIPTION MAP CODE 9 ------------------------------
+>>-----------------------------------------------------------
+	Prescription 			NoTreatment
+	StandRanking   			Random
+	SiteSelection 			Complete
+	 CohortsRemoved			SpeciesList
+>>	 Species	Selection
+>>	 ------- 	---------
+	 Grass_Forb	900-1000
+
+>>-----------------------------------------------------------
+>> ----------------------------------
+>> HARVESTING IMPLEMENTATION 
+>> ----------------------------------
+
+HarvestImplementations	<< Harvest Area is the target percentage of the cells in a management area to be harvested with the applied prescription within a single harvest time step
+>>	Mgmt Area	Prescription		Harvest Area	BeginTime	EndTime
+>> 	---------   	------------   		------------   	---------- 	--------
+>>	9		NoTreatment		0%		0	   	0
+	1		MaxBiomass_Valley	3%		
+	2		MaxBiomass_Mesic	3%		
+	3		MaxBiomass_Xeric	5%		
+	4		Industrial		5%		
+
+>>	1		PreCommercialThin	5%		0	   	10
+>>	2		PreCommercialThin	5%		0	   	10
+>>	4		PreCommercialThin	5%		0	   	10
+
+>>	1		SalvageLogging		10%		0	   	10
+>>	2		SalvageLogging		10%		0	   	10
+>>	3		SalvageLogging		10%		0	   	10
+>>	4		SalvageLogging		10%		0	   	10
+
+
+>>-----------------------------------------------------------	
+>> ------------
+>> OUTPUTS
+>> ----------
+
+PrescriptionMaps    Harvest/biomass-harvest-prescripts-{timestep}.tif	<< Maps of the prescription applied. 0 = not active, 1 = active and not harvested, harvested sites are 1 + Rx number.
+BiomassMaps         Harvest/biomass-removed-{timestep}.tif		<< Biomass removed from each site in g/m2.
+EventLog            biomass-harvest-event-log.csv
+SummaryLog	    biomass-harvest-summary-log.csv
+
+
+
+
