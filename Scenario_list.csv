@@ -11,3 +11,4 @@
 9,100,Thin_Rx_Wrx_2pct,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_Rx_EXTENT.txt,../ext_BiomassHarvest_mh.txt,../ext_magic_harvest_thin_wRx_low.txt
 10,100,Thin_Rx_Wrx_5pct,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_Rx_EXTENT.txt,../ext_BiomassHarvest_mh.txt,../ext_magic_harvest_thin_wRx_high.txt
 11,100,Thin_Rx_WFU_5pct,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_WFU_EXTENT.txt,../ext_BiomassHarvest_mh.txt,../ext_magic_harvest_thin_high.txt
+12,50,Lanzatech,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_Rx_EXTENT.txt,../ext_BiomassHarvest_mh.txt,../ext_magic_harvest_thin_high.txt
