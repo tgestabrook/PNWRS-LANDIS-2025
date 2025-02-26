@@ -68,7 +68,10 @@ cat('###########################################################################
  Post-processing LANDIS-II outputs. Assigning CRS, applying LZW compression to .tiff files, and converting .img files to GeoTiff.
 ###################################################################################################################################\n\n')
 ### Load all the geotiffs, compress using LZW lossless compression, and assign CRS! ----
-for(folder in c('biomassOutput','ageOutput','Harvest')){
+if(dir.exists(file.path(Dir,'social-climate-fire'))) file.rename(file.path(Dir,'social-climate-fire'),file.path(Dir,'scrapple-fire'))
+
+
+for(folder in c('biomassOutput','ageOutput','Harvest', 'NECN', 'scrapple-fire')){
   tifs<-dir(file.path(Dir,folder))
   if(length(tifs)==0) next
 
@@ -92,30 +95,29 @@ for(folder in c('biomassOutput','ageOutput','Harvest')){
 }
 
 ### Now convert .img files to geotiffs, compress using LZW lossless compression, and assign CRS! ----
-if(dir.exists(file.path(Dir,'social-climate-fire'))) file.rename(file.path(Dir,'social-climate-fire'),file.path(Dir,'scrapple-fire'))
 
-for(folder in c('NECN','scrapple-fire')){  # do this for both the scrapple-fire and NECN folders
-  imgs<-dir(file.path(Dir,folder))
-  imgs<-imgs[grepl('.img',imgs)]
-  if(length(imgs)==0) next
+# for(folder in c('NECN','scrapple-fire')){  # do this for both the scrapple-fire and NECN folders
+#   imgs<-dir(file.path(Dir,folder))
+#   imgs<-imgs[grepl('.img',imgs)]
+#   if(length(imgs)==0) next
   
-  cat('Defining CRS and applying lossless LZW compression to',folder,'output maps...\n')
-  for(i in imgs){
-    # cat(i,', ')
-    r<-rast(file.path(Dir,folder,i))
-    if(flip_rasters){r <- flip(r)}
+#   cat('Defining CRS and applying lossless LZW compression to',folder,'output maps...\n')
+#   for(i in imgs){
+#     # cat(i,', ')
+#     r<-rast(file.path(Dir,folder,i))
+#     if(flip_rasters){r <- flip(r)}
     
-    crs(r)<-crs(ecos)
-    ext(r)<-ext(ecos)
+#     crs(r)<-crs(ecos)
+#     ext(r)<-ext(ecos)
     
-    r[is.na(ecos)]<-NA
+#     r[is.na(ecos)]<-NA
     
-    i2 <- gsub('.img', '.tif', i)
-    writeRaster(r,file.path(Dir,folder,i2),overwrite=T)
+#     i2 <- gsub('.img', '.tif', i)
+#     writeRaster(r,file.path(Dir,folder,i2),overwrite=T)
     
-    file.remove(file.path(Dir,folder,i))
-  }
-}
+#     file.remove(file.path(Dir,folder,i))
+#   }
+# }
 
 cat('\n\n###################################################################################################################################
  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~          Post-processing COMPLETE!        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
