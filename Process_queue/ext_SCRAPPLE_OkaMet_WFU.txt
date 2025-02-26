@@ -230,7 +230,7 @@ RxSuppressionMap		../SCRAPPLE_input_maps/RxSuprEff.tif
 >>>>>> Other maps <<<<<<<<<<
 >> Maps used in spread, and mortality calculations<<
 
-GroundSlopeMap                  ../SCRAPPLE_input_maps/GroundSlopePercent.tif
+GroundSlopeMap                  ../SCRAPPLE_input_maps/GroundSlopeDegree.tif
 UphillSlopeAzimuthMap           ../SCRAPPLE_input_maps/UphillSlopeAzm.tif
 ClayMap                         ../NECN_input_maps/SoilPercentClay.tif
 
@@ -270,7 +270,7 @@ MinimumRxFireWeatherIndex 3.0   << Optional
 MaximumRxTemperature      22	<< Limit to 72 degrees F. 
 MinimumRxRelativeHumidity 20	<< Optional
 MaximumRxFireIntensity    3
-NumberRxAnnualFires       200
+NumberRxAnnualFires       2000
 NumberRxDailyFires        10
 FirstDayRxFires           1
 LastDayRxFires            365	<< Rx FIRE TURNED OFF
@@ -287,10 +287,10 @@ MaximumSpreadAreaB2	 -50	<< 100,    60,   10, -2.5  	<< Effective wind speed
 
 >> If SpreadProbability is too high, the whole landscape burns up in 1-2 days. If too low, fires don't spread.
 >> CALIBRATED ON FEB. 22, 2022
-SpreadProbabilityB0     -1.82       <<        -3.5, -3.5,  -8, -10,  -11, -0.79    Intercept
-SpreadProbabilityB1      0.03      << 0.04, 0.055, 0.06, 0.12, 0.2, 0.25,  0.06    FWI
-SpreadProbabilityB2      1.25       <<        0.85, 0.06, 0.13, 0.3, 0.20,-0.915    Relativized fine fuels. 
-SpreadProbabilityB3      0.026      << 0.02, 0.045, 0.05, 0.11, 0.1, 0.01, 0.013    Effective wind speed. 
+SpreadProbabilityB0      -0.25       <<        -3.5, -3.5,  -8, -10,  -11, -0.79    Intercept
+SpreadProbabilityB1      0.01      << 0.04, 0.055, 0.06, 0.12, 0.2, 0.25,  0.06    FWI
+SpreadProbabilityB2      2.75       <<        0.85, 0.06, 0.13, 0.3, 0.20,-0.915    Relativized fine fuels. 
+SpreadProbabilityB3      0.002      << 0.02, 0.045, 0.05, 0.11, 0.1, 0.01, 0.013    Effective wind speed. 
 
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -300,7 +300,7 @@ SpreadProbabilityB3      0.026      << 0.02, 0.045, 0.05, 0.11, 0.1, 0.01, 0.013
 >>>>>>> Site level mortality << Parameters updated on 03/09/2022
 SiteMortalityB0    0.005      << Intercept
 SiteMortalityB1    0.04    << The parameter fit for site level clay % in Soil.
-SiteMortalityB2   -0.000001     << The parameter fit for site level previous years annual ET. 
+SiteMortalityB2   -0.00001     << The parameter fit for site level previous years annual ET. 
 SiteMortalityB3   -0.000029      << The parameter fit for site level Effective Windspeed. 
 SiteMortalityB4   0    << The parameter fit for site level Climatic Water Deficit (PET-AET). 
 SiteMortalityB5   -0.025    << The parameter fit for fine fuels (a percentage of the maximum, from above). 

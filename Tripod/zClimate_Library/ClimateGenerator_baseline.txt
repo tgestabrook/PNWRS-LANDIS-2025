@@ -2,15 +2,14 @@ LandisData "Climate Config"
 		
 >> Future climate data
 ClimateTimeSeries			Daily_SequencedYears
-
-ClimateFile				../zClimate_Library/CLIMATE_2020-2120_baseline_Tripod.csv
+ClimateFile				../Tripod/zClimate_Library/CLIMATE_2020-2023_baseline_Tripod.csv
 
 >> Historical climate data
-SpinUpClimateTimeSeries			Daily_SequencedYears
-SpinUpClimateFile			../zClimate_Library/CLIMATE_1980-2019_baseline_Tripod.csv
+SpinUpClimateTimeSeries			Daily_AverageAllYears
+SpinUpClimateFile			../Tripod/zClimate_Library/CLIMATE_2016-2019_baseline_Tripod.csv
 
 
-
+GenerateClimateOutputFiles		no
 UsingFireClimate			yes << Indicates whether Climate Library prepares data for calculating Fire Weather Index
 FineFuelMoistureCode			85  << Initial value for FWI calculation 
 DuffMoistureCode			20  << Initial value for FWI calculation 

@@ -31,9 +31,9 @@ RxSuppressionMap		../WenEnt/SCRAPPLE_input_maps/RxSuprEff.tif
 >>>>>> Other maps <<<<<<<<<<
 >> Maps used in spread, and mortality calculations<<
 
-GroundSlopeMap                  ../WenEnt/SCRAPPLE_input_maps/GroundSlopePercent.tif
+GroundSlopeMap                  ../WenEnt/SCRAPPLE_input_maps/GroundSlopeDegree.tif
 UphillSlopeAzimuthMap           ../WenEnt/SCRAPPLE_input_maps/UphillSlopeAzm.tif
-ClayMap                         ../WenEnt/SCRAPPLE_input_maps/SoilPercentClay.tif
+ClayMap                         ../WenEnt/NECN_input_maps/SoilPercentClay.tif
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>>>>>>>>>>>>   Ignition model   <<<<<<<<<<<<<<<<<<<<<<<
@@ -43,9 +43,9 @@ ClayMap                         ../WenEnt/SCRAPPLE_input_maps/SoilPercentClay.ti
 
 >>>>>>>>   Count model coefs   <<<<<<<< UPDATED ON July 25, 2022
 LightningIgnitionsB0             0.5336  << Fit for WenEnt. Fit for WenEnt-OkaMet: 1.07168  << Lower B0 decreases # of ignitions
-LightningIgnitionsB1             0.0086  << Fit for WenEnt. Fit for WenEnt-OkaMet: 0.01448  << Lower B1 decreases # of ignitions and flattens response to FWI.
+LightningIgnitionsB1             0.0043  << Fit for WenEnt. Fit for WenEnt-OkaMet: 0.01448  << Lower B1 decreases # of ignitions and flattens response to FWI.
 AccidentalIgnitionsB0           -2.3410  << Fit for WenEnt. Fit for WenEnt-OkaMet: -0.75033 
-AccidentalIgnitionsB1            0.0172  << Fit for WenEnt. Fit for WenEnt-OkaMet: 0.02279 
+AccidentalIgnitionsB1            0.0085  << Fit for WenEnt. Fit for WenEnt-OkaMet: 0.02279 
 
 IgnitionDistribution ZeroInflatedPoisson << Poisson or ZeroInflatedPoisson. If using Poisson comment out the following beta values.
 
@@ -54,9 +54,9 @@ IgnitionDistribution ZeroInflatedPoisson << Poisson or ZeroInflatedPoisson. If u
 >>  Probability of zero ignitions at FWI=50: With B0=3: B1 = -0.043: 70%, B1 = -0.032: 80%, B1 = -0.016: 90%
 >>  Probability of zero ignitions at FWI=50: With B0=4: B1 = -0.063: 70%, B1 = -0.052: 80%, B1 = -0.016: 96%
 LightningIgnitionsBinomialB0     4.0899    <<  Fit for WenEnt. << Fit for WenEnt-OkaMet: 3.38147 << Higher B0 increases probability of producing 0 ignitions for that day.
-LightningIgnitionsBinomialB1    -0.0847    <<  Fit for WenEnt. << Fit for WenEnt-OkaMet:-0.08751 << Smaller B1 increases probability of 0 ignitions and a flatter response to FWI.
+LightningIgnitionsBinomialB1    -0.0447    <<  Fit for WenEnt. << Fit for WenEnt-OkaMet:-0.08751 << Smaller B1 increases probability of 0 ignitions and a flatter response to FWI.
 AccidentalIgnitionsBinomialB0    1.5441    <<  Fit for WenEnt. << Fit for WenEnt-OkaMet: 1.92460 
-AccidentalIgnitionsBinomialB1   -2.9473    <<  Fit for WenEnt. << Fit for WenEnt-OkaMet:-3.20139
+AccidentalIgnitionsBinomialB1   -1.4773    <<  Fit for WenEnt. << Fit for WenEnt-OkaMet:-3.20139
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >> Determines the scaling of the fine fuel 
@@ -87,7 +87,7 @@ MaximumSpreadAreaB2	 -125	<< 100,    60,   10, -2.5  	<< Effective wind speed
 
 >> If SpreadProbability is too high, the whole landscape burns up in 1-2 days. If too low, fires don't spread.
 SpreadProbabilityB0     -2.0       <<   -3.5, -3.5,  -8, -10,  -11, -0.79    Intercept
-SpreadProbabilityB1      0.04      <<  0.055, 0.06, 0.12, 0.2, 0.25,  0.06    FWI
+SpreadProbabilityB1      0.02      <<  0.055, 0.06, 0.12, 0.2, 0.25,  0.06    FWI
 SpreadProbabilityB2      0.7       <<   0.85, 0.06, 0.13, 0.3, 0.20,-0.915    Relativized fine fuels. 
 SpreadProbabilityB3      0.02      <<  0.045, 0.05, 0.11, 0.1, 0.01, 0.013    Effective wind speed. 
 
@@ -99,9 +99,9 @@ SpreadProbabilityB3      0.02      <<  0.045, 0.05, 0.11, 0.1, 0.01, 0.013    Ef
 >>>>>>> Site level mortality << Parameters updated on 03/09/2022
 SiteMortalityB0    0.01        	<< Intercept
 SiteMortalityB1   -0.000    	<< The parameter fit for site level clay % in Soil.
-SiteMortalityB2   -0.000004	<< The parameter fit for site level previous years annual ET. 
+SiteMortalityB2   -0.00004	<< The parameter fit for site level previous years annual ET. 
 SiteMortalityB3   -0.000035	<< The parameter fit for site level Effective Windspeed. 
-SiteMortalityB4   -0.000005	<< The parameter fit for site level Climatic Water Deficit (PET-AET). 
+SiteMortalityB4   -0.00005	<< The parameter fit for site level Climatic Water Deficit (PET-AET). 
 SiteMortalityB5   -0.003  	<< The parameter fit for fine fuels (a percentage of the maximum, from above). 
 SiteMortalityB6   -0.00000025	<< The parameter fit for ladder fuels (biomass)
 

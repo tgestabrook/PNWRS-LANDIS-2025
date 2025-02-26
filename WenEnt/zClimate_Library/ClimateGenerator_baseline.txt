@@ -10,7 +10,7 @@ SpinUpClimateTimeSeries			Daily_SequencedYears
 SpinUpClimateFile			../WenEnt/zClimate_Library/CLIMATE_1980-2019_baseline_WenEnt.csv
 >>SpinUpClimateFileFormat			Daily_Temp-C_Precip-mmDay
 
-
+GenerateClimateOutputFiles		no
 UsingFireClimate			yes << Indicates whether Climate Library prepares data for calculating Fire Weather Index
 FineFuelMoistureCode			85  << Initial value for FWI calculation 
 DuffMoistureCode			20  << Initial value for FWI calculation 

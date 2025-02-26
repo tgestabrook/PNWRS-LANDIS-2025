@@ -1,5 +1,5 @@
 LandisData  "Social Climate Fire"
->> Version 3.2.2
+>> Version 4.0
 
 >> Set timestep
 Timestep                1      << SCRPPLE Only runs at a one year time step 
@@ -20,10 +20,6 @@ AccidentalIgnitionsMap            ../OkaMet/SCRAPPLE_input_maps/AccIgnProb.tif
 LightningIgnitionsMap             ../OkaMet/SCRAPPLE_input_maps/NatIgnProb.tif
 RxIgnitionsMap                    ../OkaMet/SCRAPPLE_input_maps/RxIgnProb.tif
 
->> DynamicRxIgnitionMaps << Optional these initiate new probability surfaces at set time steps. 
->>  3                             ../OkaMet/SCRAPPLE_input_maps/Rx_Ignition_Map_3.img
->>  15                            ../OkaMet/SCRAPPLE_input_maps/Rx_Ignition_Map_15.img 
-
 >>>>>> Suppression maps <<<<<<<<<<
 AccidentalSuppressionMap	../OkaMet/SCRAPPLE_input_maps/AccSuprEff.tif
 LightningSuppressionMap		../OkaMet/SCRAPPLE_input_maps/NatSuprEff.tif
@@ -32,7 +28,7 @@ RxSuppressionMap		../OkaMet/SCRAPPLE_input_maps/RxSuprEff.tif
 >>>>>> Other maps <<<<<<<<<<
 >> Maps used in spread, and mortality calculations<<
 
-GroundSlopeMap                  ../OkaMet/SCRAPPLE_input_maps/GroundSlopePercent.tif
+GroundSlopeMap                  ../OkaMet/SCRAPPLE_input_maps/GroundSlopeDegree.tif
 UphillSlopeAzimuthMap           ../OkaMet/SCRAPPLE_input_maps/UphillSlopeAzm.tif
 ClayMap                         ../OkaMet/NECN_input_maps/SoilPercentClay.tif
 
@@ -55,10 +51,10 @@ IgnitionDistribution ZeroInflatedPoisson << Poisson or ZeroInflatedPoisson
 >>  Probability of zero ignitions at FWI=50: With B0=3: B1 = -0.043: 70%, B1 = -0.032: 80%, B1 = -0.016: 90%
 >> Lightning: Probability of 0 ignitions 0.999 (low fwi) to 0.97  (high fwi) 
 LightningIgnitionsBinomialB0      3.44     << Fit for WenEnt-OkaMet:  3.38147 << Higher B0 increases probability of producing 0 ignitions for that day.
-LightningIgnitionsBinomialB1     -0.07  << Fit for WenEnt-OkaMet: -0.08751 << Smaller B1 increases probability of 0 ignitions and a flatter response to FWI.  
+LightningIgnitionsBinomialB1     -0.035  << Fit for WenEnt-OkaMet: -0.08751 << Smaller B1 increases probability of 0 ignitions and a flatter response to FWI.  
 >> Accidental: Probability of 0 ignitions 0.998 (low fwi) to 0.97  (high fwi) 
 AccidentalIgnitionsBinomialB0     2.16     << Fit for WenEnt-OkaMet:  1.92460 
-AccidentalIgnitionsBinomialB1    -3.80 << Fit for WenEnt-OkaMet: -3.20139 
+AccidentalIgnitionsBinomialB1    -1.90 << Fit for WenEnt-OkaMet: -3.20139 
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >> Determines the scaling of the fine fuel 
@@ -72,12 +68,12 @@ MinimumRxFireWeatherIndex 3.0   << Optional
 MaximumRxTemperature      22	<< Limit to 72 degrees F. 
 MinimumRxRelativeHumidity 20	<< Optional
 MaximumRxFireIntensity    3
-NumberRxAnnualFires       10
-NumberRxDailyFires        1
+NumberRxAnnualFires       0
+NumberRxDailyFires        0
 FirstDayRxFires           1
-LastDayRxFires            1	<< Rx FIRE TURNED OFF
+LastDayRxFires            365	<< Rx FIRE TURNED OFF
 TargetRxSize              1000	<< in hectares
-RxZonesMap		  ../OkaMet/ext_BiomassHarvestStands_OkaMet.tif
+>>RxZonesMap		  ../OkaMet/ext_BiomassHarvestStands_OkaMet.tif
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>     Spread parameters                    <<<<<<<<<<<<<
@@ -90,9 +86,9 @@ MaximumSpreadAreaB2	 -50	<< 100,    60,   10, -2.5  	<< Effective wind speed
 >> If SpreadProbability is too high, the whole landscape burns up in 1-2 days. If too low, fires don't spread.
 >> CALIBRATED ON FEB. 22, 2022
 SpreadProbabilityB0      -0.25       <<        -3.5, -3.5,  -8, -10,  -11, -0.79    Intercept
-SpreadProbabilityB1      0.01      << 0.04, 0.055, 0.06, 0.12, 0.2, 0.25,  0.06    FWI
-SpreadProbabilityB2      3       <<        0.85, 0.06, 0.13, 0.3, 0.20,-0.915    Relativized fine fuels. 
-SpreadProbabilityB3      0.004      << 0.02, 0.045, 0.05, 0.11, 0.1, 0.01, 0.013    Effective wind speed. 
+SpreadProbabilityB1      0.005      << 0.04, 0.055, 0.06, 0.12, 0.2, 0.25,  0.06    FWI
+SpreadProbabilityB2      2.75       <<        0.85, 0.06, 0.13, 0.3, 0.20,-0.915    Relativized fine fuels. 
+SpreadProbabilityB3      0.002      << 0.02, 0.045, 0.05, 0.11, 0.1, 0.01, 0.013    Effective wind speed. 
 
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -102,7 +98,7 @@ SpreadProbabilityB3      0.004      << 0.02, 0.045, 0.05, 0.11, 0.1, 0.01, 0.013
 >>>>>>> Site level mortality << Parameters updated on 03/09/2022
 SiteMortalityB0    0.005      << Intercept
 SiteMortalityB1    0.04    << The parameter fit for site level clay % in Soil.
-SiteMortalityB2   -0.000001     << The parameter fit for site level previous years annual ET. 
+SiteMortalityB2   -0.00001     << The parameter fit for site level previous years annual ET. 
 SiteMortalityB3   -0.000029      << The parameter fit for site level Effective Windspeed. 
 SiteMortalityB4   0    << The parameter fit for site level Climatic Water Deficit (PET-AET). 
 SiteMortalityB5   -0.025    << The parameter fit for fine fuels (a percentage of the maximum, from above). 

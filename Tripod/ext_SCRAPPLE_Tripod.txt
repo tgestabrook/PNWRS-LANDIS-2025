@@ -1,4 +1,4 @@
-LandisData  "SCRAPPLE"
+LandisData  "Social Climate Fire"
 >> Version 3.2.2
 
 >> Set timestep
@@ -16,25 +16,21 @@ Species_CSV_File	../ext_SCRAPPLE_Species_Table.csv    << Replaces the damage tab
 >>>>>>>>>>>>>>>>>   Input maps   <<<<<<<<<<<<<<<<<<<<<<<<<<
 
 >>>>>> Ignition maps <<<<<
-AccidentalIgnitionsMap            ../SCRAPPLE_input_maps/AccIgnProb.tif
-LightningIgnitionsMap             ../SCRAPPLE_input_maps/NatIgnProb.tif
-RxIgnitionsMap                    ../SCRAPPLE_input_maps/RxIgnProb.tif
-
->> DynamicRxIgnitionMaps << Optional these initiate new probability surfaces at set time steps. 
->>  3                             ../SCRAPPLE_input_maps/Rx_Ignition_Map_3.img
->>  15                            ../SCRAPPLE_input_maps/Rx_Ignition_Map_15.img 
+AccidentalIgnitionsMap            ../Tripod/SCRAPPLE_input_maps/AccIgnProb.tif
+LightningIgnitionsMap             ../Tripod/SCRAPPLE_input_maps/NatIgnProb.tif
+RxIgnitionsMap                    ../Tripod/SCRAPPLE_input_maps/RxIgnProb.tif
 
 >>>>>> Suppression maps <<<<<<<<<<
-AccidentalSuppressionMap	../SCRAPPLE_input_maps/AccSuprEff.tif
-LightningSuppressionMap		../SCRAPPLE_input_maps/NatSuprEff.tif
-RxSuppressionMap		../SCRAPPLE_input_maps/RxSuprEff.tif
+AccidentalSuppressionMap	../Tripod/SCRAPPLE_input_maps/AccSuprEff.tif
+LightningSuppressionMap		../Tripod/SCRAPPLE_input_maps/NatSuprEff.tif
+RxSuppressionMap		../Tripod/SCRAPPLE_input_maps/RxSuprEff.tif
 
 >>>>>> Other maps <<<<<<<<<<
 >> Maps used in spread, and mortality calculations<<
 
-GroundSlopeMap                  ../SCRAPPLE_input_maps/GroundSlopePercent.tif
-UphillSlopeAzimuthMap           ../SCRAPPLE_input_maps/UphillSlopeAzm.tif
-ClayMap                         ../NECN_input_maps/SoilPercentClay.tif
+GroundSlopeMap                  ../Tripod/SCRAPPLE_input_maps/GroundSlopeDegree.tif
+UphillSlopeAzimuthMap           ../Tripod/SCRAPPLE_input_maps/UphillSlopeAzm.tif
+ClayMap                         ../Tripod/NECN_input_maps/SoilPercentClay.tif
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>>>>>>>>>>>>   Ignition model   <<<<<<<<<<<<<<<<<<<<<<<
@@ -62,7 +58,7 @@ AccidentalIgnitionsBinomialB1    -0.51 << Fit for WenEnt-OkaMet: -3.20139
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >> Determines the scaling of the fine fuel 
-MaximumFineFuels 5000     << The amount of fine fuels (g m-2) used to rescale the fine fuel parameter in equations 3 and 6 of Scheller et al. (in prep.).
+MaximumFineFuels 5000.0     << The amount of fine fuels (g m-2) used to rescale the fine fuel parameter in equations 3 and 6 of Scheller et al. (in prep.).
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>>   Prescribed Fire Parameters              <<<<<<<<<<<
@@ -72,12 +68,12 @@ MinimumRxFireWeatherIndex 3.0   << Optional
 MaximumRxTemperature      22	<< Limit to 72 degrees F. 
 MinimumRxRelativeHumidity 20	<< Optional
 MaximumRxFireIntensity    3
-NumberRxAnnualFires       10
-NumberRxDailyFires        1
-FirstDayRxFires           1
-LastDayRxFires            1	<< Rx FIRE TURNED OFF
+NumberRxAnnualFires       0
+NumberRxDailyFires        0
+FirstDayRxFires           25
+LastDayRxFires            200	<< Rx FIRE TURNED OFF
 TargetRxSize              1000	<< in hectares
-RxZonesMap		  ../ext_BiomassHarvestStands_Tripod.tif
+>>RxZonesMap		  ../Tripod/ext_BiomassHarvestStands_Tripod.tif
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>     Spread parameters                    <<<<<<<<<<<<<
@@ -89,7 +85,7 @@ MaximumSpreadAreaB2	 -125	<< 100,    60,   10, -2.5  	<< Effective wind speed
 
 >> If SpreadProbability is too high, the whole landscape burns up in 1-2 days. If too low, fires don't spread.
 >> CALIBRATED ON FEB. 22, 2022
-SpreadProbabilityB0     -2.0       <<        -3.5, -3.5,  -8, -10,  -11, -0.79    Intercept
+SpreadProbabilityB0     -10.0       <<        -3.5, -3.5,  -8, -10,  -11, -0.79    Intercept
 SpreadProbabilityB1      0.04      << 0.04, 0.055, 0.06, 0.12, 0.2, 0.25,  0.06    FWI
 SpreadProbabilityB2      0.7       <<        0.85, 0.06, 0.13, 0.3, 0.20,-0.915    Relativized fine fuels. 
 SpreadProbabilityB3      0.02      << 0.02, 0.045, 0.05, 0.11, 0.1, 0.01, 0.013    Effective wind speed. 
@@ -127,7 +123,7 @@ AbieGran AbieLasi AbieAmab AbieProc ChamNoot JuniOcci JuniScop PiceEnge PinuAlbi
 
 SuppressionMaxWindSpeed 70  	<< specifically for helicopter safety
 
-Suppression_CSV_File 		../ext_SCRAPPLE_Suppression_Effort.csv
+Suppression_CSV_File 		../Tripod/ext_SCRAPPLE_Suppression_Effort.csv
 
 DeadWoodTable << 
 
