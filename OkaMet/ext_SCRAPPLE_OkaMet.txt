@@ -40,9 +40,9 @@ ClayMap                         ../OkaMet/NECN_input_maps/SoilPercentClay.tif
 
 >>>>>>>>   Count model coefs   <<<<<<<< Edited Feb. 22, 2022
 LightningIgnitionsB0          0.604       << Average # ignitions = 1 << Fit for WenEnt-OkaMet: 1.07168 << Lower B0 decreases # of ignitions
-LightningIgnitionsB1          0.021    << Fit for WenEnt-OkaMet: 0.01448 << Lower B1 decreases # of ignitions and flattens response to FWI.  
+LightningIgnitionsB1          0.011    << Fit for WenEnt-OkaMet: 0.01448 << Lower B1 decreases # of ignitions and flattens response to FWI.  
 AccidentalIgnitionsB0         -1.59       << Fit for WenEnt-OkaMet:-0.75033 
-AccidentalIgnitionsB1         0.016    << Fit for WenEnt-OkaMet: 0.02279 
+AccidentalIgnitionsB1         0.008    << Fit for WenEnt-OkaMet: 0.02279 
 
 IgnitionDistribution ZeroInflatedPoisson << Poisson or ZeroInflatedPoisson
 

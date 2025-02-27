@@ -16,5 +16,5 @@
 ## Examples
 Run five calibration tests for Wenatchee-Entiat:
 ```shell
-./_RUN_SIM.sh "scenario_fire_calibration.txt" "WenEnt" "baseclim" 5
+./_RUN_SIM.sh 1 "WenEnt" "baseclim" 5
 ```

@@ -1,5 +1,6 @@
 LANDIS*/
-*/zClimate_Library/*.csv
+*OkaMet/zClimate_Library/*.csv
+*WenEnt/zClimate_Library/*.csv
 /Data/*
 TEST.sh
 Docker_setup/files_to_help_compilation/obj/*
@@ -7,3 +8,4 @@ Docker_v7/files_to_help_compilation/obj/*
 Testing/obj/*
 /V8_Models.sln
 *.tif.aux.xml
+*CLIMATE_FILES.zip

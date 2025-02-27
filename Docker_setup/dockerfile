@@ -107,15 +107,15 @@ RUN chmod +x /bin/LANDIS_Linux/Core-Model-v8-LINUX/downloadSpecificGitCommitAndF
 
 # NECN Succession
 RUN cd /bin/LANDIS_Linux/Core-Model-v8-LINUX \
-# Commit 37ce246c37bab3448e3db134373deb56063e14ac is latest at time of writing.
-&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-NECN-Succession.git 2bd671af9c5a91c0b3832a51e4d9d54cb05f3814 /src \ 
+# Commit 00de972970862ed2cead943fd0714624e7ca7850 is latest at time of writing.
+&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-NECN-Succession.git 00de972970862ed2cead943fd0714624e7ca7850 /src \ 
 && cd /bin/LANDIS_Linux/Core-Model-v8-LINUX/Extension-NECN-Succession/src \
 && python /bin/LANDIS_Linux/Core-Model-v8-LINUX/editing_csproj_LANDIS-II_files.py ./NECN-succession.csproj \
 # The devellopers of NECN forgot to add a line referencing the location of one of the support libraries.
 # I add it here manually at the right place in the file.
 && cd /bin/LANDIS_Linux/Core-Model-v8-LINUX/Extension-NECN-Succession/src && sed -i '39i    <HintPath>..\\..\\build\\extensions\\Landis.Library.Climate-v5.dll</HintPath>' NECN-succession.csproj \
 && dotnet build -c Release \
-&& wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-NECN-Succession/37ce246c37bab3448e3db134373deb56063e14ac/deploy/installer/NECN_Succession8.txt \
+&& wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-NECN-Succession/00de972970862ed2cead943fd0714624e7ca7850/deploy/installer/NECN_Succession8.txt \
 && dotnet $LANDIS_EXTENSIONS_TOOL add "NECN_Succession8.txt" \
 && cd /bin/LANDIS_Linux/Core-Model-v8-LINUX/ && rm -r Extension-NECN-Succession
 
