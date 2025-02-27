@@ -327,7 +327,7 @@ RUN sed -i '/<\/Project>/i \
 # # RUN cd $LANDIS_FOLDER/Extension-Biomass-Succession/testings/CoreV7.0-BiomassSuccession6.0 \
 # # && dotnet $LANDIS_CONSOLE scenario.txt
 RUN cd /bin/LANDIS_Linux \
-&& /bin/LANDIS_Linux/Core-Model-v8-LINUX/downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-NECN-Succession.git 37ce246c37bab3448e3db134373deb56063e14ac /testing \
+&& /bin/LANDIS_Linux/Core-Model-v8-LINUX/downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-NECN-Succession.git 00de972970862ed2cead943fd0714624e7ca7850 /testing \
 && cd $LANDIS_FOLDER/Extension-NECN-Succession/testing/Core8-NECN8-Landscape \
 && dotnet $LANDIS_CONSOLE scenario_LTB_landscape.txt
 
