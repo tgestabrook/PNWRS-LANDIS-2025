@@ -73,7 +73,7 @@ for dir in ./LANDIS_*/; do
 	dir=${dir%*/} # Remove the trailing "/"
 	echo "${dir##*/}" # Print everything after the final "/"
 	zip -q -r $dir.zip $dir
-	#gsutil -m cp -r $dir.zip gs://landis-outputs
+	gsutil -m cp -r $dir.zip gs://usfs_landis_outputs
 done
 
 
