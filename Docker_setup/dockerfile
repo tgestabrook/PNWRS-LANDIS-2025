@@ -396,6 +396,7 @@ RUN cd /bin/LANDIS_Linux \
 # RUN R -e "install.packages('tidyterra',dependencies=TRUE,repo='https://cloud.r-project.org')"
 
 # stuff needed for exporting finished runs
+RUN apt-get update
 RUN apt-get install -y zip curl 
 
 # Downloading gcloud package
