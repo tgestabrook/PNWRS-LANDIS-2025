@@ -59,7 +59,7 @@ test_r <- rast(file.path(Dir, 'biomassOutput', 'TotalBiomass-0-biomass.tif')); c
 overlay_normal <- ifel(is.na(ecos)&test_r!=0, 1, 0)
 overlay_flip <- ifel(is.na(ecos)&flip(test_r)!=0, 1, 0)
 
-if(sum(values(overlay_normal, na.rm=T))>sum(values(overlay_flip, na.rm=T))){flip_rasters<-T}else{flip_rasters<-F}
+if(sum(values(overlay_normal, na.rm=T))>sum(values(overlay_flip, na.rm=T))){flip_rasters<-T; print("Flipping rasters.")}else{flip_rasters<-F}
 
 #-----------------------------------------------------------------------------------------------------------------------
 
