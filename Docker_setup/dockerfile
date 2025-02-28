@@ -327,11 +327,15 @@ RUN sed -i '/<\/Project>/i \
 
 # # RUN cd $LANDIS_FOLDER/Extension-Biomass-Succession/testings/CoreV7.0-BiomassSuccession6.0 \
 # # && dotnet $LANDIS_CONSOLE scenario.txt
-RUN cd /bin/LANDIS_Linux \
-&& /bin/LANDIS_Linux/Core-Model-v8-LINUX/downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-NECN-Succession.git 00de972970862ed2cead943fd0714624e7ca7850 /testing \
-&& cd $LANDIS_FOLDER/Extension-NECN-Succession/testing/Core8-NECN8-Landscape \
-&& dotnet $LANDIS_CONSOLE scenario_LTB_landscape.txt
+# RUN cd /bin/LANDIS_Linux \
+# && /bin/LANDIS_Linux/Core-Model-v8-LINUX/downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-NECN-Succession.git 00de972970862ed2cead943fd0714624e7ca7850 /testing \
+# && cd $LANDIS_FOLDER/Extension-NECN-Succession/testing/Core8-NECN8-Landscape \
+# && dotnet $LANDIS_CONSOLE scenario_LTB_landscape.txt
 
+RUN cd /bin/LANDIS_Linux \
+&& /bin/LANDIS_Linux/Core-Model-v8-LINUX/downloadSpecificGitCommitAndFolder.sh https://github.com/tgestabrook/PNWRS-LANDIS-2025.git 869d45db7281f5a581c84b3f25818b236eb25f82 /Testing \
+&& cd $LANDIS_FOLDER/PNWRS-LANDIS-2025/Testing/Core8-SocialClimateFire4.0 \
+&& dotnet $LANDIS_CONSOLE scenario_LTB_landscape.txt
 # # We delete all of the files generating during testing (more recent than the temporary file we created before.
 # # Comment this line to keep the files generated during testing.
 # # RUN find $LANDIS_FOLDER//Extension-Age-Only-Succession-Archived/testing/Corev7 -type f -newer "/tmp/tempFileForTestFileRemoval.txt" -exec rm {} \;
@@ -340,56 +344,56 @@ RUN cd /bin/LANDIS_Linux \
 # # FINISHING
 # ################################################################
 
-# Install R
-RUN apt-get update
-RUN apt-get install -y r-base r-base-dev
-# Add CRAN repo, apt key, and backports repository
-# Update apt indices and install two helper packages we need
-RUN apt update -qq 
-RUN apt install -y --no-install-recommends software-properties-common dirmngr
-# Add the secure apt key
-RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc \
-# Verify the key:
-&& gpg --show-keys /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc \
-# The fingerprint should be E298A3A825C0D65DFD57CBB651716619E084DAB9
-# Add CRAN to repository list
-&& echo "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/" | tee -a /etc/apt/sources.list \
-&& apt-get update
-# Activate the backports repositories:
-RUN echo "deb http://ubuntu.osuosl.org/ubuntu/ $(lsb_release -cs)-backports main restricted universe" | tee -a /etc/apt/sources.list \
-&& apt-get update
-# Get all the CRAN packages, add the current R4.0 repository
-RUN add-apt-repository -y ppa:c2d4u.team/c2d4u4.0+ \
-&& apt-get update
-# Specify desired version and install R
-# Now we can install R using the linux app manager
-RUN apt-get install -y r-base-core=4.4.1\* \
-&& apt-get install -y r-base-dev=4.4.1\* \
-&& apt-get install -y r-recommended=4.4.1\* \
-&& apt-get install -y r-base=4.4.1\* 
+# # Install R
+# RUN apt-get update
+# RUN apt-get install -y r-base r-base-dev
+# # Add CRAN repo, apt key, and backports repository
+# # Update apt indices and install two helper packages we need
+# RUN apt update -qq 
+# RUN apt install -y --no-install-recommends software-properties-common dirmngr
+# # Add the secure apt key
+# RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc \
+# # Verify the key:
+# && gpg --show-keys /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc \
+# # The fingerprint should be E298A3A825C0D65DFD57CBB651716619E084DAB9
+# # Add CRAN to repository list
+# && echo "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/" | tee -a /etc/apt/sources.list \
+# && apt-get update
+# # Activate the backports repositories:
+# RUN echo "deb http://ubuntu.osuosl.org/ubuntu/ $(lsb_release -cs)-backports main restricted universe" | tee -a /etc/apt/sources.list \
+# && apt-get update
+# # Get all the CRAN packages, add the current R4.0 repository
+# RUN add-apt-repository -y ppa:c2d4u.team/c2d4u4.0+ \
+# && apt-get update
+# # Specify desired version and install R
+# # Now we can install R using the linux app manager
+# RUN apt-get install -y r-base-core=4.4.1\* \
+# && apt-get install -y r-base-dev=4.4.1\* \
+# && apt-get install -y r-recommended=4.4.1\* \
+# && apt-get install -y r-base=4.4.1\* 
 
-# Install R packages
-# First, install system dependencies:
-RUN apt-get install -y libudunits2-dev libgeos-dev libproj-dev libfontconfig1-dev gfortran imagemagick libmagick++-dev libgdal-dev
-RUN R -e "install.packages('sf',dependencies=TRUE,repo='https://cloud.r-project.org')"
-RUN R -e "install.packages('terra',dependencies=TRUE,repo='https://cloud.r-project.org')"
-RUN apt install -y -f libssl-dev libcurl4-openssl-dev unixodbc-dev libxml2-dev libmariadb-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev
-# To install R packages from within R (this might be troublesome):
-#RUN R -e "install.packages('tidyr',dependencies=TRUE,repo='https://cloud.r-project.org')" 
-# RUN R -e "install.packages('ggplot2',dependencies=TRUE,repo='https://cloud.r-project.org')"
-# RUN R -e "install.packages('codetools',dependencies=TRUE,repo='https://cloud.r-project.org')"
-# RUN R -e "install.packages('colorspace',dependencies=TRUE,repo='https://cloud.r-project.org')"
-# RUN R -e "install.packages('landscapemetrics',dependencies=TRUE,repo='https://cloud.r-project.org')"
-# RUN R -e "install.packages('zoo',dependencies=TRUE,repo='https://cloud.r-project.org')"
-# RUN R -e "install.packages('gridExtra',dependencies=TRUE,repo='https://cloud.r-project.org')"
+# # Install R packages
+# # First, install system dependencies:
+# RUN apt-get install -y libudunits2-dev libgeos-dev libproj-dev libfontconfig1-dev gfortran imagemagick libmagick++-dev libgdal-dev
+# RUN R -e "install.packages('sf',dependencies=TRUE,repo='https://cloud.r-project.org')"
+# RUN R -e "install.packages('terra',dependencies=TRUE,repo='https://cloud.r-project.org')"
+# RUN apt install -y -f libssl-dev libcurl4-openssl-dev unixodbc-dev libxml2-dev libmariadb-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev
+# # To install R packages from within R (this might be troublesome):
+# #RUN R -e "install.packages('tidyr',dependencies=TRUE,repo='https://cloud.r-project.org')" 
+# # RUN R -e "install.packages('ggplot2',dependencies=TRUE,repo='https://cloud.r-project.org')"
+# # RUN R -e "install.packages('codetools',dependencies=TRUE,repo='https://cloud.r-project.org')"
+# # RUN R -e "install.packages('colorspace',dependencies=TRUE,repo='https://cloud.r-project.org')"
+# # RUN R -e "install.packages('landscapemetrics',dependencies=TRUE,repo='https://cloud.r-project.org')"
+# # RUN R -e "install.packages('zoo',dependencies=TRUE,repo='https://cloud.r-project.org')"
+# # RUN R -e "install.packages('gridExtra',dependencies=TRUE,repo='https://cloud.r-project.org')"
 
-#RUN R -e "install.packages('raster',dependencies=TRUE,repo='https://cloud.r-project.org')"
-# RUN R -e "install.packages('magick',dependencies=TRUE,repo='https://cloud.r-project.org')"
-# RUN R -e "install.packages('readr',dependencies=TRUE,repo='https://cloud.r-project.org')"
+# #RUN R -e "install.packages('raster',dependencies=TRUE,repo='https://cloud.r-project.org')"
+# # RUN R -e "install.packages('magick',dependencies=TRUE,repo='https://cloud.r-project.org')"
+# # RUN R -e "install.packages('readr',dependencies=TRUE,repo='https://cloud.r-project.org')"
 
-RUN R -e 'install.packages("xml2", dependencies = T, INSTALL_opts = c("--no-lock"))' 
-RUN R -e 'install.packages("tidyverse")'
-RUN R -e "install.packages('tidyterra',dependencies=TRUE,repo='https://cloud.r-project.org')"
+# RUN R -e 'install.packages("xml2", dependencies = T, INSTALL_opts = c("--no-lock"))' 
+# RUN R -e 'install.packages("tidyverse")'
+# RUN R -e "install.packages('tidyterra',dependencies=TRUE,repo='https://cloud.r-project.org')"
 
 # stuff needed for exporting finished runs
 RUN apt-get install -y zip curl 
