@@ -1,6 +1,5 @@
 LANDIS*/
-*OkaMet/zClimate_Library/*.csv
-*WenEnt/zClimate_Library/*.csv
+*/zClimate_Library/*.csv
 /Data/*
 TEST.sh
 Docker_setup/files_to_help_compilation/obj/*

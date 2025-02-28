@@ -1,0 +1,40 @@
+LandisData  "Output Cohort Statistics"
+
+
+Timestep   10
+
+
+>>--------------------------------
+>> OUPUT STATISTICS (Descriptive)
+>>--------------------------------
+
+>> ---- STAT1 ------------------------------------------------
+
+SpeciesAgeStats
+MapNames   ageOutput/{species}-{timestep}-{statistic}.tif
+
+>>MIN 		PinuJeff << minimum age for each species
+MED		PinuJeff << median age for each species
+MAX		PinuJeff << maximum age across all species on site
+>>SD		PinuJeff << standard deviation age for each species
+>> AVG		PinuJeff << average age for each species
+
+>> ---- STAT2 -----------------------------------------------------
+
+>> SiteAgeStats
+>> MapNames  	 ageOutput/AllSpp-{timestep}-{statistic}_AGE.tif
+
+>> MIN 				<< minimum age across all species on site
+>> MAX				<< maximum age across all species on site
+>> MED				<< median age across all species on site
+>> AVG				<< average age across all species on site
+>> RICH   			<< number of age classes across all species on site
+>> EVEN   			<< evenness 
+>> COUNT   			<< count of cohorts
+
+>> ---- STAT3 ----------------------------------------------------------
+
+SiteSpeciesStats
+MapNames   ageOutput/AllSpp-{timestep}-{statistic}.tif
+
+RICH   			<<count of species

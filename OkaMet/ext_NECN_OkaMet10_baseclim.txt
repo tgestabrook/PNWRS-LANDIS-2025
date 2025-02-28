@@ -62,7 +62,7 @@ SpeciesParameters              ../OkaMet/ext_NECN8_Species_Table.csv
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>>>>           Other                           >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-FireReductionParameters
+FireReductionParameters >> fire intensity is dnbr / 100!
 >>	Fire		CWD		Fine Litter	Cohort Wood	Cohort Leaf	SOM
 >>	Intensity	Reduct		Reduct		Reduct		Reduct		Reduction
 	1		0.05		0.6		0.0		0.05		0.1

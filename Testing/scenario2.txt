@@ -5,26 +5,26 @@ Duration     100
 
 Species    ../SPECIES.txt
 
-Ecoregions      ../OkaMet/ECOREGIONS_OkaMet.txt
+>>Ecoregions      ../OkaMet/ECOREGIONS_OkaMet.txt
 
-EcoregionsMap   ../OkaMet/ECOREGIONS_OkaMet.tif
+>>EcoregionsMap   ../OkaMet/ECOREGIONS_OkaMet.tif
 
->>Ecoregions      ../Tripod/ECOREGIONS_Tripod.txt
+Ecoregions      ../Tripod/ECOREGIONS_Tripod.txt
 
->>EcoregionsMap   ../Tripod/ECOREGIONS_Tripod.tif
+EcoregionsMap   ../Tripod/ECOREGIONS_Tripod.tif
 
 
 CellLength     90 << meters
 
 >>  Succession Extension    Initialization File
 >> ----------------------   -------------------
-"NECN Succession"     ../OkaMet/ext_NECN_OkaMet10_baseclim.txt
->>"NECN Succession"     ../Tripod/ext_NECN_Tripod10_baseclim.txt
+>>"NECN Succession"     ../OkaMet/ext_NECN_OkaMet10_baseclim.txt
+"NECN Succession"     ../Tripod/ext_NECN_Tripod10_baseclim.txt
 
 
 >> Disturbance Extensions   Initialization File
 >> ----------------------   -------------------
-"Social Climate Fire"     ../OkaMet/ext_SCRAPPLE_OkaMet.txt
+>>"Social Climate Fire"     ../OkaMet/ext_SCRAPPLE_OkaMet.txt
 >>"Social Climate Fire"     ../Tripod/ext_SCRAPPLE_Tripod.txt
 
 

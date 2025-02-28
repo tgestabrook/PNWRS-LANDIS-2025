@@ -391,7 +391,8 @@ RUN R -e 'install.packages("xml2", dependencies = T, INSTALL_opts = c("--no-lock
 RUN R -e 'install.packages("tidyverse")'
 RUN R -e "install.packages('tidyterra',dependencies=TRUE,repo='https://cloud.r-project.org')"
 
-RUN apt-get install zip 
+# stuff needed for exporting finished runs
+RUN apt-get install -y zip curl 
 
 # Downloading gcloud package
 RUN curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz > /tmp/google-cloud-sdk.tar.gz
