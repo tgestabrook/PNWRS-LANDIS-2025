@@ -1,0 +1,138 @@
+LandisData  "SCRAPPLE"
+>> Version 3.2.2
+
+>> Set timestep
+Timestep                1      << SCRPPLE Only runs at a one year time step 
+
+>> Time 0 Climate Values
+TimeZeroPET		540
+TimeZeroCWD		440
+
+>> Species level characteristics
+Species_CSV_File	../ext_SCRAPPLE_Species_Table.csv    << Replaces the damage table in previous version of scrapple
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>>>   Input maps   <<<<<<<<<<<<<<<<<<<<<<<<<<
+
+>>>>>> Ignition maps <<<<<
+AccidentalIgnitionsMap            ../SCRAPPLE_input_maps_Wen/AccIgnProb.tif
+LightningIgnitionsMap             ../SCRAPPLE_input_maps_Wen/NatIgnProb.tif
+RxIgnitionsMap                    ../SCRAPPLE_input_maps_Wen/RxIgnProb.tif
+
+>> DynamicRxIgnitionMaps << Optional these initiate new probability surfaces at set time steps. 
+>>  3                             ../SCRAPPLE_input_maps_Wen/Rx_Ignition_Map_3.img
+>>  15                            ../SCRAPPLE_input_maps_Wen/Rx_Ignition_Map_15.img 
+
+>>>>>> Suppression maps <<<<<<<<<<
+AccidentalSuppressionMap	../SCRAPPLE_input_maps_Wen/AccSuprEff.tif
+LightningSuppressionMap		../SCRAPPLE_input_maps_Wen/NatSuprEff.tif
+RxSuppressionMap		../SCRAPPLE_input_maps_Wen/RxSuprEff.tif
+
+>>>>>> Other maps <<<<<<<<<<
+>> Maps used in spread, and mortality calculations<<
+
+GroundSlopeMap                  ../SCRAPPLE_input_maps_Wen/GroundSlopePercent.tif
+UphillSlopeAzimuthMap           ../SCRAPPLE_input_maps_Wen/UphillSlopeAzm.tif
+ClayMap                         ../NECN_input_maps_Wen/SoilPercentClay.tif
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>>>   Ignition model   <<<<<<<<<<<<<<<<<<<<<<<
+>>    Use empirically-derived ignition model coefficients based on observed fire ignitions from 1992-2015 (USFS Dataset RDS-2013-0009.4)
+>>     1) Create lm in R of the form IgnitionProb ~ Fire Weather Index
+>>     2) Extract model coefficients and enter them here: 
+
+>>>>>>>>   Count model coefs   <<<<<<<< UPDATED ON July 25, 2022
+LightningIgnitionsB0             0.5336  << Fit for WenEnt. Fit for WenEnt-OkaMet: 1.07168  << Lower B0 decreases # of ignitions
+LightningIgnitionsB1             0.0086  << Fit for WenEnt. Fit for WenEnt-OkaMet: 0.01448  << Lower B1 decreases # of ignitions and flattens response to FWI.
+AccidentalIgnitionsB0           -2.3410  << Fit for WenEnt. Fit for WenEnt-OkaMet: -0.75033 
+AccidentalIgnitionsB1            0.0172  << Fit for WenEnt. Fit for WenEnt-OkaMet: 0.02279 
+
+IgnitionDistribution ZeroInflatedPoisson << Poisson or ZeroInflatedPoisson. If using Poisson comment out the following beta values.
+
+>>>>>>>>   Zero inflated coefs   <<<<<<< UPDATED ON July 25, 2022
+>>  Probability of zero ignitions at FWI=0: B0 of 4 = 98%, B0 of 3 = 95%, B0 of 2 = 88%, B0 of 1 = 73%
+>>  Probability of zero ignitions at FWI=50: With B0=3: B1 = -0.043: 70%, B1 = -0.032: 80%, B1 = -0.016: 90%
+>>  Probability of zero ignitions at FWI=50: With B0=4: B1 = -0.063: 70%, B1 = -0.052: 80%, B1 = -0.016: 96%
+LightningIgnitionsBinomialB0     4.0899    <<  Fit for WenEnt. << Fit for WenEnt-OkaMet: 3.38147 << Higher B0 increases probability of producing 0 ignitions for that day.
+LightningIgnitionsBinomialB1    -0.0847    <<  Fit for WenEnt. << Fit for WenEnt-OkaMet:-0.08751 << Smaller B1 increases probability of 0 ignitions and a flatter response to FWI.
+AccidentalIgnitionsBinomialB0    1.5441    <<  Fit for WenEnt. << Fit for WenEnt-OkaMet: 1.92460 
+AccidentalIgnitionsBinomialB1   -2.9473    <<  Fit for WenEnt. << Fit for WenEnt-OkaMet:-3.20139
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+>> Determines the scaling of the fine fuel 
+MaximumFineFuels 5000     << The amount of fine fuels (g m-2) used to rescale the fine fuel parameter in equations 3 and 6 of Scheller et al. (in prep.).
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+>>>>>>>   Prescribed Fire Parameters              <<<<<<<<<<<
+MaximumRxWindSpeed        15
+MaximumRxFireWeatherIndex 20.0  << Optional
+MinimumRxFireWeatherIndex 3.0   << Optional
+MaximumRxTemperature      22	<< Limit to 72 degrees F. 
+MinimumRxRelativeHumidity 20	<< Optional
+MaximumRxFireIntensity    3
+NumberRxAnnualFires       10
+NumberRxDailyFires        1
+FirstDayRxFires           1
+LastDayRxFires            1	<< Rx FIRE TURNED OFF
+TargetRxSize              1000	<< in hectares
+RxZonesMap		  ../ext_BiomassHarvestStands_Wen.tif
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+>>>>>>     Spread parameters                    <<<<<<<<<<<<<
+>> Code to estimate these parameters found on GitHub: https://github.com/LANDIS-II-Foundation/Extension-SCRPPLE/tree/master/Supporting%20R%20Code/Spread_Commit
+>> If MaxSpreadArea betas are too high, fires burn too quickly. If too low, fires are too small or square.
+MaximumSpreadAreaB0	 20000	<< 500, -1000, -300, 10
+MaximumSpreadAreaB1	 -125	<< 100,    40,   12, -2.5 	<< FWI
+MaximumSpreadAreaB2	 -125	<< 100,    60,   10, -2.5  	<< Effective wind speed
+
+>> If SpreadProbability is too high, the whole landscape burns up in 1-2 days. If too low, fires don't spread.
+>>SpreadProbabilityB0     -2.0       <<   -3.5, -3.5,  -8, -10,  -11, -0.79    Intercept
+>>SpreadProbabilityB1      0.04      <<  0.055, 0.06, 0.12, 0.2, 0.25,  0.06    FWI
+>>SpreadProbabilityB2      0.7       <<   0.85, 0.06, 0.13, 0.3, 0.20,-0.915    Relativized fine fuels. 
+>>SpreadProbabilityB3      0.02      <<  0.045, 0.05, 0.11, 0.1, 0.01, 0.013    Effective wind speed. 
+
+SpreadProbabilityB0      -0.29       <<        -3.5, -3.5,  -8, -10,  -11, -0.79    Intercept
+SpreadProbabilityB1      0.011      << 0.04, 0.055, 0.06, 0.12, 0.2, 0.25,  0.06    FWI
+SpreadProbabilityB2      2.75       <<        0.85, 0.06, 0.13, 0.3, 0.20,-0.915    Relativized fine fuels. 
+SpreadProbabilityB3      0.002      << 0.02, 0.045, 0.05, 0.11, 0.1, 0.01, 0.013    Effective wind speed. 
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+>>>>>>     Mortality parameters                 <<<<<<<<<<<<<
+>> See code to generate these on GitHub (note - as of March 2021 this code doesnt actually work on the FTM database): https://github.com/LANDIS-II-Foundation/Extension-SCRPPLE/tree/master/Supporting%20R%20Code/Mortality
+
+>>>>>>> Site level mortality << Parameters updated on 03/09/2022
+SiteMortalityB0    0.01        	<< Intercept
+SiteMortalityB1   -0.000    	<< The parameter fit for site level clay % in Soil.
+SiteMortalityB2   -0.000004	<< The parameter fit for site level previous years annual ET. 
+SiteMortalityB3   -0.000035	<< The parameter fit for site level Effective Windspeed. 
+SiteMortalityB4   -0.000005	<< The parameter fit for site level Climatic Water Deficit (PET-AET). 
+SiteMortalityB5   -0.003  	<< The parameter fit for fine fuels (a percentage of the maximum, from above). 
+SiteMortalityB6   -0.00000025	<< The parameter fit for ladder fuels (biomass)
+
+>>>>>>>>> Cohort level mortality << Parameters updated on 01/31/2022
+CohortMortalityB0  1   << 2.5 << Intercept
+CohortMortalityB1 -0.8 << The parameter fit for the relationship between bark thickness and cohort mortality.
+CohortMortalityB2  0.007 << 0.001 << The parameter fit for the relationship between site mortality and cohort mortality. 
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+>>>>>>     Misc. parameters                     <<<<<<<<<<<<<
+
+
+LadderFuelMaxAge 80 << Uncomment for v3.2.1
+
+LadderFuelSpeciesList 
+AbieGran AbieLasi AbieAmab AbieProc ChamNoot JuniOcci JuniScop PiceEnge PinuAlbi PinuCont PseuMenz ThujPlic TsugHete TsugMert NonFxr_Resprt NonFxr_Seed Nfixer_Resprt
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+>>>>>>     Suppression parameters               <<<<<<<<<<<<<
+
+SuppressionMaxWindSpeed 70  	<< specifically for helicopter safety
+
+Suppression_CSV_File 		../ext_SCRAPPLE_Suppression_Effort.csv
+
+DeadWoodTable << This table was designed to track snags generated by fire. For each species, list minimum age at which a cohort generates snags due to fire. 
+
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>>>>>>>        END           >>>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

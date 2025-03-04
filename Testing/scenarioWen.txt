@@ -21,7 +21,7 @@ CellLength     90 << meters
 
 >> Disturbance Extensions   Initialization File
 >> ----------------------   -------------------
-"Social Climate Fire"     ../WenEnt/ext_SCRAPPLE_WenEnt.txt
+>>"Social Climate Fire"     ../WenEnt/ext_SCRAPPLE_WenEnt.txt
 >>"Social Climate Fire"     ../Tripod/ext_SCRAPPLE_Tripod.txt
 
 

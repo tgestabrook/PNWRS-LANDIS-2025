@@ -71,7 +71,8 @@ cat('###########################################################################
 if(dir.exists(file.path(Dir,'social-climate-fire'))) file.rename(file.path(Dir,'social-climate-fire'),file.path(Dir,'scrapple-fire'))
 
 
-for(folder in c('biomassOutput','ageOutput','Harvest', 'NECN', 'scrapple-fire')){
+for(folder in c(#'biomassOutput','ageOutput','Harvest', 
+                'NECN', 'scrapple-fire')){
   tifs<-dir(file.path(Dir,folder))
   if(length(tifs)==0) next
 

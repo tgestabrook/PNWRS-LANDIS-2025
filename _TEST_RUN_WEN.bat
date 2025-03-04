@@ -23,7 +23,7 @@ xcopy  "..\WenEnt\ECOREGIONS_WenEnt.txt"		".\Input_file_archive"
 rem RUN LANDIS-II SCENARIO
 call landis-ii-8 ../Testing/scenarioWen.txt
 
-"C:\Program Files\R\R-4.4.1\bin\R.exe" CMD BATCH --no-echo --no-save --no-restore ../../assign_crs_to_landis_output_and_compress_imgs.R ./post-processing-log.txt
+"C:\Program Files\R\R-4.4.1\bin\R.exe" CMD BATCH --no-echo --no-save --no-restore ../assign_crs_to_landis_output_and_compress_imgs.R ./post-processing-log.txt
 
 pause
 

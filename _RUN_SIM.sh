@@ -51,6 +51,12 @@ do
     cp -p ../$extent/ext_BiomassHarvestStands_*.tif 		                ./Input_file_archive 
     cp -p ../$extent/zClimate_Library/ClimateGenerator_baseline.txt 		./Input_file_archive 
 
+    ## SET UP MAGIC HARVEST
+    mkdir MagicHarvest
+	cp -p ../$extent/ext_BiomassHarvestMgmt_*.tif 		./MagicHarvest/MH_mgmt_areas.tif
+	cp -p ../$extent/ext_BiomassHarvestStands_*.tif 		./MagicHarvest/MH_stands.tif
+    cp -p ../$extent/MH_Stand_ageOkaMet.tif		   	./Input_file_archive
+
 
 
     ## RUN LANDIS-II SCENARIO

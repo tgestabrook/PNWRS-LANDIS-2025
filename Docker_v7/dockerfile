@@ -104,3 +104,17 @@ RUN cd /bin/LANDIS_Linux/Core-Model-v7-LINUX/Linux-LANDIS-II-Extension-NECN-Succ
 # && cd /bin/LANDIS_Linux/Core-Model-v7-LINUX/Linux-Extension-NECN-Succession/src \
 && dotnet /bin/LANDIS_Linux/Core-Model-v7-LINUX/build/Release/Landis.Console.dll scenario_landscape.txt
 
+# stuff needed for exporting finished runs
+RUN apt-get update
+RUN apt-get install -y zip curl 
+
+# Downloading gcloud package
+RUN curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz > /tmp/google-cloud-sdk.tar.gz
+
+# Installing the package
+RUN mkdir -p /usr/local/gcloud \
+  && tar -C /usr/local/gcloud -xvf /tmp/google-cloud-sdk.tar.gz \
+  && /usr/local/gcloud/google-cloud-sdk/install.sh
+
+# Adding the package path to local
+ENV PATH $PATH:/usr/local/gcloud/google-cloud-sdk/bin

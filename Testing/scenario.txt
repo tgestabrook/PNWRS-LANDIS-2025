@@ -24,7 +24,7 @@ CellLength     90 << meters
 
 >> Disturbance Extensions   Initialization File
 >> ----------------------   -------------------
-"Social Climate Fire"     ../OkaMet/ext_SCRAPPLE_OkaMet.txt
+>>"Social Climate Fire"     ../OkaMet/ext_SCRAPPLE_OkaMet.txt
 >>"Social Climate Fire"     ../Tripod/ext_SCRAPPLE_Tripod.txt
 
 
