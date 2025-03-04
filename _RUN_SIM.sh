@@ -59,8 +59,8 @@ do
     # dotnet $HOME/Core-Model-v7-LINUX/build/Release/Landis.Console ./Input_file_archive/$scenarioFile
 
     ## RUN POST-PROCESSING SCRIPT TO PROJECT OUTPUT MAPS AND CONVERT TO GeoTIFF
-    echo Post-processing LANDIS-II Outputs...
-    Rscript ../assign_crs_to_landis_output_and_compress_imgs.R > ./post-processing-log.txt
+    ## echo Post-processing LANDIS-II Outputs...
+    ## Rscript ../assign_crs_to_landis_output_and_compress_imgs.R > ./post-processing-log.txt
 
     echo ----------------------------------------
     echo Simulation number $repeat complete!
