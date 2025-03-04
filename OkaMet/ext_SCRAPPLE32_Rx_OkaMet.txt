@@ -16,9 +16,9 @@ Species_CSV_File	../ext_SCRAPPLE_Species_Table.csv    << Replaces the damage tab
 >>>>>>>>>>>>>>>>>   Input maps   <<<<<<<<<<<<<<<<<<<<<<<<<<
 
 >>>>>> Ignition maps <<<<<
-AccidentalIgnitionsMap            ../SCRAPPLE_input_maps/AccIgnProb.tif
-LightningIgnitionsMap             ../SCRAPPLE_input_maps/NatIgnProb.tif
-RxIgnitionsMap                    ../SCRAPPLE_input_maps/RxIgnProb_low.tif  << covers area reachable for harvest treatments
+AccidentalIgnitionsMap            ../OkaMet/SCRAPPLE_input_maps/AccIgnProb.tif
+LightningIgnitionsMap             ../OkaMet/SCRAPPLE_input_maps/NatIgnProb.tif
+RxIgnitionsMap                    ../OkaMet/SCRAPPLE_input_maps/RxIgnProb_low.tif  << covers area reachable for harvest treatments
 
 DynamicRxIgnitionMaps << Optional these initiate new probability surfaces at set time steps. 
 1    ./MagicHarvest/RxIgnProb_dynamic.tif
@@ -223,16 +223,16 @@ DynamicRxIgnitionMaps << Optional these initiate new probability surfaces at set
 200    ./MagicHarvest/RxIgnProb_dynamic.tif
 
 >>>>>> Suppression maps <<<<<<<<<<
-AccidentalSuppressionMap	../SCRAPPLE_input_maps/AccSuprEff.tif
-LightningSuppressionMap		../SCRAPPLE_input_maps/NatSuprEff.tif
-RxSuppressionMap		../SCRAPPLE_input_maps/RxSuprEff.tif
+AccidentalSuppressionMap	../OkaMet/SCRAPPLE_input_maps/AccSuprEff.tif
+LightningSuppressionMap		../OkaMet/SCRAPPLE_input_maps/NatSuprEff.tif
+RxSuppressionMap		../OkaMet/SCRAPPLE_input_maps/RxSuprEff.tif
 
 >>>>>> Other maps <<<<<<<<<<
 >> Maps used in spread, and mortality calculations<<
 
-GroundSlopeMap                  ../SCRAPPLE_input_maps/GroundSlopePercent.tif
-UphillSlopeAzimuthMap           ../SCRAPPLE_input_maps/UphillSlopeAzm.tif
-ClayMap                         ../NECN_input_maps/SoilPercentClay.tif
+GroundSlopeMap                  ../OkaMet/SCRAPPLE_input_maps/GroundSlopePercent.tif
+UphillSlopeAzimuthMap           ../OkaMet/SCRAPPLE_input_maps/UphillSlopeAzm.tif
+ClayMap                         ../OkaMet/NECN_input_maps/SoilPercentClay.tif
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>>>>>>>>>>>>   Ignition model   <<<<<<<<<<<<<<<<<<<<<<<
@@ -275,7 +275,7 @@ NumberRxDailyFires        10
 FirstDayRxFires           1
 LastDayRxFires            365	<< 
 TargetRxSize              100	<< in hectares
-RxZonesMap		  ../ext_BiomassHarvestStandsAgg_OkaMet.tif
+RxZonesMap		  ../OkaMet/ext_BiomassHarvestStands_OkaMet.tif
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>     Spread parameters                    <<<<<<<<<<<<<
@@ -325,7 +325,7 @@ AbieGran AbieLasi AbieAmab AbieProc ChamNoot JuniOcci JuniScop PiceEnge PinuAlbi
 
 SuppressionMaxWindSpeed 70  	<< specifically for helicopter safety
 
-Suppression_CSV_File 		../ext_SCRAPPLE_Suppression_Effort_BAU.csv
+Suppression_CSV_File 		../OkaMet/ext_SCRAPPLE_Suppression_Effort_BAU.csv
 
 DeadWoodTable << 
 
