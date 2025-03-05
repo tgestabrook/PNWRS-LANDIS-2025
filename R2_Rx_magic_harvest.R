@@ -22,6 +22,11 @@ flipIfNeeded <- function(r){
 
 
 # Load magic harvest command inputs
+# 1. timestep (always first argument)
+# 2. scenario name
+# 3. thinning cooldown
+# 4. magic harvest file name
+# 5. Landis extent
 args <- commandArgs(trailingOnly = TRUE)
 print("Input args:")
 print(args)
@@ -30,7 +35,9 @@ timestep <- as.numeric(args[1]); print(paste('Timestep:', timestep))
 last_year <- timestep - 1
 scenario_rx_name <- args[2]
 mh_file_name <- args[4]
-LANDIS.EXTENT <- args[5]
+
+ecos_file <- dir("./Input_file_archive")[grepl("ECOREGIONS", dir("./Input_file_archive"))][[1]]
+LANDIS.EXTENT <- str_replace(ecos_file, 'ECOREGIONS_', '') %>% str_replace('.txt', '') %>% str_replace('.tif', '')  # EXTRACT LANDIS EXTENT from ECOREGIONS
 
 fireDir <- './social-climate-fire'
 harvestDir <- './Harvest'
@@ -52,7 +59,6 @@ fire_cooldown <- 7  # possibly set to 6 or 7
 thin_cooldown <- as.numeric(args[3])  # 20 for 5% or 50 for 2%
 cold_cooldown <- ifelse(thin_cooldown<=30, thin_cooldown+5, thin_cooldown)
 
-
 max_annual_thin <- 1/thin_cooldown*sum(values(ifel(base_mgmt.r%in%c(1,2,3), 1, NA)), na.rm=T)  # should be 2 or 5 % of managed forest area
 max_annual_ind <- 0.05*sum(values(ifel(base_mgmt.r==4, 1, NA)), na.rm=T)
 max_annual_DNR <- 0.05*sum(values(ifel(base_mgmt.r==7, 1, NA)), na.rm=T)
@@ -69,7 +75,7 @@ if(timestep == 1){
   writeRaster(stand_age.r, file.path('./MagicHarvest', 'stand_age.tif'))
   
   # copy rx dynamic
-  rx_dynamic.r <- rast(file.path('../SCRAPPLE_input_maps/', scenario_rx_name))
+  rx_dynamic.r <- rast(file.path('..', LANDIS.EXTENT, 'SCRAPPLE_input_maps', scenario_rx_name))
   writeRaster(rx_dynamic.r, file.path('./MagicHarvest', 'Rx_base.tif'))
   
   # fire cooldown 
