@@ -7,9 +7,9 @@ Timestep  10
 
 SeedingAlgorithm  WardSeedDispersal
 
-InitialCommunities      ../INITIAL_COMMUNITIES_NECN.txt
+InitialCommunities      ../INITIAL_COMMUNITIES_WenEnt.txt
 InitialCommunitiesMap   ../INITIAL_COMMUNITIES_Wen.tif
-ClimateConfigFile 	../zClimate_Library/ClimateGenerator7_baseline.txt	
+ClimateConfigFile 	../WenEnt/zClimate_Library/ClimateGenerator7_baseline.txt	
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>>>>          SOIL INPUT MAPS             >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -82,11 +82,9 @@ LightEstablishmentTable
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>>>>  Species and functional group parameters  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-SpeciesParameters
-Species_CSV_File        ../WenEnt/ext_NECN68_Species_Table.csv
+SpeciesParameters         ../WenEnt/ext_NECN68_Species_Table.csv
 
-FunctionalGroupParameters 
-Functional_CSV_File     ../WenEnt/ext_NECN68_Functional_Table.csv
+FunctionalGroupParameters       ../WenEnt/ext_NECN68_Functional_Table.csv
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>>>>           Other                           >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

@@ -2,12 +2,12 @@ LandisData "Climate Config"
 		
 >> Future climate data
 ClimateTimeSeries			Daily_SequencedYears
-ClimateFile				../zClimate_Library/CLIMATE7_2020-2120_rcp85_Wen_Ent.csv
+ClimateFile				../WenEnt/zClimate_Library/CLIMATE7_2020-2120_rcp85_Wen_Ent.csv
 ClimateFileFormat			Daily_Temp-C_Precip-mmDay
 
 >> Historical climate data
 SpinUpClimateTimeSeries			Daily_SequencedYears
-SpinUpClimateFile			../zClimate_Library/CLIMATE7_1980-2019_rcp85_Wen_Ent.csv
+SpinUpClimateFile			../WenEnt/zClimate_Library/CLIMATE7_1980-2019_rcp85_Wen_Ent.csv
 SpinUpClimateFileFormat			Daily_Temp-C_Precip-mmDay
 
 

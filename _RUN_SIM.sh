@@ -7,6 +7,9 @@ extent=$2
 climate=$3
 maxsims=$4
 
+# Fix Rscript command in magic_harvest
+sed -i 's|"C:\\Program Files\\R\\R-4.4.1\\bin\\Rscript.exe"|Rscript|g' ./ext_magic_harvest*
+
 #re="^scenario_(.+).txt$"
 #if [[ $scenarioFile =~ $re ]]; then scenarioname=${BASH_REMATCH[1]}; fi
 
