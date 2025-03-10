@@ -7,8 +7,8 @@ Timestep  10
 
 SeedingAlgorithm  WardSeedDispersal
 
-InitialCommunities      ../INITIAL_COMMUNITIES_WenEnt.txt
-InitialCommunitiesMap   ../INITIAL_COMMUNITIES_Wen.tif
+InitialCommunities      ../WenEnt/INITIAL_COMMUNITIES_WenEnt.txt
+InitialCommunitiesMap   ../WenEnt/INITIAL_COMMUNITIES_WenEnt.tif
 ClimateConfigFile 	../WenEnt/zClimate_Library/ClimateGenerator7_RCP85.txt	<< Use ClimateGenerator_RCP85_2020-2050.txt for the 30 year scenarios, and ClimateGenerator_RCP85_2050-2120.txt for RunOut!
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
