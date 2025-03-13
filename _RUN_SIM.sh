@@ -74,16 +74,25 @@ do
     echo ----------------------------------------
     echo Simulation number $repeat complete!
     echo ----------------------------------------
+
+    
+
+
     cd $back
+    
+    echo Exporting to cloud...
+    zip -q -r ${dirName}_$date_time.zip ${dirName}_$date_time
+    gsutil -m cp -r ${dirName}_$date_time.zip gs://usfs_landis_outputs
+    rm -r -f ${dirName}_$date_time
+    echo Done!
 done
 
-## ZIP RUNS AND EXPORT TO THE CLOUD
-for dir in ./LANDIS_*/; do 
-	dir=${dir%*/} # Remove the trailing "/"
-	echo "${dir##*/}" # Print everything after the final "/"
-	zip -q -r $dir.zip $dir
-	gsutil -m cp -r $dir.zip gs://usfs_landis_outputs
-done
+# ## ZIP RUNS AND EXPORT TO THE CLOUD
+# for dir in ./LANDIS_*/; do 
+# 	dir=${dir%*/} # Remove the trailing "/"
+# 	echo "${dir##*/}" # Print everything after the final "/"
+	
+# done
 
 
 read -p "Run complete. Press any key to close."
