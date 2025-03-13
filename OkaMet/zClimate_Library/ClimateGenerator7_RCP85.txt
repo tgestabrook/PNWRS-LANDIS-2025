@@ -2,14 +2,14 @@ LandisData "Climate Config"
 		
 >> Future climate data
 ClimateTimeSeries			Daily_SequencedYears
->>ClimateFile				../zClimate_Library/empty_for_trial_runs.csv
-ClimateFile				../zClimate_Library/CLIMATE7_2020-2120_rcp85_OkaMet.csv
+>>ClimateFile				../OkaMet/zClimate_Library/empty_for_trial_runs.csv
+ClimateFile				../OkaMet/zClimate_Library/CLIMATE7_2020-2120_rcp85_OkaMet.csv
 ClimateFileFormat			Daily_Temp-C_Precip-mmDay
 
 >> Historical climate data
 SpinUpClimateTimeSeries			Daily_SequencedYears
->>SpinUpClimateFile			../zClimate_Library/empty_for_trial_runs.csv
-SpinUpClimateFile			../zClimate_Library/CLIMATE7_1980-2019_rcp85_OkaMet.csv
+>>SpinUpClimateFile			../OkaMet/zClimate_Library/empty_for_trial_runs.csv
+SpinUpClimateFile			../OkaMet/zClimate_Library/CLIMATE7_1980-2019_rcp85_OkaMet.csv
 SpinUpClimateFileFormat			Daily_Temp-C_Precip-mmDay
 
 
