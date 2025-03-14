@@ -9,7 +9,7 @@ TimeZeroPET		541
 TimeZeroCWD		462
 
 >> Species level characteristics
-Species_CSV_File	../OkaMet/ext_SCRAPPLE_Species_Table.csv    << Replaces the damage table in previous version of scrapple
+Species_CSV_File	../ext_SCRAPPLE_Species_Table.csv    << Replaces the damage table in previous version of scrapple
 
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
