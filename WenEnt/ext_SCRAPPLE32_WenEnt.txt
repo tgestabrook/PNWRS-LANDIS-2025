@@ -15,21 +15,21 @@ Species_CSV_File	../ext_SCRAPPLE_Species_Table.csv    << Replaces the damage tab
 >>>>>>>>>>>>>>>>>   Input maps   <<<<<<<<<<<<<<<<<<<<<<<<<<
 
 >>>>>> Ignition maps <<<<<
-AccidentalIgnitionsMap            ../WenEnt/SCRAPPLE_input_maps_Wen/AccIgnProb.tif
-LightningIgnitionsMap             ../WenEnt/SCRAPPLE_input_maps_Wen/NatIgnProb.tif
-RxIgnitionsMap                    ../WenEnt/SCRAPPLE_input_maps_Wen/RxIgnProb.tif
+AccidentalIgnitionsMap            ../WenEnt/SCRAPPLE_input_maps/AccIgnProb.tif
+LightningIgnitionsMap             ../WenEnt/SCRAPPLE_input_maps/NatIgnProb.tif
+RxIgnitionsMap                    ../WenEnt/SCRAPPLE_input_maps/RxIgnProb.tif
 
 >>>>>> Suppression maps <<<<<<<<<<
-AccidentalSuppressionMap	../WenEnt/SCRAPPLE_input_maps_Wen/AccSuprEff.tif
-LightningSuppressionMap		../WenEnt/SCRAPPLE_input_maps_Wen/NatSuprEff.tif
-RxSuppressionMap		../WenEnt/SCRAPPLE_input_maps_Wen/RxSuprEff.tif
+AccidentalSuppressionMap	../WenEnt/SCRAPPLE_input_maps/AccSuprEff.tif
+LightningSuppressionMap		../WenEnt/SCRAPPLE_input_maps/NatSuprEff.tif
+RxSuppressionMap		../WenEnt/SCRAPPLE_input_maps/RxSuprEff.tif
 
 >>>>>> Other maps <<<<<<<<<<
 >> Maps used in spread, and mortality calculations<<
 
-GroundSlopeMap                  ../WenEnt/SCRAPPLE_input_maps_Wen/GroundSlopePercent.tif
-UphillSlopeAzimuthMap           ../WenEnt/SCRAPPLE_input_maps_Wen/UphillSlopeAzm.tif
-ClayMap                         ../WenEnt/NECN_input_maps_Wen/SoilPercentClay.tif
+GroundSlopeMap                  ../WenEnt/SCRAPPLE_input_maps/GroundSlopePercent.tif
+UphillSlopeAzimuthMap           ../WenEnt/SCRAPPLE_input_maps/UphillSlopeAzm.tif
+ClayMap                         ../WenEnt/NECN_input_maps/SoilPercentClay.tif
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>>>>>>>>>>>>   Ignition model   <<<<<<<<<<<<<<<<<<<<<<<
