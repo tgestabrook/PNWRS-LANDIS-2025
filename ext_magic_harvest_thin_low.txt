@@ -6,4 +6,4 @@ HarvestExtensionParameterFile ./Input_file_archive/ext_BiomassHarvest_mh.txt
 
 ProcessToLaunch "C:\Program Files\R\R-4.4.1\bin\Rscript.exe"
 
-ProcessArguments "../R2_Rx_magic_harvest_OkaMet.R {timestep} RxIgnProb_low.tif 50 ext_BiomassHarvest_mh.txt"
+ProcessArguments "../R2_Rx_magic_harvest.R {timestep} RxIgnProb_low.tif 50 ext_BiomassHarvest_mh.txt"
