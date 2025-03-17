@@ -17,7 +17,7 @@ Species_CSV_File	../ext_SCRAPPLE_Species_Table.csv    << Replaces the damage tab
 >>>>>> Ignition maps <<<<<
 AccidentalIgnitionsMap            ../WenEnt/SCRAPPLE_input_maps/AccIgnProb.tif
 LightningIgnitionsMap             ../WenEnt/SCRAPPLE_input_maps/NatIgnProb.tif
-RxIgnitionsMap                    ../WenEnt/SCRAPPLE_input_maps/RxIgnProb.tif
+RxIgnitionsMap                    ../WenEnt/SCRAPPLE_input_maps/RxIgnProb_low.tif
 
 DynamicRxIgnitionMaps << Optional these initiate new probability surfaces at set time steps. 
 1    ./MagicHarvest/RxIgnProb_dynamic.tif
