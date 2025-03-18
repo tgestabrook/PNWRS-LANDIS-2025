@@ -231,7 +231,7 @@ RxSuppressionMap		../WenEnt/SCRAPPLE_input_maps/RxSuprEff.tif
 
 GroundSlopeMap                  ../WenEnt/SCRAPPLE_input_maps/GroundSlopePercent.tif
 UphillSlopeAzimuthMap           ../WenEnt/SCRAPPLE_input_maps/UphillSlopeAzm.tif
-ClayMap                         ../WenEnt/NECN_input_maps_Wen/SoilPercentClay.tif
+ClayMap                         ../WenEnt/NECN_input_maps/SoilPercentClay.tif
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>>>>>>>>>>>>   Ignition model   <<<<<<<<<<<<<<<<<<<<<<<
@@ -273,7 +273,7 @@ NumberRxDailyFires        10
 FirstDayRxFires           1
 LastDayRxFires            365	<< 
 TargetRxSize              100	<< in hectares
-RxZonesMap		  ../ext_BiomassHarvestStands_WenEnt.tif
+RxZonesMap		  ../WenEnt/ext_BiomassHarvestStands_WenEnt.tif
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>     Spread parameters                    <<<<<<<<<<<<<

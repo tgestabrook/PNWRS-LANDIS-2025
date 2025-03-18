@@ -19,10 +19,6 @@ AccidentalIgnitionsMap            ../WenEnt/SCRAPPLE_input_maps/AccIgnProb.tif
 LightningIgnitionsMap             ../WenEnt/SCRAPPLE_input_maps/NatIgnProb.tif
 RxIgnitionsMap                    ../WenEnt/SCRAPPLE_input_maps/RxIgnProb.tif
 
->> DynamicRxIgnitionMaps << Optional these initiate new probability surfaces at set time steps. 
->>  3                             ../SCRAPPLE_input_maps_Wen/Rx_Ignition_Map_3.img
->>  15                            ../SCRAPPLE_input_maps_Wen/Rx_Ignition_Map_15.img 
-
 >>>>>> Suppression maps <<<<<<<<<<
 AccidentalSuppressionMap	../WenEnt/SCRAPPLE_input_maps/AccSuprEff.tif
 LightningSuppressionMap		../WenEnt/SCRAPPLE_input_maps/NatSuprEff.tif
@@ -75,7 +71,7 @@ NumberRxDailyFires        1
 FirstDayRxFires           1
 LastDayRxFires            1	<< Rx FIRE TURNED OFF
 TargetRxSize              1000	<< in hectares
-RxZonesMap		  ../WenEnt/ext_BiomassHarvestStands_Wen.tif
+RxZonesMap		  ../WenEnt/ext_BiomassHarvestStands_WenEnt.tif
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>     Spread parameters                    <<<<<<<<<<<<<
