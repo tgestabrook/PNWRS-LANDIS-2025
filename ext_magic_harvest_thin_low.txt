@@ -6,4 +6,4 @@ HarvestExtensionParameterFile ./Input_file_archive/ext_BiomassHarvest_null.txt
 
 ProcessToLaunch Rscript
 
-ProcessArguments "../R2_Rx_magic_harvest_OkaMet.R {timestep} RxIgnProb_low.tif 999 ext_BiomassHarvest_null.txt"
+ProcessArguments "../R2_Rx_magic_harvest.R {timestep} RxIgnProb_low.tif 999 ext_BiomassHarvest_null.txt"
