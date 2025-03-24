@@ -8,3 +8,7 @@ Testing/obj/*
 /V8_Models.sln
 *.tif.aux.xml
 *CLIMATE_FILES.zip
+.Rhistory
+TEST.bat
+_TEST_RUN_WEN.bat
+_TEST_RUN_WEN3.bat
