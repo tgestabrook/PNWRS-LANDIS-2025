@@ -237,7 +237,7 @@ writeRaster(as.int(new_zones.r), file.path('./MagicHarvest', paste0('MH_mgmt_are
 print('Generating new Rx allocation...')
 rx_zone.r <- rast(file.path('./MagicHarvest', 'Rx_base.tif'))
 rx_stands.r <- rast(file.path('..', LANDIS.EXTENT, paste0('ext_BiomassHarvestStands_', LANDIS.EXTENT,'.tif')))  # use a different, fixed set of stands since SCRAPPLE doesn't reload with each timestep
-topo_asp.r <- rast(file.path('..', LANDIS.EXTENT, 'TopoAsp_', LANDIS.EXTENT,'.tif'))
+topo_asp.r <- rast(file.path('..', LANDIS.EXTENT, paste0('TopoAsp_', LANDIS.EXTENT,'.tif')))
 #file.path('./MagicHarvest', 'TopoAsp_Patches.tif') <- rast(file.path('./MagicHarvest', 'TopoAsp_Patches.tif'))
 max_annual_Rx <- sum(values(ifel(rx_zone.r>0, 1, NA)), na.rm=T)/fire_cooldown  # get a maximum burnable area value that keeps a steady cycle of burning
 
