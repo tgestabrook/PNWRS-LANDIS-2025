@@ -11,7 +11,7 @@
 9,100,Thin_Rx_Wrx_5pct,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_Rx_EXTENT.txt,../ext_BiomassHarvest_mh.txt,../ext_magic_harvest_thin_wRx_high.txt,../SPECIES.txt
 10,100,Thin_Rx_WFU_5pct,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_WFU_EXTENT.txt,../ext_BiomassHarvest_mh.txt,../ext_magic_harvest_thin_high.txt,../SPECIES.txt
 11,50,Lanzatech,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_Rx_EXTENT.txt,../ext_BiomassHarvest_mh.txt,../ext_magic_harvest_thin_high.txt,../SPECIES.txt
-12,75,CalibRun7,../EXTENT/ext_NECN68_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE32_EXTENT.txt,NA,NA,../SPECIES_v7.txt
+12,75,CalibRun7,../EXTENT/ext_NECN68_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE32_EXTENT_testing.txt,NA,NA,../SPECIES_v7.txt
 13,100,GrowOut7,../EXTENT/ext_NECN68_EXTENT10_CLIMATE.txt,NA,NA,NA,../SPECIES_v7.txt
 14,100,BAU_Wildfire7,../EXTENT/ext_NECN68_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE32_EXTENT.txt,NA,NA,../SPECIES_v7.txt
 15,100,Rx_only7,../EXTENT/ext_NECN68_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE32_Rx_EXTENT.txt,../ext_BiomassHarvest_null.txt,../ext_magic_harvest_Rx_only.txt,../SPECIES_v7.txt
