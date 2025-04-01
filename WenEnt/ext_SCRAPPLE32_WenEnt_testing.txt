@@ -108,7 +108,7 @@ SiteMortalityB6   -0.0000001    << The parameter fit for ladder fuels.
 >>>>>>>>> Cohort level mortality << Parameters updated on 01/31/2022
 CohortMortalityB0  1   << 2.5 << Intercept
 CohortMortalityB1 -0.8 << The parameter fit for the relationship between bark thickness and cohort mortality.
-CohortMortalityB2  0.007 << 0.001 << The parameter fit for the relationship between site mortality and cohort mortality. 
+CohortMortalityB2  0.006 << 0.001 << The parameter fit for the relationship between site mortality and cohort mortality. 
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>     Misc. parameters                     <<<<<<<<<<<<<
