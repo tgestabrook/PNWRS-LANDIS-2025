@@ -6,9 +6,9 @@ LandisData  "Biomass Harvest"
 >>-----------------
 Timestep		1
 
-ManagementAreas 	../ext_BiomassHarvestMgmt_OkaMet.tif
+ManagementAreas 	./MagicHarvest/MH_mgmt_areas.tif
 
-Stands     		../ext_BiomassHarvestStands_OkaMet.tif
+Stands     		./MagicHarvest/MH_stands.tif
 
 
 
