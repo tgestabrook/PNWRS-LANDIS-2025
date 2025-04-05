@@ -95,16 +95,16 @@ RUN chmod +x /bin/LANDIS_Linux/Core-Model-v8-LINUX/downloadSpecificGitCommitAndF
 
 # NECN Succession
 RUN cd /bin/LANDIS_Linux/Core-Model-v8-LINUX \
-# Commit 00de972970862ed2cead943fd0714624e7ca7850 is latest at time of writing.
+# Commit d9fd3101e73c091b2f9dec9558e47c624018f90c is latest at time of writing.
 # Commit 37ce246c37bab3448e3db134373deb56063e14ac is LAST WORKING VERSION, crashes at year 30 for some reason
-&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-NECN-Succession.git 37ce246c37bab3448e3db134373deb56063e14ac /src \ 
+&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-NECN-Succession.git d9fd3101e73c091b2f9dec9558e47c624018f90c /src \ 
 && cd /bin/LANDIS_Linux/Core-Model-v8-LINUX/Extension-NECN-Succession/src \
 && python /bin/LANDIS_Linux/Core-Model-v8-LINUX/editing_csproj_LANDIS-II_files.py ./NECN-succession.csproj \
 # The devellopers of NECN forgot to add a line referencing the location of one of the support libraries.
 # I add it here manually at the right place in the file.
-&& cd /bin/LANDIS_Linux/Core-Model-v8-LINUX/Extension-NECN-Succession/src && sed -i '39i    <HintPath>..\\..\\build\\extensions\\Landis.Library.Climate-v5.dll</HintPath>' NECN-succession.csproj \
+# && cd /bin/LANDIS_Linux/Core-Model-v8-LINUX/Extension-NECN-Succession/src && sed -i '39i    <HintPath>..\\..\\build\\extensions\\Landis.Library.Climate-v5.dll</HintPath>' NECN-succession.csproj \
 && dotnet build -c Release \
-&& wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-NECN-Succession/37ce246c37bab3448e3db134373deb56063e14ac/deploy/installer/NECN_Succession8.txt \
+&& wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-NECN-Succession/d9fd3101e73c091b2f9dec9558e47c624018f90c/deploy/installer/NECN_Succession8.txt \
 && dotnet $LANDIS_EXTENSIONS_TOOL add "NECN_Succession8.txt" \
 && cd /bin/LANDIS_Linux/Core-Model-v8-LINUX/ && rm -r Extension-NECN-Succession
 
@@ -123,14 +123,14 @@ RUN cd /bin/LANDIS_Linux/Core-Model-v8-LINUX \
 
 # Climate-social Fire
 RUN cd /bin/LANDIS_Linux/Core-Model-v8-LINUX \
-# Commit b463ea378f1bcde4369907a408dfe64b9cc52c7a is latest as of writing this.
-&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-Social-Climate-Fire.git b463ea378f1bcde4369907a408dfe64b9cc52c7a /src \ 
+# Commit 9206bc0c5cded05941a8405cc5956f00c5b4b103 is latest as of writing this.
+&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-Social-Climate-Fire.git 9206bc0c5cded05941a8405cc5956f00c5b4b103 /src \ 
 && cd /bin/LANDIS_Linux/Core-Model-v8-LINUX/Extension-Social-Climate-Fire/src \
 && python /bin/LANDIS_Linux/Core-Model-v8-LINUX/editing_csproj_LANDIS-II_files.py ./SocialClimateFire.csproj \
 # We got to add two lines to indicate where the support libraries are
-&& sed -i '39i    <HintPath>..\\..\\build\\extensions\\Landis.Library.Climate-v5.dll</HintPath>' SocialClimateFire.csproj \
+# && sed -i '39i    <HintPath>..\\..\\build\\extensions\\Landis.Library.Climate-v5.dll</HintPath>' SocialClimateFire.csproj \
 && dotnet build -c Release \
-&& wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-Social-Climate-Fire/b463ea378f1bcde4369907a408dfe64b9cc52c7a/deploy/installer/Scrapple%204.txt \
+&& wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-Social-Climate-Fire/9206bc0c5cded05941a8405cc5956f00c5b4b103/deploy/installer/Scrapple%204.txt \
 && dotnet $LANDIS_EXTENSIONS_TOOL add "Scrapple 4.txt" \
 && cd /bin/LANDIS_Linux/Core-Model-v8-LINUX/ && rm -r Extension-Social-Climate-Fire
 
@@ -138,12 +138,12 @@ RUN cd /bin/LANDIS_Linux/Core-Model-v8-LINUX \
 
 # Biomass Harvest
 RUN cd /bin/LANDIS_Linux/Core-Model-v8-LINUX \
-# Commit 24b01fea5a90b05b2732c3e52e09a02fdb47db59 is latest as of writing this.
-&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-Biomass-Harvest.git 24b01fea5a90b05b2732c3e52e09a02fdb47db59 /src \ 
+# Commit 7e5efc0373e78001103b6b4d15aae4a96463a547 is latest as of writing this.
+&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-Biomass-Harvest.git 7e5efc0373e78001103b6b4d15aae4a96463a547 /src \ 
 && cd /bin/LANDIS_Linux/Core-Model-v8-LINUX/Extension-Biomass-Harvest/src \
 && python /bin/LANDIS_Linux/Core-Model-v8-LINUX/editing_csproj_LANDIS-II_files.py ./biomass-harvest-ext.csproj \
 && dotnet build -c Release \
-&& wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-Biomass-Harvest/24b01fea5a90b05b2732c3e52e09a02fdb47db59/deploy/installer/Biomass%20Harvest%206.txt \
+&& wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-Biomass-Harvest/7e5efc0373e78001103b6b4d15aae4a96463a547/deploy/installer/Biomass%20Harvest%206.txt \
 && dotnet $LANDIS_EXTENSIONS_TOOL add "Biomass Harvest 6.txt" \
 && cd /bin/LANDIS_Linux/Core-Model-v8-LINUX/ && rm -r Extension-Biomass-Harvest
 
@@ -181,25 +181,25 @@ RUN cd /bin/LANDIS_Linux/Core-Model-v8-LINUX \
 
 # Biomass Output
 RUN cd /bin/LANDIS_Linux/Core-Model-v8-LINUX \
-# Commit d5cb256f7669df36a76d9337c779cdc7f1cdbd0b is latest as of writing this.
-&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-Output-Biomass.git d5cb256f7669df36a76d9337c779cdc7f1cdbd0b /src \ 
+# Commit d24773efa0d57d9a00a23d4267ff30bd1179a7b6 is latest as of writing this.
+&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-Output-Biomass.git d24773efa0d57d9a00a23d4267ff30bd1179a7b6 /src \ 
 && cd /bin/LANDIS_Linux/Core-Model-v8-LINUX/Extension-Output-Biomass/src \
 && python /bin/LANDIS_Linux/Core-Model-v8-LINUX/editing_csproj_LANDIS-II_files.py ./output-biomass.csproj \
 && dotnet build -c Release \
-&& wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-Output-Biomass/d5cb256f7669df36a76d9337c779cdc7f1cdbd0b/deploy/installer/Output%20Biomass%204.txt \
+&& wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-Output-Biomass/d24773efa0d57d9a00a23d4267ff30bd1179a7b6/deploy/installer/Output%20Biomass%204.txt \
 && dotnet $LANDIS_EXTENSIONS_TOOL add "Output Biomass 4.txt" \
 && cd /bin/LANDIS_Linux/Core-Model-v8-LINUX/ && rm -r Extension-Output-Biomass
 
 # # Cohort statistics outputs
 RUN cd /bin/LANDIS_Linux/Core-Model-v8-LINUX \
-# Commit 045272850c77b8b5e8c36ba1fe8c5041b7a523c2 is latest as of writing this.
-&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-Output-Cohort-Statistics.git 045272850c77b8b5e8c36ba1fe8c5041b7a523c2 /src \ 
+# Commit 0b5cb4ba929bb2f0f87db14fc013e660a79da903 is latest as of writing this.
+&& ./downloadSpecificGitCommitAndFolder.sh https://github.com/LANDIS-II-Foundation/Extension-Output-Cohort-Statistics.git 0b5cb4ba929bb2f0f87db14fc013e660a79da903 /src \ 
 && cd /bin/LANDIS_Linux/Core-Model-v8-LINUX/Extension-Output-Cohort-Statistics/src \
 && python /bin/LANDIS_Linux/Core-Model-v8-LINUX/editing_csproj_LANDIS-II_files.py ./output-cohort-stats.csproj \
 # We need to add a line to the csproj.
-&& sed -i '37i    <HintPath>..\\..\\build\\extensions\\Landis.Library.UniversalCohorts-v1.dll</HintPath>' output-cohort-stats.csproj \
+# && sed -i '37i    <HintPath>..\\..\\build\\extensions\\Landis.Library.UniversalCohorts-v1.dll</HintPath>' output-cohort-stats.csproj \
 && dotnet build -c Release \
-&& wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-Output-Cohort-Statistics/045272850c77b8b5e8c36ba1fe8c5041b7a523c2/deploy/installer/Output%20Cohort%20Statistics%204.txt \
+&& wget https://raw.githubusercontent.com/LANDIS-II-Foundation/Extension-Output-Cohort-Statistics/0b5cb4ba929bb2f0f87db14fc013e660a79da903/deploy/installer/Output%20Cohort%20Statistics%204.txt \
 && dotnet $LANDIS_EXTENSIONS_TOOL add "Output Cohort Statistics 4.txt" \
 && cd /bin/LANDIS_Linux/Core-Model-v8-LINUX/ && rm -r Extension-Output-Cohort-Statistics
 
