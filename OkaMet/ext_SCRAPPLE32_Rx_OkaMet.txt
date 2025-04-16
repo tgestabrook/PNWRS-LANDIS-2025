@@ -309,7 +309,7 @@ SiteMortalityB6   -0.0000001    << The parameter fit for ladder fuels.
 >>>>>>>>> Cohort level mortality << Parameters updated on 01/31/2022
 CohortMortalityB0  1   << 2.5 << Intercept
 CohortMortalityB1 -0.8 << The parameter fit for the relationship between bark thickness and cohort mortality.
-CohortMortalityB2  0.006 << 0.001 << The parameter fit for the relationship between site mortality and cohort mortality. 
+CohortMortalityB2  0.0055 << 0.001 << The parameter fit for the relationship between site mortality and cohort mortality. 
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>     Misc. parameters                     <<<<<<<<<<<<<
@@ -328,7 +328,18 @@ SuppressionMaxWindSpeed 70  	<< specifically for helicopter safety
 Suppression_CSV_File 		../OkaMet/ext_SCRAPPLE_Suppression_Effort_BAU.csv
 
 DeadWoodTable << 
-
+PseuMenz    40
+PinuPond    40
+LariOcci    40
+PinuCont    40
+PiceEnge    40
+AbieLasi    40
+PinuAlbi    40
+AbieAmab    40
+AbieGran    40
+ThujPlic    40
+TsugHete    40
+TsugMert    40
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>>>>>>>>>>>>>>>>        END           >>>>>>>>>>>>>>>>>>

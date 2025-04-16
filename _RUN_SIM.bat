@@ -14,13 +14,13 @@ echo Creating directory: %dirName%_%date_time%
 mkdir %dirName%_%date_time%
 
 REM Run Build_Scenario.R
-"C:\Program Files\R\R-4.4.1\bin\Rscript.exe" Build_Scenario7.R %scenarioFile% %dirName%_%date_time%
+"C:\Program Files\R\R-4.4.2\bin\Rscript.exe" Build_Scenario.R %scenarioFile% %dirName%_%date_time%
 
 cd ./%dirName%_%date_time%
 
 REM CREATE SCENARIO FILE WITH CORRECT EXTENT
-powershell -Command "(Get-Content './scenario.txt') -replace 'EXTENT', '%extent%' | Set-Content './scenario.txt'"
-powershell -Command "(Get-Content './scenario.txt') -replace 'CLIMATE', '%climate%' | Set-Content './scenario.txt'"
+powershell -Command "(Get-Content './scenario.txt') -creplace 'EXTENT', '%extent%' | Set-Content './scenario.txt'"
+powershell -Command "(Get-Content './scenario.txt') -creplace 'CLIMATE', '%climate%' | Set-Content './scenario.txt'"
 
 REM COPY INPUT FILES INTO NEW DIR FOR ARCHIVING
 mkdir Input_file_archive
@@ -43,7 +43,7 @@ copy /Y ..\%extent%\MH_Stand_age*.tif Input_file_archive
 
 REM RUN LANDIS-II SCENARIO
 echo Running LANDIS-II scenario...
-call landis-ii-7 scenario.txt
+call landis-ii-8 scenario.txt
 
 REM ZIP THE RUN AND EXPORT TO THE CLOUD
 echo ----------------------------------------
