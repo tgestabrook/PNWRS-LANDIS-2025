@@ -2,7 +2,7 @@ LandisData "Magic Harvest"
 
 Timestep 1
 
-HarvestExtensionParameterFile ./Input_file_archive/ext_BiomassHarvest_null.txt
+HarvestExtensionParameterFile ./Input_file_archive/ext_BiomassHarvest_mh.txt
 
 ProcessToLaunch Rscript
 
