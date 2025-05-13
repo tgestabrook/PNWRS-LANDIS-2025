@@ -291,7 +291,7 @@ CohortsRemoved			SpeciesList
 Prescription 			CC_cold  << Commercial clearcut
 StandRanking 			Random
 MinimumAge 			80		<< Optional
-SiteSelection 			PatchCutting 25%
+SiteSelection 			PatchCutting 25% 3
 CohortsRemoved			SpeciesList
 >>	 Species	Selection
 >>	 ------- 	---------
@@ -325,7 +325,7 @@ CohortsRemoved			SpeciesList
 Prescription 			WC_cold  << Wildland clearcut
 StandRanking 			Random
 MinimumAge 			15		<< Optional
-SiteSelection 			PatchCutting 25%
+SiteSelection 			PatchCutting 25% 3
 CohortsRemoved			SpeciesList
 >>	 Species	Selection
 >>	 ------- 	---------
