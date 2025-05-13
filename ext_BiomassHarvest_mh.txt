@@ -143,8 +143,8 @@ SiteSelection 			Complete
 CohortsRemoved			SpeciesList
 >>	 Species	Selection
 >>	 ------- 	---------
-	 LariOcci	1-40(60%)
-	 PinuPond	1-40(60%)
+	 LariOcci	1-40(25%)
+	 PinuPond	1-40(25%)
 	 PseuMenz	1-200(100%)
 	 ChamNoot	1-200(100%)
 	 AbieAmab	1-200(100%)
@@ -154,7 +154,7 @@ CohortsRemoved			SpeciesList
 	 AcerMacr	1-200(100%)
 	 PiceEnge	1-200(100%)
 	 PinuCont	1-200(100%)
-	 PinuMont	1-40(60%)
+	 PinuMont	1-40(25%)
 	 ThujPlic	1-200(100%)
 	 TsugHete	1-200(100%)
 	 TsugMert	1-200(100%)
@@ -179,9 +179,9 @@ SiteSelection 			Complete
 CohortsRemoved			SpeciesList
 >>	 Species	Selection
 >>	 ------- 	---------
-	 LariOcci	1-40(60%)
-	 PinuPond	1-40(60%)
-	 PseuMenz	1-40(60%)
+	 LariOcci	1-40(25%)
+	 PinuPond	1-40(25%)
+	 PseuMenz	1-40(25%)
 	 ChamNoot	1-200(100%)
 	 AbieAmab	1-200(100%)
 	 AbieGran	1-200(100%)
@@ -225,30 +225,30 @@ SiteSelection 			Complete
 	CohortsRemoved			SpeciesList
 >>	 Species	Selection
 >>	 ------- 	---------
-	 LariOcci	1-20(50%) 21-80(20%) << Thin from below. Thin mature 21-80 y.o. trees by 30%. Dont touch old stuff, allow recruitment
-	 PinuPond	1-20(50%) 21-80(20%) << Thin from below. Thin mature 21-80 y.o. trees by 30%. Dont touch old stuff, allow recruitment
-	 PinuMont	1-20(50%) 21-80(20%) << Thin from below. Thin mature 21-80 y.o. trees by 30%. Dont touch old stuff, allow recruitment
+	 LariOcci	21-80(20%) << Thin from below. Thin mature 21-80 y.o. trees by 30%. Dont touch old stuff, allow recruitment
+	 PinuPond	21-80(20%) << Thin from below. Thin mature 21-80 y.o. trees by 30%. Dont touch old stuff, allow recruitment
+	 PinuMont	21-80(20%) << Thin from below. Thin mature 21-80 y.o. trees by 30%. Dont touch old stuff, allow recruitment
 
-	 PseuMenz	1-50(95%) 51-120(75%) << Thin shade tolerants pretty heavily. Thin mature trees too. Dont touch really old trees.
-	 ChamNoot	1-50(95%) 51-120(75%)
-	 AbieAmab	1-80(95%) 81-120(75%)
-	 AbieGran	1-80(95%) 81-120(75%)
-	 AbieLasi	1-80(95%) 81-120(75%)
-	 AbieProc	1-80(95%) 81-120(75%)
-	 AcerMacr	1-80(95%) 81-120(75%)
-	 PiceEnge	1-80(95%) 81-120(75%)
-	 PinuCont	1-80(95%) 81-120(75%)
-	 ThujPlic	1-80(95%) 81-120(75%)
-	 TsugHete	1-80(95%) 81-120(75%)
-	 TsugMert	1-80(95%) 81-120(75%)
-	 AlnuRubr	1-120(95%)
-	 BetuOcci	1-120(95%)
-	 BetuPapy	1-120(95%)
-	 JuniOcci	1-120(95%)
-	 JuniScop	1-120(95%)
-	 PopuBals	1-120(95%)
-	 PopuTrem	1-120(95%)
-	 QuerGarr	1-50(80%) 51-100(50%) 
+	 PseuMenz	1-120(20%) << Thin shade tolerants pretty heavily. Thin mature trees too. Dont touch really old trees.
+	 ChamNoot	1-120(20%)
+	 AbieAmab	1-120(20%)
+	 AbieGran	1-120(20%)
+	 AbieLasi	1-120(20%)
+	 AbieProc	1-120(20%)
+	 AcerMacr	1-120(20%)
+	 PiceEnge	1-120(20%)
+	 PinuCont	1-120(20%)
+	 ThujPlic	1-120(20%)
+	 TsugHete	1-120(20%)
+	 TsugMert	1-120(20%)
+	 AlnuRubr	1-120(20%)
+	 BetuOcci	1-120(20%)
+	 BetuPapy	1-120(20%)
+	 JuniOcci	1-120(20%)
+	 JuniScop	1-120(20%)
+	 PopuBals	1-120(20%)
+	 PopuTrem	1-120(20%)
+	 QuerGarr	1-120(20%)
 
 >>-----------------------------------------------------------
 >>---- PRESCRIPTION MAP CODE 2; OUTPUT 13 -------------------
@@ -260,30 +260,30 @@ SiteSelection 			Complete
 CohortsRemoved			SpeciesList
 >>	 Species	Selection
 >>	 ------- 	---------
-	 LariOcci	1-20(50%) 21-80(20%) << Thin from below. Thin mature 21-80 y.o. trees by 30%. Dont touch old stuff, allow recruitment
-	 PinuPond	1-20(50%) 21-80(20%) << Thin from below. Thin mature 21-80 y.o. trees by 30%. Dont touch old stuff, allow recruitment
-	 PseuMenz	1-20(50%) 21-80(20%) << Thin from below. Thin mature 21-80 y.o. trees by 30%. Dont touch old stuff, allow recruitment
+	 LariOcci	21-80(20%) << Thin from below. Thin mature 21-80 y.o. trees by 30%. Dont touch old stuff, allow recruitment
+	 PinuPond	21-80(20%) << Thin from below. Thin mature 21-80 y.o. trees by 30%. Dont touch old stuff, allow recruitment
+	 PseuMenz	21-80(20%) << Thin from below. Thin mature 21-80 y.o. trees by 30%. Dont touch old stuff, allow recruitment
 
-	 PinuMont       1-50(95%) 51-120(75%) <<
-	 ChamNoot	1-50(95%) 51-120(75%)
-	 AbieAmab	1-80(95%) 81-120(75%)
-	 AbieGran	1-80(95%) 81-120(75%)
-	 AbieLasi	1-80(95%) 81-120(75%)
-	 AbieProc	1-80(95%) 81-120(75%)
-	 AcerMacr	1-80(95%) 81-120(75%)
-	 PiceEnge	1-80(95%) 81-120(75%)
-	 PinuCont	1-80(95%) 81-120(75%)
-	 ThujPlic	1-80(95%) 81-120(75%)
-	 TsugHete	1-80(95%) 81-120(75%)
-	 TsugMert	1-80(95%) 81-120(75%)
-	 AlnuRubr	1-120(95%)
-	 BetuOcci	1-120(95%)
-	 BetuPapy	1-120(95%)
-	 JuniOcci	1-120(95%)
-	 JuniScop	1-120(95%)
-	 PopuBals	1-120(95%)
-	 PopuTrem	1-120(95%)
-	 QuerGarr	1-50(80%) 51-100(50%) 
+	 PinuMont   1-120(20%) <<
+	 ChamNoot	1-120(20%)
+	 AbieAmab	1-120(20%)
+	 AbieGran	1-120(20%)
+	 AbieLasi	1-120(20%)
+	 AbieProc	1-120(20%)
+	 AcerMacr	1-120(20%)
+	 PiceEnge	1-120(20%)
+	 PinuCont	1-120(20%)
+	 ThujPlic	1-120(20%)
+	 TsugHete	1-120(20%)
+	 TsugMert	1-120(20%)
+	 AlnuRubr	1-120(20%)
+	 BetuOcci	1-120(20%)
+	 BetuPapy	1-120(20%)
+	 JuniOcci	1-120(20%)
+	 JuniScop	1-120(20%)
+	 PopuBals	1-120(20%)
+	 PopuTrem	1-120(20%)
+	 QuerGarr	1-120(20%)
 
 >>-----------------------------------------------------------
 >>---- PRESCRIPTION MAP CODE 3; OUTPUT 14 -------------------
@@ -291,7 +291,7 @@ CohortsRemoved			SpeciesList
 Prescription 			CC_cold  << Commercial clearcut
 StandRanking 			Random
 MinimumAge 			80		<< Optional
-SiteSelection 			Complete
+SiteSelection 			PatchCutting 25%
 CohortsRemoved			SpeciesList
 >>	 Species	Selection
 >>	 ------- 	---------
@@ -299,7 +299,6 @@ CohortsRemoved			SpeciesList
 	 PinuCont	1-150(100%) <<	 
 	 AbieLasi	1-150(100%) <<
 	 PopuTrem	60-100(100%)
-
 	 PinuMont	1-400(85%)
 	 LariOcci	1-400(85%)
 	 PinuPond	1-500(100%)
@@ -326,7 +325,7 @@ CohortsRemoved			SpeciesList
 Prescription 			WC_cold  << Wildland clearcut
 StandRanking 			Random
 MinimumAge 			15		<< Optional
-SiteSelection 			Complete
+SiteSelection 			PatchCutting 25%
 CohortsRemoved			SpeciesList
 >>	 Species	Selection
 >>	 ------- 	---------

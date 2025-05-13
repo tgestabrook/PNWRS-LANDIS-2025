@@ -6,4 +6,4 @@ HarvestExtensionParameterFile ./Input_file_archive/ext_BiomassHarvest_mh.txt
 
 ProcessToLaunch Rscript
 
-ProcessArguments "../R2_Rx_magic_harvest.R {timestep} RxIgnProb_high.tif 20 ext_BiomassHarvest_mh.txt"
+ProcessArguments "../R2_Rx_magic_harvest.R {timestep} RxIgnProb_high.tif 25 ext_BiomassHarvest_mh.txt"
