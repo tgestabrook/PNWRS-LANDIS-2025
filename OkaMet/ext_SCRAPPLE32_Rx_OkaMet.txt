@@ -269,7 +269,7 @@ MaximumRxFireWeatherIndex 20.0  << Optional
 MinimumRxFireWeatherIndex 3.0   << Optional
 MaximumRxTemperature      22	<< Limit to 72 degrees F. 
 MinimumRxRelativeHumidity 20	<< Optional
-MaximumRxFireIntensity    7
+MaximumRxFireIntensity    2
 NumberRxAnnualFires       2000
 NumberRxDailyFires        10
 FirstDayRxFires           1
