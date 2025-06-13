@@ -6,6 +6,7 @@ scenarioFile=$1
 extent=$2
 climate=$3
 maxsims=$4
+GIT_ID=$(git rev-parse --short=6 HEAD)
 
 # Fix Rscript command in magic_harvest
 sed -i 's|"C:\\Program Files\\R\\R-4.4.1\\bin\\Rscript.exe"|Rscript|g' ./ext_magic_harvest*
@@ -13,7 +14,7 @@ sed -i 's|"C:\\Program Files\\R\\R-4.4.1\\bin\\Rscript.exe"|Rscript|g' ./ext_mag
 #re="^scenario_(.+).txt$"
 #if [[ $scenarioFile =~ $re ]]; then scenarioname=${BASH_REMATCH[1]}; fi
 
-dirName="LANDIS_Sim_${2}_${3}_Sc${1}"
+dirName="Sim${GIT_ID}_${2}_${3}_Sc${1}"
 
 ## Set starting directory
 set back=$PWD
