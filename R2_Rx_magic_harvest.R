@@ -55,7 +55,7 @@ mgmt.r <- rast(file.path('./MagicHarvest', paste0('MH_mgmt_areas.tif'))) + 0
 severity.thresholds <- c(5, 41, 176, 376, 2001); names(severity.thresholds) <- c('Unburned', 'Low', 'Moderate', 'High', 'max')
 severity.reclass.df <- data.frame('from'=c(severity.thresholds[1:4]), 'to'=c(severity.thresholds[2:5]), 'becomes'=c(1,2,3,4))
 
-fire_cooldown <- 7  # possibly set to 6 or 7
+fire_cooldown <- 10  # possibly set to 6 or 7
 thin_cooldown <- as.numeric(args[3])  # 20 for 5% or 50 for 2%
 cold_cooldown <- ifelse(thin_cooldown<=30, thin_cooldown+5, thin_cooldown)
 
