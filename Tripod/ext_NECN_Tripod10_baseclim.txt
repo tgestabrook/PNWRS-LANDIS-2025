@@ -3,7 +3,7 @@ LandisData	"NECN Succession"
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>>>>               Setup                  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-Timestep  10
+Timestep  2
 
 SeedingAlgorithm  WardSeedDispersal
 
@@ -29,7 +29,7 @@ InitialSOM2CMapName			../Tripod/NECN_input_maps/SOM2Csoil.tif
 InitialSOM2NMapName			../Tripod/NECN_input_maps/SOM2Nsoil.tif
 InitialSOM3CMapName			../Tripod/NECN_input_maps/SOM3Csoil.tif
 InitialSOM3NMapName			../Tripod/NECN_input_maps/SOM3Nsoil.tif
-InitialDeadWoodSurfaceMapName		../Tripod/NECN_input_maps/DeadWoodSurface.tif
+InitialDeadWoodSurfaceMapName		../Tripod/NECN_input_maps/SurfaceLitterBiomass-10.tif
 InitialDeadCoarseRootsMapName		../Tripod/NECN_input_maps/DeadWoodSoil.tif
 
 
@@ -43,7 +43,7 @@ WaterDecayFunction Ratio <<Linear or Ratio
 
 ProbabilityEstablishAdjust 	1.0
 InitialMineralN			2.0
-InitialFineFuels 		0.5  << a fraction 0-1.0 of dead wood.
+InitialFineFuels 		1.0  << a fraction 0-1.0 of dead wood.
 AtmosphericNSlope		0.05
 AtmosphericNIntercept		0.05
 Latitude			47.5
@@ -65,16 +65,16 @@ SpeciesParameters ../Tripod/ext_NECN8_Species_Table.csv
 FireReductionParameters
 >>	Fire		CWD		Fine Litter	Cohort Wood	Cohort Leaf	SOM
 >>	Intensity	Reduct		Reduct		Reduct		Reduct		Reduction
-	1		0.0		0.1		0.0		0.05		0.1
-	2		0.1		0.25		0.05		0.1		0.2
-	3		0.25		0.5		0.1		0.2		0.25
-	4		0.4		0.6		0.15		0.3		0.3
-	5		0.5		0.7		0.2		0.4		0.4
-	6		0.6		0.75		0.25		0.5		0.5
-	7		0.7		0.8		0.3		0.6		0.6
-	8		0.8		0.9		0.35		0.7		0.7
-	9		0.9		0.95		0.4		0.8		0.8
-	10		0.95		0.99		0.45		0.9		0.9
+	1		0.05		0.95			0.0			0.05		0.1
+	2		0.15		0.99		0.05		0.1			0.2
+	3		0.3			0.99			0.1			0.2			0.25
+	4		0.45		0.99		0.15		0.3			0.3
+	5		0.55		0.99			0.2			0.4			0.4
+	6		0.65		0.99			0.25		0.5			0.5
+	7		0.75		0.99		0.3			0.6			0.6
+	8		0.85		0.99		0.35		0.7			0.7
+	9		0.9			0.99		0.4			0.8			0.8
+	10		0.95		0.99		0.45		0.9			0.9
 
 HarvestReductionParameters
 >>	Name			Coarse Litter	Fine Litter	SOM		CohortWood	CohortLeaf
