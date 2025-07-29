@@ -317,7 +317,7 @@ CohortMortalityB2  0.0055 << 0.001 << The parameter fit for the relationship bet
 >>>>>>     Misc. parameters                     <<<<<<<<<<<<<
 
 
-LadderFuelMaxAge 80 << Uncomment for v3.2.1
+LadderFuelMaxAge 100 << Uncomment for v3.2.1
 
 LadderFuelSpeciesList 
 AbieGran AbieLasi AbieAmab AbieProc ChamNoot JuniOcci JuniScop PiceEnge PinuAlbi PinuCont PseuMenz ThujPlic TsugHete TsugMert NonFxr_Resprt NonFxr_Seed Nfixer_Resprt
