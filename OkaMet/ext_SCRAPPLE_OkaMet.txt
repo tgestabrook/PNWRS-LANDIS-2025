@@ -58,7 +58,7 @@ AccidentalIgnitionsBinomialB1    -1.90 << Fit for WenEnt-OkaMet: -3.20139
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >> Determines the scaling of the fine fuel 
-MaximumFineFuels 6500     << The amount of fine fuels (g m-2) used to rescale the fine fuel parameter in equations 3 and 6 of Scheller et al. (in prep.).
+MaximumFineFuels 3000     << The amount of fine fuels (g m-2) used to rescale the fine fuel parameter in equations 3 and 6 of Scheller et al. (in prep.).
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>>   Prescribed Fire Parameters              <<<<<<<<<<<
@@ -124,6 +124,7 @@ AbieGran AbieLasi AbieAmab AbieProc ChamNoot JuniOcci JuniScop PiceEnge PinuAlbi
 SuppressionMaxWindSpeed 70  	<< specifically for helicopter safety
 
 Suppression_CSV_File 		../OkaMet/ext_SCRAPPLE_Suppression_Effort_BAU.csv
+WriteDNBRPredictorMaps yes
 
 DeadWoodTable << 
 PseuMenz    40
