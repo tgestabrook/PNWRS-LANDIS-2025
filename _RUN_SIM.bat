@@ -14,7 +14,7 @@ echo Creating directory: %dirName%_%date_time%
 mkdir %dirName%_%date_time%
 
 REM Run Build_Scenario.R
-"C:\Program Files\R\R-4.4.2\bin\Rscript.exe" Build_Scenario.R %scenarioFile% %dirName%_%date_time%
+"C:\Program Files\R\R-4.5.0\bin\Rscript.exe" Build_Scenario.R %scenarioFile% %dirName%_%date_time%
 
 cd ./%dirName%_%date_time%
 
