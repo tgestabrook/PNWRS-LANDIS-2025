@@ -3,7 +3,7 @@ LandisData	"NECN Succession"
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>>>>               Setup                  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-Timestep  10
+Timestep  2
 
 SeedingAlgorithm  WardSeedDispersal
 
