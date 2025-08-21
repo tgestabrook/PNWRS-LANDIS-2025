@@ -93,13 +93,13 @@ SpreadProbabilityB3      0.002      << 0.02, 0.045, 0.05, 0.11, 0.1, 0.01, 0.013
 >> See code to generate these on GitHub (note - as of March 2021 this code doesnt actually work on the FTM database): https://github.com/LANDIS-II-Foundation/Extension-SCRPPLE/tree/master/Supporting%20R%20Code/Mortality
 
 >>>>>>> Site level mortality << Parameters updated on 03/09/2022
-SiteMortalityB0    0.005      << Intercept
-SiteMortalityB1    0.04    << The parameter fit for site level clay % in Soil.
-SiteMortalityB2   -0.00001     << The parameter fit for site level previous years annual ET. 
-SiteMortalityB3   -0.00029      << The parameter fit for site level Effective Windspeed. 
-SiteMortalityB4   0    << The parameter fit for site level Climatic Water Deficit (PET-AET). 
-SiteMortalityB5   -0.01    << The parameter fit for fine fuels (a percentage of the maximum, from above). 
-SiteMortalityB6   -0.00000013    << The parameter fit for ladder fuels.
+SiteMortalityB0    0.00675      << Intercept
+SiteMortalityB1    0.06    << The parameter fit for site level clay % in Soil.
+SiteMortalityB2   -0.00008     << The parameter fit for site level previous years annual ET. 
+SiteMortalityB3   -0.00008      << The parameter fit for site level Effective Windspeed. 
+SiteMortalityB4   0.00006    << The parameter fit for site level Climatic Water Deficit (PET-AET). 
+SiteMortalityB5   -0.005    << The parameter fit for fine fuels (a percentage of the maximum, from above). 
+SiteMortalityB6   -0.0000008    << The parameter fit for ladder fuels.
 
 >>>>>>>>> Cohort level mortality << Parameters updated on 01/31/2022
 CohortMortalityB0  1   << 2.5 << Intercept
