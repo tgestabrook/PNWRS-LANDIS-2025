@@ -25,9 +25,10 @@ powershell -Command "(Get-Content './scenario.txt') -creplace 'CLIMATE', '%clima
 REM COPY INPUT FILES INTO NEW DIR FOR ARCHIVING
 mkdir Input_file_archive
 copy /Y *.txt Input_file_archive
-copy /Y ..\*.txt Input_file_archive
+copy /Y ..\Shared_inputs\*.txt Input_file_archive
 copy /Y ..\%extent%\*.txt Input_file_archive
 copy /Y ..\*.csv Input_file_archive
+copy /Y ..\Shared_inputs\*.csv Input_file_archive
 copy /Y ..\%extent%\*.csv Input_file_archive
 copy /Y ..\%extent%\INITIAL_COMMUNITIES_*.tif Input_file_archive
 copy /Y ..\%extent%\ECOREGIONS_*.tif Input_file_archive

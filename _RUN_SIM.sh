@@ -46,9 +46,10 @@ do
     ## COPY INPUT FILES INTO NEW DIR FOR ARCHIVING
     mkdir Input_file_archive 
     cp -p ./*.txt                                                   ./Input_file_archive 
-    cp -p ../*.txt					                                ./Input_file_archive 
+    cp -p ../Shared_inputs/*.txt					                                ./Input_file_archive 
     cp -p ../$extent/*.txt					                            ./Input_file_archive
     cp -p ../*.csv 					                                ./Input_file_archive 
+    cp -p ../Shared_inputs/*.csv 					                                ./Input_file_archive 
     cp -p ../$extent/*.csv					                            ./Input_file_archive
     cp -p ../$extent/INITIAL_COMMUNITIES_*.tif 			                    ./Input_file_archive 
     cp -p ../$extent/ECOREGIONS_*.tif 				                        ./Input_file_archive 

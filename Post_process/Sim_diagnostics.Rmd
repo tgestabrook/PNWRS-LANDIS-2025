@@ -1,0 +1,566 @@
+---
+title: "Sim_diagnostics"
+author: "Thomas Estabrook"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, 
+                      warning = FALSE, 
+                      message = FALSE,
+                      fig.width = 10,
+                      fig.height = 7)
+```
+
+## Simulation: `r gsub(dirToProcess,'',landisOutputDir)`
+
+### Fire Figures
+
+#### Event log summaries
+
+These plots depict variables collected in the SCRAPPLE events log. Values associated with individual pixels are averaged over a fire footprint.
+
+
+```{r, fig.width=12, fig.height=10, fig.cap = "Event log by mean severity per fire event."}
+if(exists("ev_log_comp")){
+  ggplot(data=ev_log_comp, aes(x=Severity_full, y=Value, fill=Severity_full)) + geom_violin(drop = F) + 
+    facet_wrap(~Var, scales='free') + theme_classic() + 
+    scale_fill_manual(values = c('darkgreen','darkseagreen','goldenrod1','firebrick4'), drop=F)
+}
+
+```
+
+
+```{r, fig.width=12, fig.height=10, fig.cap = "Event log by binned fire size."}
+if(exists("ev_log_comp")){
+  ggplot(data=ev_log_comp, aes(x=ev_Size, y=Value, fill=ev_Size)) + 
+    geom_boxplot() + 
+    facet_wrap(~Var, scales='free') + theme_classic() + theme(axis.text.x = element_text(angle = -30, hjust = 0, vjust = 0))
+}
+```
+
+
+#### Fire size distribution
+
+```{r, echo = FALSE, fig.cap = "Fire size distribution by ignition type."}
+if(exists("fire.size.classes")){
+  df <- fire.size.classes |> 
+    rename(Observed=Actual_count_per_year,
+           LANDIS=LANDIS_II_simulation_per_year) |>
+    pivot_longer(cols = c(Observed, LANDIS), values_to = 'y', names_to = 'Source') |>
+    mutate(fill = paste(Source, Type),
+           min = ifelse(min == 0, 0.1, min),  # Set min to a non-zero number for log scale:
+           Fire_size = ifelse(Fire_size == "0-1", "<1", Fire_size))
+  
+  ggplot(data=df,aes(x=min,y=y+1,colour=Type,fill=Source,linetype=Source))+
+    geom_bar(position='dodge',stat='identity',width=0.45,linewidth=0.5)+
+    scale_y_log10(name='Fires per year',limits=c(1,max(df[df$min>0,'y']+1)),
+                  breaks=c(1,2,4,11,31,101,301),labels=c(0,1,3,10,30,100,300))+
+    scale_x_log10(name='Fire size (ha)',breaks=df$min,labels=df$Fire_size)+
+    scale_color_manual(values=c(alpha('firebrick',0.65),alpha('dodgerblue3',0.65),alpha('seagreen',0.8)),name='Ignition type')+
+    scale_fill_manual(values=c('grey10','grey80'),name='Source',labels=c('LANDIS-II (2020-2120)','Actual (1984-2019)'))+
+    scale_linetype_manual(values=c('solid','dotdash'),guide='none')+
+    guides(color=guide_legend(override.aes=list(fill='grey90',linewidth=1)))+
+    theme(legend.position="inside",legend.position.inside = c(0.75,0.8),axis.title = element_text(size=9),
+          legend.text = element_text(size=6.5),legend.title = element_text(size=7),
+          axis.text.x = element_text(size=6.5,angle=30,hjust=1),
+          legend.key.size = unit(0.3,'cm'),legend.spacing.y = unit(0.1,'cm'),
+          panel.grid.major.y = element_line(colour='grey90',linetype='dashed'))
+}
+```
+
+```{r, fig.cap = "Log10 fire size distribution (all igniton types)."}
+if(exists('fire.size.classes.log10')){
+  df <- fire.size.classes.log10 |>
+    rename(Observed=Actual_count_per_year,
+           LANDIS=LANDIS_II_simulation_per_year) |>
+    pivot_longer(cols = c(Observed, LANDIS), values_to = 'y', names_to = 'fill') |>
+    mutate(Fire_size = paste0('>',format(min,big.mark=',',trim = T,scientific = F,drop0trailing = T)),
+           min = ifelse(min == 0, 0.1, min))  # Set min to a non-zero number for log scale:
+  
+  ggplot(data=df,aes(x=min,y=y+1,fill=fill)) +
+    geom_hline(yintercept = c(1,2,11,100),linewidth=0.25,colour='grey80',linetype='dotted')+
+    geom_bar(position='dodge',stat='identity',width=0.45,linewidth=0.25,color='grey50')+
+    scale_y_log10(name='Fires per year',limits=c(1,max(df[df$min>0,'y']+1)),
+                  breaks=10^(-1:4)+1,labels=10^(-1:4),expand=c(c(0,0),c(0.05,0)))+
+    scale_x_log10(name='Fire size (ha)',breaks=df$min,labels=df$Fire_size)+
+    scale_fill_manual(values=c('grey10','grey80'),name='Source',labels=c('LANDIS-II (2020-2120)','Actual (1984-2019)'))+
+    scale_linetype_manual(values=c('solid','dotdash'),guide='none')+
+    guides(color=guide_legend(override.aes=list(fill='grey90',size=1)))+
+    theme(legend.position = 'inside', legend.position.inside = c(0.68,0.66),axis.title = element_text(size=9),
+          legend.text = element_text(size=6.5),legend.title = element_text(size=7),
+          legend.key.size = unit(0.3,'cm'),legend.spacing.x = unit(0.0,'cm'),legend.spacing.y = unit(0.0,'cm'))
+}
+```
+
+
+```{r, fig.cap = "Power law fit"}
+if(exists("powerLaw.df")){
+  ggplot(data=powerLaw.df,aes(x=Size,y=Freq.gt,fill=Source))+
+    geom_vline(xintercept=c(1,10,100,1000,10000),colour='grey80',linetype='dotted',linewidth=0.25)+
+    geom_hline(yintercept=c(1,10,100,1000,10000),colour='grey80',linetype='dotted',linewidth=0.25)+
+    geom_point(size=1,shape=21,color=alpha('black',0.6),alpha=0.75)+
+    geom_abline(intercept=landis.lm$coefficients[1],slope = landis.lm$coefficients[2],linetype='solid',col='darkred',size=0.4)+
+    geom_abline(intercept=mtbs.lm$coefficients[1],slope = mtbs.lm$coefficients[2],linetype='solid',col='darkred',size=0.4)+
+    scale_y_log10(name='Frequency (fires per year)',breaks=10^(-1:4),labels=10^(-1:4))+
+    scale_x_log10(name='Fire size (ha)',breaks=10^(0:4),labels=paste0('>',format(10^(0:4),big.mark=',',trim = T)))+
+    scale_fill_manual(values=c('black','grey90'),name=NULL,labels=c('LANDIS-II (2020-2120)','Actual (1984-2019)'))+
+    guides(color=guide_legend(override.aes=list(fill='grey90',size=1)))+
+    theme(legend.position = 'inside', legend.position.inside = c(0.69,0.85),axis.title = element_text(size=9),
+          legend.text = element_text(size=6.5),legend.title = element_text(size=7),
+          legend.key.size = unit(0.3,'cm'),legend.spacing.x = unit(0.0,'cm'),legend.spacing.y = unit(0.0,'cm'),
+          legend.box.margin = unit(rep(0,4),'cm'))
+}
+```
+
+
+```{r, fig.cap = "Mean patch size trend by size and severity."}
+if(exists("patch.size.df")){
+  y.max<-max(quantile(patch.size.df$value[patch.size.df$metric == 'patchArea_mn' & patch.size.df$Severity == 'mod'],0.995,na.rm=T),
+             quantile(mtbs.patch.size.AOI$value[mtbs.patch.size.AOI$metric == 'patchArea_mn' & mtbs.patch.size.AOI$Severity == 'mod'],0.995,na.rm=T),20)
+  
+  df <- mtbs.patch.size.AOI |> filter(metric == 'patchArea_mn')
+  
+  mtbs.plot <- ggplot(df, aes(x=FIRE_YEAR, size=Area_ha, y=value))+
+    annotate('text',x=Inf,y=Inf,label='MTBS',hjust=1.1,vjust=1.5,size=2.9,fontface='bold') +
+    geom_point(aes(color=Severity), alpha = 0.5)+ geom_point(color = 'black', alpha = 0.5, fill = NA,shape=21)+
+    scale_color_manual(values=c("UB" = severityColsClassified[1], 'low'=severityColsClassified[1], 'mod'=severityColsClassified[3], 'high'=severityColsClassified[4]), drop=F)+
+    scale_size_continuous(name='Fire size (ha)',breaks=c(10,100,1000,10000,50000),labels=c('10','100','1000','10000','50000'))+
+    guides(color='none',shape='none',size=guide_legend(override.aes = list(fill='white')))+
+    xlab('Year')+ylab('Average patch area (ha)')+
+    ylim(0,y.max)+
+    theme(legend.position='none')
+  
+  df <- patch.size.df |> filter(metric == 'patchArea_mn')
+  
+  landis.plot <- ggplot(df, aes(x=Year, size=Total_Area, y=value))+
+    annotate('text',x=Inf,y=Inf,label='LANDIS',hjust=1.1,vjust=1.5,size=2.9,fontface='bold') +
+    geom_point(aes(color=Severity), alpha = 0.5)+ geom_point(color = 'black', alpha = 0.5, fill = NA,shape=21)+
+    scale_color_manual(values=c("UB" = severityColsClassified[1], 'low'=severityColsClassified[1], 'mod'=severityColsClassified[3], 'high'=severityColsClassified[4]), drop=F)+
+    scale_size_continuous(name='Area burned (ha)',breaks=c(10,100,500,1000,5000,10000,100000),
+                          labels=c('10','100','500','1,000','5,000','10,000','100,000'))+
+    guides(color='none',shape='none',size=guide_legend(override.aes = list(fill='white')))+
+    scale_x_continuous(name='Year',breaks=seq(simOpts$base.year,simOpts$base.year+simLength,10),expand=c(0.01,0),limits=c(simOpts$base.year,simOpts$base.year+simLength))+ylab('')+
+    ylim(0,y.max)+
+    theme(legend.position=c(0.2,0.8),axis.text.y=element_blank())
+  
+  grid.arrange(mtbs.plot,landis.plot,nrow=1,layout_matrix=matrix(c(1,1,1,2,2,2,2,2),nrow=1))
+}
+```
+
+```{r, fig.cap = "Max patch size trend by size and severity."}
+if(exists("patch.size.df")){
+  y.max<-max(quantile(patch.size.df$value_smoothed[patch.size.df$metric == 'patchArea_mx' & patch.size.df$class == 'mod'],0.995,na.rm=T),
+             quantile(mtbs.patch.size.AOI$value[mtbs.patch.size.AOI$metric == 'patchArea_mx' & mtbs.patch.size.AOI$Severity == 'mod'],0.995,na.rm=T),20)
+  
+  df <- mtbs.patch.size.AOI |> filter(metric == 'patchArea_mx')
+  
+  mtbs.plot <- ggplot(df, aes(x=FIRE_YEAR, size=Area_ha, y=value))+
+    annotate('text',x=Inf,y=Inf,label='MTBS',hjust=1.1,vjust=1.5,size=2.9,fontface='bold') + 
+    geom_point(aes(color=Severity), alpha = 0.5)+ geom_point(color = 'black', alpha = 0.5, fill = NA,shape=21)+
+    scale_color_manual(values=c("UB" = severityColsClassified[1], 'low'=severityColsClassified[1], 'mod'=severityColsClassified[3], 'high'=severityColsClassified[4]), drop=F)+
+    scale_size_continuous(name='Fire size (ha)',breaks=c(10,100,1000,10000,50000),labels=c('10','100','1000','10000','50000'))+
+    guides(color='none',shape='none',size=guide_legend(override.aes = list(fill='white')))+
+    xlab('Year')+ylab('Max patch area (ha)')+
+    ylim(0,y.max)+
+    theme(legend.position='none')
+  
+  df <- patch.size.df |> filter(metric == 'patchArea_mx')
+  
+  landis.plot <- ggplot(df, aes(x=Year, size=Total_Area, y=value_smoothed)) + 
+    annotate('text',x=Inf,y=Inf,label='LANDIS',hjust=1.1,vjust=1.5,size=2.9,fontface='bold') + 
+    geom_point(aes(color=Severity), alpha = 0.5)+ geom_point(color = 'black', alpha = 0.5, fill = NA,shape=21)+
+    scale_color_manual(values=c("UB" = severityColsClassified[1], 'low'=severityColsClassified[1], 'mod'=severityColsClassified[3], 'high'=severityColsClassified[4]), drop=F)+
+    scale_size_continuous(name='Area burned (ha)',breaks=c(10,100,500,1000,5000,10000,100000),
+                          labels=c('10','100','500','1,000','5,000','10,000','100,000'))+
+    guides(color='none',shape='none',size=guide_legend(override.aes = list(fill='white')))+
+    scale_x_continuous(name='Year',breaks=seq(simOpts$base.year,simOpts$base.year+simLength,10),expand=c(0.01,0),limits=c(simOpts$base.year,simOpts$base.year+simLength))+ylab('')+
+    ylim(0,y.max)+
+    theme(legend.position=c(0.2,0.8),axis.text.y=element_blank())
+  
+  grid.arrange(mtbs.plot,landis.plot,nrow=1,layout_matrix=matrix(c(1,1,1,2,2,2,2,2),nrow=1))
+}
+```
+
+```{r, fig.cap = "Distribution of mean patch sizes across all fires."}
+if(exists('patch.size.df.melted')){
+  df <- patch.size.df.melted |> filter(metric == 'patchArea_mn')
+  x.max<-max(quantile(df$value_smoothed,0.995,na.rm=T),30)
+  ggplot(df,aes(x=value_smoothed,fill=Severity))+
+    geom_histogram(position='stack',binwidth=5,col='grey20',fill='grey90',size=0.5)+
+    geom_histogram(position=position_dodge(width=4.5),binwidth=5,col=NA)+
+    geom_text(aes(label=Source),x=Inf,y=Inf,size=2.8,vjust=1.5,hjust=1.1,fontface='bold')+
+    scale_fill_manual(values=severityColsClassified)+
+    facet_wrap(~Source,scales='free_y')+
+    ylab('Frequency')+xlab('Average patch area (ha)')+
+    scale_y_continuous(labels=NULL)+
+    scale_x_continuous(limits=c(-3,x.max))+
+    theme(legend.position = c(0.9,0.6),strip.text=element_blank(),
+          panel.border = element_rect(linewidth=1,color='black',fill=NA),
+          legend.key.size=unit(0.3,'cm'),axis.title.x = element_text(margin=margin(0,0,1,0)))
+}
+```
+
+
+```{r, fig.cap = "Distribution of max patch sizes across all fires."}
+if(exists("patch.size.df.melted")){
+  df <- patch.size.df.melted |> filter(metric == 'patchArea_mx') |>
+    mutate(Area.log10 = log10(value)) |>
+    mutate(Size = cut(value, breaks = c(-1, 10, 100, 1000, 10000, 1000000), labels = c("<10", "10-100", "100-1000", "1000-10000", "10000+"))) |>
+    group_by(Size, Severity, Source) |>
+    summarise(Count = n()) |> ungroup() |>
+    complete(Size, Severity, Source, fill = list(Count = 0)) |>
+    mutate(Count.log10 = log10(Count))
+  
+  ggplot(df,aes(x=Size,y=Count.log10,fill=Severity))+
+    geom_bar(stat='identity',position='stack',col='grey20',fill='grey90',linewidth=1)+
+    geom_bar(stat='identity',position='stack',col=NA,fill='grey90',linewidth=0.5)+
+    geom_bar(stat='identity',position=position_dodge(width=0.8),col=NA)+
+    geom_text(aes(label=Source),x=Inf,y=Inf,size=2.8,vjust=1.5,hjust=1.1,fontface='bold')+
+    scale_fill_manual(values=severityColsClassified)+
+    facet_wrap(~Source,scales='free')+
+    ylab('log(Frequency)')+xlab('Maximum patch area (ha)')+
+    scale_y_continuous(expand=c(c(0,0),c(0,0.5)),name='log10(Frequency)',labels=NULL)+
+    # scale_x_continuous(limits=c(-3,x.max))+
+    theme(legend.position = c(0.92,0.6),strip.text=element_blank(),
+          panel.border = element_rect(linewidth=1,color='black',fill=NA),
+          legend.key.size=unit(0.2,'cm'),legend.text = element_text(size=6),
+          axis.text.x = element_text(angle=90,hjust=1,vjust=0.5),
+          axis.title.x = element_text(margin=margin(5,0,1,0)))
+} else {
+  patch.size.df.melted <- data.frame("Source" = NA, "metric" = NA, "Severity" = NA, "value_smoothed" = NA)  # make a df to avoid breaking the next lines
+}
+```
+
+Average area of LANDIS-II high severity patches: `r patch.size.df.melted |> filter(Source == "LANDIS-II", metric == "patchArea_mn", Severity == "high") |> select(value_smoothed) |> pull() |> mean()` ha
+
+Average area of MTBS high severity patches: `r patch.size.df.melted |> filter(Source == "MTBS", metric == "patchArea_mn", Severity == "high") |> select(value_smoothed) |> pull() |> mean()` ha
+
+#### Fire mortality
+
+
+```{r, fig.cap = "Overall distribution of percentage of cohorts killed by a fire."}
+if(exists("severity.df")){
+  ggplot(severity.df |> filter(FIRE_SIZE>0),aes(x=round(PercentCohortsKilled,-1))) + 
+    geom_bar(aes(y = (..count..)/sum(..count..)),position='dodge',colour='black',width=9) +
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1L)) +
+    scale_x_continuous(labels = scales::percent_format(scale=1),limits=c(-5,105)) +
+    ylab('Frequency (% of fires)') + xlab('Cohorts killed (% mortality)')
+}
+```
+
+
+```{r, fig.cap = "Distribution of % mortality by PWG."}
+if(exists("severity.df")){
+  ggplot(data=severity.df |> filter(!PWG%in%c(10, 11))) + geom_histogram(aes(x=PercentCohortsKilled), bins = 10, color='white') + 
+    facet_wrap(~PWG) + xlab('Cohorts killed (% mortality)') + ylab('Frequency (number of fires)') + ggtitle('Cohort mortality by ignition cell')
+}
+
+```
+
+
+```{r, fig.cap = "Distribution of % mortality by ignition type"}
+if(exists("severity.df")){
+  ggplot(severity.df |> filter(FIRE_SIZE>0),aes(x=round(PercentCohortsKilled,-1))) + 
+    geom_bar(aes(y = (..count..)/sum(..count..)),position='dodge',colour='black',width=9) +
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1L)) +
+    scale_x_continuous(labels = scales::percent_format(scale=1),limits=c(-5,105)) +
+    ylab('Frequency (% of fires)') + xlab('Cohorts killed (% mortality)') + facet_wrap(~IgnitionType)
+}
+```
+
+
+```{r}
+if(exists("fire.df")){
+  df <- fire.df |> 
+    mutate(meanBiomassMortality = TotalBiomassMortality/TotalSitesBurned, Rx = ifelse(IgnitionType=="Prescribed", "Prescribed", "Accidental or Lightning")) 
+  ggplot(df, aes(x = log(meanBiomassMortality), fill = Rx)) + geom_density(alpha = 0.33)
+}
+```
+
+#### Pseudo-dNBR
+
+```{r, fig.cap = "Fire severity density comparison (Kolmogorov-Smirnov statistic presented as measurement of distribution similarity)."}
+if(exists("emp.fire.dnbr")){
+  df <- emp.fire.dnbr |>
+    mutate(Severity = cut(x, breaks=c(0,41,176,366,750,2001), labels=c('Unburned (0-41)', 'Low (42-176)', 'Moderate (177-366)', 'High (367-750)', 'Extreme (751+)')))
+  
+  ks.result <- ks.test(x=sample(emp.fire.dnbr$x[emp.fire.dnbr$Source=="LANDIS"], 10000),
+          y=sample(emp.fire.dnbr$x[emp.fire.dnbr$Source=="MTBS"], 10000),
+          alternative='two.sided')
+  
+  ggplot(data = df, aes(x=x, fill=Source)) + geom_density(alpha=0.5) + xlab('Pseudo-dNBR')+
+    scale_x_continuous(breaks=seq(0,1000,100)) + ggtitle(paste("Kolmogorov-Smirnov Dist:", ks.result$statistic))
+}
+```
+
+
+```{r, fig.cap = "Fire severity boxplot comparison (Kolmogorov-Smirnov statistic presented as measurement of distribution similarity)."}
+if(exists("emp.fire.dnbr")){
+  ggplot(data = df |> group_by(Severity, Source) |> summarise(n=n()) |> group_by(Source) |> mutate(p=n/sum(n)), aes(x=Severity, y = p, fill=Source, color = Severity)) + 
+    geom_col(position = "dodge", linewidth = 2) + xlab('Pseudo-dNBR Severity') +
+    scale_color_manual(values=c('darkgreen','darkseagreen','goldenrod1','firebrick4', 'purple')) + scale_fill_manual(values = c('gray', 'gray20')) #+ 
+    # scale_x_continuous(breaks=seq(0,1000,100)) 
+}
+```
+
+
+```{r, fig.cap = "Pseudo-dNBR by simulation year."}
+if(exists("fire.df")){
+  ggplot(fire.df,aes(x=SimulationYear,y=MeanDNBR,size=log(TotalSitesBurned)/5,fill=MeanDNBR)) + ylab('dNBR') + xlab('Year') + 
+    geom_point(shape=21,colour=alpha('black',0.5))+
+    scale_size_continuous(range=c(0.01,4),name='Fire size',breaks=c(0.1,1),labels=c('small','large'))+
+    scale_fill_gradientn(colors=colorRampPalette(c('darkslategray','goldenrod1','salmon1','firebrick4'))(100)) +
+    theme(legend.position=c(0.16,0.85),legend.direction = 'horizontal')
+}    
+```
+
+
+
+```{r, fig.cap = "Severity predictors by simulation year."}
+if(exists("fire.df")){
+  df <- fire.df |>
+    pivot_longer(cols = c(MeanPET, MeanFineFuels, MeanWD, MeanLadderFuels, MeanEffectiveWindSpeed, MeanClay), names_to = "SeverityPredictor", values_to = "Value") 
+  
+  ggplot(data = df, aes(x = SimulationYear, y = Value, size=log(TotalSitesBurned)/5,fill=MeanDNBR)) +
+    geom_point(shape = 21, colour=alpha('black',0.3))+
+    scale_size_continuous(range=c(0.01,4),name='Fire size',breaks=c(0.1,1),labels=c('small','large'))+
+    scale_fill_gradientn(colors=colorRampPalette(c('darkslategray','goldenrod1','salmon1','firebrick4'))(100)) +
+    theme(legend.position=c(0.85,0.15),legend.direction = 'horizontal') +
+    facet_wrap(~SeverityPredictor, scales="free")
+}
+```
+
+
+```{r, fig.cap = "Fire severity boxplots -- the y-axis represents the percentage of a fire made up of a severity class."}
+if(exists("severity.df")){
+  df <- severity.df |> mutate(Source = "LANDIS") |> bind_rows(mtbs.df |> mutate(Source = "MTBS")) |> filter(FIRE_SIZE >= 400) |> pivot_longer(c(PercentUnburned, PercentLow, PercentModerate, PercentHigh), names_to = "Severity", names_prefix = "Percent", values_to = "Percent") |>
+    select(Source, Severity, Percent) |>
+    mutate(Percent = ifelse(Source == "MTBS", Percent*100, Percent))  # MTBS is still as decimal
+  
+  ggplot(data = df, aes(x=Severity, y = Percent, fill=Source)) + geom_boxplot()
+}
+```
+
+
+```{r, fig.cap = "Severity trend by cold vs. dry by year (after Povak fig. 4)."}
+if(exists("annual_sev.df")){
+  ggplot(data = annual_sev.df, aes(x=year, y=pct_forest_type, fill=sev_class)) + 
+    geom_bar(stat='identity') + facet_wrap(~PWG, ncol=1) + 
+    scale_fill_manual(values = c('darkgreen','darkseagreen','goldenrod1','firebrick4')) + 
+    geom_vline(xintercept=2020)
+}
+```
+
+
+```{r, fig.cap="Pseudo-dNBR vs. % cohorts killed"}
+if(exists('fire.df')){
+  p1 <- ggplot(data = fire.df, aes(x = MeanDNBR, y = PercentCohortsKilled, size = log(TotalSitesBurned), color = IgnitionType)) +
+    geom_point(alpha = 0.1) + theme(legend.position = "inside", legend.position.inside = c(.9, .25))
+  
+  p2 <- ggplot(data = fire.df, aes(x = MeanDNBR, y = TotalBiomassMortality/TotalSitesBurned, size = log(TotalSitesBurned), color = IgnitionType)) +
+    geom_point(alpha = 0.1) + theme(legend.position = "inside", legend.position.inside = c(.9, .25))
+  
+  grid.arrange(p1, p2)
+}
+```
+
+
+
+#### Fire Return Interval 
+
+```{r, fig.cap = "Empirical fire return interval"}
+if(exists("FRI.df")){
+  df <- FRI.df |>
+    select(PWG, Area.ha, starts_with(c("CumulativeAreaBurned.", "FRI."))) |>
+    pivot_longer(starts_with(c("CumulativeAreaBurned.", "FRI.")), names_to = c("Metric", "Severity"), names_sep = "\\.", values_to = "val") |>
+    pivot_wider(names_from = "Metric", values_from = "val") |>
+    filter(FRI!=Inf) |>
+    mutate(FRI = ifelse(FRI>1000, 1000, FRI),
+           Severity = factor(Severity, levels=c("All", "Smoothed", "UB", "Low", "Mod", "High"), labels = c('All','All*','Unburned','Low','Moderate','High')))
+  
+  ggplot(df,aes(x=Severity,y=FRI,size=CumulativeAreaBurned/simLength,fill=Severity)) + 
+    geom_abline(slope=0,intercept=seq(0,1000,100),colour='grey80',linetype='dashed',linewidth=0.25)+
+    geom_abline(slope=0,intercept=seq(50,950,100),colour='grey90',linetype='dotted',linewidth=0.2)+
+    geom_point(shape=21) + 
+    scale_size(breaks=c(0,100,500,1000,2000,5000,10000),name='Area burned\nper year (ha)',range=c(0.1,6)) + 
+    scale_fill_manual(values=c('grey30','grey90',severityColsClassified),guide='none') +
+    scale_x_discrete(labels=c('All','All*','UB','Low','Mod.','High'))+
+    scale_y_continuous(breaks=seq(0,1000,200),labels=c(seq(0,900,200),'1000+'),limits=c(0,1080)) + ylab('Fire Return Interval (years)')+
+    facet_wrap(~PWG,nrow=2)+
+    geom_text(data=data.frame('PWG'=names(ecos2),'PWG.name'=ecos2),aes(label = PWG.name,fill=NULL), x = Inf, y =Inf,colour='black',hjust=1.05,vjust=1.2,size=2.8,fontface='bold')  +
+    theme(strip.background = element_blank(),strip.text = element_blank(),
+          panel.spacing=unit(1,'mm'),panel.background=element_blank(),
+          axis.text.x = element_text(size=6),#,angle=30,vjust=1,hjust=1),
+          legend.position='right',legend.margin = margin(2,2,2,2),legend.box.margin = margin(0,1,0,-8),
+          legend.box.background = element_blank(),legend.background = element_rect(color='black',linewidth=0.25),
+          legend.title = element_text(size=6.5),legend.key.size=unit(0.2,'cm'))
+}
+```
+
+
+```{r, fig.cap = "Burn frequency, with color scale denoting number of fires per year (out of 35 years for MTBS, out of `simLength` for LANDIS)"}
+if(exists("burned.N.empirical")){
+  par(mfrow=c(1,2),oma=c(0,0,0,0),mar=c(0,0,0,0),mgp=c(1,0.01,0),tck=-0.002,ps=10,cex=1)
+  plot.window(xlim=ext(ecos.r)[1:2], ylim=ext(ecos.r)[3:4],xaxs="i",yaxs="i",asp=1)
+  plot(burned.N.empirical/35, type='continuous', col=colorRampPalette(c('forestgreen', 'orange', 'red'))(50), range = c(0, 0.08), fill_range = T)
+  plot(dem.r,col=demCols(50),add=T,alpha=0.1,legend=F)
+  plot(hillshade.r,col=colorRampPalette(c('black','grey20','white'))(100),add=T,alpha=0.1,legend=F);box(lwd=3)
+  mtext("MTBS",font=2,line=-1,adj=0.95,cex=1)
+  plot.window(xlim=ext(ecos.r)[1:2], ylim=ext(ecos.r)[3:4],xaxs="i",yaxs="i",asp=1)
+  plot(burned.N.smoothed.r/simLength, type='continuous', col=colorRampPalette(c('forestgreen', 'orange', 'red'))(50), range = c(0, 0.08), fill_range = T)
+  plot(dem.r,col=demCols(50),add=T,alpha=0.1,legend=F)
+  plot(hillshade.r,col=colorRampPalette(c('black','grey20','white'))(100),add=T,alpha=0.1,legend=F);box(lwd=3)
+  mtext("LANDIS",font=2,line=-1,adj=0.95,cex=1)
+}
+```
+
+
+```{r, fig.cap = "Repeated burn severity"}
+if(exists("nFires.df")){
+  ggplot(nFires.df,aes(x=Severity,y=N.fires+1,size=log10(N.pixels+1),fill=Severity)) + geom_point(shape=21) + 
+    scale_size(breaks=seq(0.1,10.1,1),labels=10^seq(0,10,1),range=c(0.001,5)) + 
+    scale_fill_manual(values=c('grey50',severityColsClassified)) +
+    scale_y_log10(breaks=seq(1,21,1),labels=seq(0,20,1)) + ylab('Number of times burned') +
+    facet_wrap(~PWG,nrow=2)+
+    geom_text(data=data.frame('PWG'=names(ecos2),'PWG.name'=ecos2),aes(label = PWG.name,fill=NULL), x = Inf, y =Inf,colour='black',hjust=1.05,vjust=1.2,size=2.8,fontface='bold')  
+}
+```
+
+
+### Harvest Figures
+
+
+```{r, fig.width=12, fig.height=10, fig.cap = "Harvested biomass by species"}
+if(exists("harvestEvents.df")){
+  df <- harvestEvents.df |>
+    group_by(Time, Prescription, Species) |>
+    summarise(BiomassHarvestedMg = sum(BiomassHarvestedMg))
+  
+  ggplot(data = df, aes(x = Time, y = BiomassHarvestedMg, fill = Prescription)) + geom_area() + facet_wrap(~Species) +
+    xlab("Simulation Year") + ylab("Harvested Biomass (Mg)") + xlim(0, simLength)
+}
+```
+
+
+
+
+```{r, fig.cap = "Harvested biomass by silvicultural prescription:"}
+if(exists("harvestEvents.df")){
+  df <- harvestEvents.df |>
+    group_by(Time, Prescription) |>
+    summarise(BiomassHarvestedMg = sum(BiomassHarvestedMg))
+  
+  ggplot(data = df, aes(x = Time, y = BiomassHarvestedMg, color = Prescription)) + geom_line() +
+    xlab("Simulation Year") + ylab("Harvested Biomass (Mg)") + xlim(0, simLength)
+}
+```
+
+
+
+```{r, fig.cap = "Mortality due to harvest (black line), wildfire (red bars), Rx fire (orange bars):"}
+df <- biomass.dynamics.df |> filter(Species == "TotalBiomass")
+
+ggplot(data=df) +
+  geom_col(aes(x=Year,y=BiomassKilledByFire_Mg),fill='darkred') +
+  geom_col(aes(x=Year,y=BiomassKilledByRxFire_Mg),fill='goldenrod') +
+  geom_line(aes(x=Year,y=Harvested_Mg),size=1, col='black') +
+  scale_y_continuous(expression(paste('Harvested Biomass (Mg)')),expand=c(0.01,0))+
+  scale_x_continuous('Year',breaks=seq(0,simLength,simLength/5),labels=seq(simOpts$base.year,simOpts$base.year+simLength,simLength/5),limits=c(0,simLength)) +
+  # facet_wrap(~PWG,nrow=2,labeller=labeller(PWG=function(x) return(paste('Pathway group',x))))+
+  facet_wrap(~PWG,nrow=2,labeller=labeller(PWG=function(x) return(ecos[x])))+
+  theme_classic() + 
+  theme(axis.text = element_text(size=6,color='black'),axis.title = element_text(size=7),legend.text = element_text(size=6.5),legend.position='right',
+        panel.border =element_rect(fill=NA,color='black',linewidth=0.5),
+        axis.line = element_line(color='black',size=0.25),
+        strip.background = element_rect(fill=NA,color='black',linewidth=0.5),strip.text = element_text(size=6,face='bold',margin=margin(1,0,1,0)),
+        plot.margin = margin(0,0,0,0)) 
+```
+
+
+### Biomass Figures
+
+
+
+```{r, fig.cap = "Overall biomass trend by PWG (MG/Ha)"}
+df <- biomass.dynamics.df |> filter(Species != "TotalBiomass") 
+
+ggplot(data=df) +
+  geom_area(aes(x=Year,y=Biomass_mean_MgHaEco,fill=Species,color=Species),size=0.5,linetype='dotdash') +
+  geom_line(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year,y=Biomass_mean_MgHaEco),size=0.5,linetype='solid',col='grey20') +
+  geom_bar(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year,y=BiomassKilledByFire_MgHaEco),width=0.5,stat='identity',fill='darkred',colour=NA,alpha=0.5) +
+  geom_bar(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year+0.5,y=Harvested_MgHaEco),width=0.5,stat='identity',fill='darkgreen',colour=NA,alpha=0.5) +
+  scale_fill_viridis_d(alpha=0.7,direction=-1)+
+  scale_color_viridis_d(alpha=0.6,direction=-1)+
+  scale_y_continuous(expression(paste('Biomass (Mg  ',ha^-1,')')),expand=c(c(0.01,0),c(0.08,0)))+
+  scale_x_continuous('Year',breaks=seq(0,simLength,simLength/5),labels=c(seq(simOpts$base.year,simOpts$base.year+simLength-1,simLength/5),""),limits=c(0,simLength),expand=c(0.01,0)) +
+  facet_wrap(~PWG_Name,nrow=2)
+```
+
+
+```{r, fig.cap = "Overall biomass trend by PWG (MG/Ha) with FVS"}
+df <- biomass.dynamics.df |> filter(Species != "TotalBiomass") 
+
+ggplot(data=df) +
+  geom_area(aes(x=Year,y=Biomass_mean_MgHaEco,fill=Species,color=Species),size=0.5,linetype='dotdash') +
+  geom_line(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year,y=Biomass_mean_MgHaEco),size=0.5,linetype='solid',col='grey20') +
+  geom_line(data = fvsSimToPlot |> filter(Species == "TotalBiomass"), aes(x = Year, y=Biomass_MgHa), col='red') +
+  geom_bar(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year,y=BiomassKilledByFire_MgHaEco),width=0.5,stat='identity',fill='darkred',colour=NA,alpha=0.5) +
+  geom_bar(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year+0.5,y=Harvested_MgHaEco),width=0.5,stat='identity',fill='darkgreen',colour=NA,alpha=0.5) +
+  scale_fill_viridis_d(alpha=0.7,direction=-1)+
+  scale_color_viridis_d(alpha=0.6,direction=-1)+
+  scale_y_continuous(expression(paste('Biomass (Mg  ',ha^-1,')')),expand=c(c(0.01,0),c(0.08,0)))+
+  scale_x_continuous('Year',breaks=seq(0,simLength,simLength/5),labels=c(seq(simOpts$base.year,simOpts$base.year+simLength-1,simLength/5),""),limits=c(0,simLength),expand=c(0.01,0)) +
+  facet_wrap(~PWG_Name,nrow=2)
+```
+
+
+
+```{r, fig.cap = "Overall biomass trend by PWG (Mg)"}
+ggplot(data=df) +
+  geom_area(aes(x=Year,y=Biomass_sum_Mg,fill=Species,color=Species),size=0.5,linetype='dotdash') +
+  geom_line(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year,y=Biomass_sum_Mg),size=0.5,linetype='solid',col='grey20') +
+  geom_bar(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year,y=BiomassKilledByFire_Mg),width=0.5,stat='identity',fill='darkred',colour=NA,alpha=0.5) +
+  geom_bar(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year+0.5,y=Harvested_Mg),width=0.5,stat='identity',fill='darkgreen',colour=NA,alpha=0.5) +
+  scale_fill_viridis_d(alpha=0.7,direction=-1)+
+  scale_color_viridis_d(alpha=0.6,direction=-1)+
+  scale_y_continuous(expression(paste('Biomass (Mg)')),expand=c(c(0.01,0),c(0.08,0)))+
+  scale_x_continuous('Year',breaks=seq(0,simLength,simLength/5),labels=c(seq(simOpts$base.year,simOpts$base.year+simLength-1,simLength/5),""),limits=c(0,simLength),expand=c(0.01,0)) +
+  facet_wrap(~PWG_Name,nrow=2)
+```
+
+#### Biomass maps at 20-year intervals
+
+
+```{r, fig.cap = "Douglass Fir"}
+plotAllYrs("PseuMenz")
+```
+
+
+
+```{r, fig.cap = "Ponderosa Pine"}
+plotAllYrs("PinuPond")
+```
+
+
+
+
+```{r, fig.cap = "Pacific Silver Fir"}
+plotAllYrs("AbieAmab")
+```
+
+
+
+
+```{r, fig.cap = "Grass:"}
+plotAllYrs("Grass_Forb")
+```
+
+
+```{r, fig.cap = "Total biomass"}
+plotAllYrs("TotalBiomass")
+```
+
+
+

@@ -309,7 +309,7 @@ for(landisOutputDir in landisRuns){
       str_replace_all('_', '-')
     
     ### Load dataframe with merchantable fraction by species and harvest type
-    merch_partition.df <- read.csv(file.path(modelDir, 'Harvest_merch_table.csv')) |>  # table specifying merch/nonmerch breakdown
+    merch_partition.df <- read.csv(file.path(modelDir, 'Shared_inputs', 'Harvest_merch_table.csv')) |>  # table specifying merch/nonmerch breakdown
       pivot_longer(cols = !starts_with("Species"), names_to = "Prescription", values_to = "Merch_frac")
     
     ### Load harvest logs
