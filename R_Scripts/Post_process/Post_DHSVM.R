@@ -86,11 +86,11 @@ rcl.df<-rbind(rcl.df,
               data.frame('fc'=0,'ht'=0,'pwg.name'='urban','pwg'="10:50",'DHSVM.class'=173))
 #-----------------------------------------------------------------------------------------------------------------------
 ### Fractional Coverage model: ----
-load(file.path(LANDIS.EXTENT,'Fc_AgeBiomassSppPWG_glm.Rdata'))
+load(file.path(LANDIS.EXTENT, 'Ancillary_data', 'Fc_AgeBiomassSppPWG_glm.Rdata'))
 predict(fc.glm,newdata=data.frame('Mean.Age'=100,'Biomass.sum.gm2'=seq(1000,2000,100),'PWG'=40,'Elevation'=1000),type='response')
 
 ### Height model: ----
-load(file.path(dataDir,'Ht_AgeBiomassSppPWG_glm.Rdata'))
+load(file.path(LANDIS.EXTENT, 'Ancillary_data', 'Ht_AgeBiomassSppPWG_glm.Rdata'))
 predict(ht.glm,newdata=data.frame('Age'=seq(1,100,20),'Biomass_gm2'=1000,'Species'='PinuPond','PWG'=40),type='response')
 
 #-----------------------------------------------------------------------------------------------------------------------
@@ -101,6 +101,18 @@ LAIStack.r <- c(
   rast(file.path(necnOutput, "LAI-yr.tif"))
 )
 names(LAIStack.r)[1] <- "LAI-0"
+LAIStack.r <- LAIStack.r |>
+  as.data.frame(xy = T) |>
+  pivot_longer(contains("LAI"), names_to = c("drop", "Year"), names_sep = '-', values_to = "LAI") |>
+  complete(Year = 0:simLength, x, y) |>  # add rows for missing year x pixel combinations
+  arrange(Year, x, y) |>  # get the columns in the right order
+  group_by(x, y) |>  # group by pixel and interpolate between years
+  mutate(z = zoo::na.approx(LAI)) |>
+  ungroup() |>
+  mutate(l = paste0("LAI-", Year)) |>  # generate a layer name for the output raster stack
+  select(x, y, l, z) |>
+  rast(type = 'xylz', crs = crs(pwg.r), ext = ext(pwg.r))
+
 
 ### Age: ----
 med.age.r <- rast(file.path(ageOutput, dir(ageOutput)[grepl("MED", dir(ageOutput))]))
@@ -110,44 +122,6 @@ biomass.trees.r <- biomassStack.r |> select(!starts_with(c("Nfixer_Resprt","NonF
 biomass.notTrees.r <- biomassStack.r |> select(starts_with(c("Nfixer_Resprt","NonFxr_Resprt","NonFxr_Seed","Grass_Forb")))
 biomass.all.r <- biomassStack.r |> select(!starts_with("TotalBiomass"))
 
-# age.species.df <- c(pwg.r, med.age.r) |>
-#   as.data.frame(xy=T) |>
-#   filter(!is.na(PWG)) |>
-#   pivot_longer(contains("MED"), names_to = c("Species", "Year", "drop"), names_sep = '-', values_to = 'Med.Age') |>
-#   mutate(Year = as.numeric(Year),
-#          PWG = as.factor(ifelse(PWG <= 11, 12, PWG)))
-# 
-# biomass.age.species.df <- c(pwg.r, biomass.trees.r) |>
-#   pivot_longer(contains("biomass"), names_to = c("Species", "Year", "drop"), names_sep = '-', values_to = "Biomass_gm2") |>
-#   select(!drop) |>
-#   filter(Biomass_gm2 != 0) |>  # don't bother with cells with 0 biomass
-#   mutate(Year = as.numeric(Year),
-#          PWG = as.factor(ifelse(PWG <= 11, 12, PWG))) |>
-#   left_join(age.species.df)  # left join because we don't want to join age for 0 biomass species (there shouldn't be any)
-# 
-# 
-
-
-# 
-# ### Make a huge df of all species, median age, and biomass for calculating ht & fc per pixel
-# gc()
-# age.biomass.species.df <- c(pwg.r, dem.r, med.age.r, biomass.trees.r) |>
-#   as.data.frame(xy = T) |>
-#   filter(!is.na(PWG)) |>
-#   pivot_longer(contains(c("biomass", "MED")), names_to = c("Species", "Year", "Metric"), names_sep = "-", values_to = "Val") |>
-#   filter(!(Metric=='biomass'&Val==0)) |>
-#   mutate(
-#     Year = as.numeric(Year),
-#     PWG = as.factor(ifelse(PWG <= 11, 12, PWG)),
-#     Elevation = round(Elevation, -1),
-#     Metric = ifelse(Metric == "MED", "Med.Age", "Biomass_gm2")
-#   ) |>
-#   pivot_wider(id_cols = c("x", "y", "Year"), names_from = "Metric", values_from = "Val") |>  # rows should be x-y-Year-species with med age and biomass data
-#   group_by("x", "y", "Year") |>
-#   mutate(BiomassRank = rank(-Biomass_gm2))  # rank by biomass in descending order
-# 
-# 
-# 
 gc()
 cat('\n-> Identifying top 3 dominant species per site per year')
 top3sp.df <- c(pwg.r, biomass.trees.r) |>
@@ -155,12 +129,14 @@ top3sp.df <- c(pwg.r, biomass.trees.r) |>
   filter(!is.na(PWG)) |>  # save some memory by dropping cells outside study area
   pivot_longer(contains("biomass"), names_to = c("Species", "Year", "drop"), names_sep = '-', values_to = "Biomass_gm2", values_drop_na = T) |>
   select(!drop) |>
-  filter(Biomass_gm2 != 0) |>  # don't bother ranking species-pixels with 0 biomass
+  filter(Biomass_gm2 > 0) |>  # don't bother ranking species-pixels with 0 biomass
   mutate(Year = as.numeric(Year)) |>
   group_by(x, y, Year) |>  # we want the top three species per pixel, so group by pixel and year
-  mutate(Rank = rank(-Biomass_gm2)) |> # grab the top 3 species in each pixel-year
+  mutate(Rank = rank(-Biomass_gm2),
+         PWG = as.factor(PWG)) |> # grab the top 3 species in each pixel-year
   ungroup() |>
-  filter(Rank <= 3)
+  filter(Rank <= 3) |>
+  select(x, y, Year, Rank, Species)  # only keep pixel location, species, and rank to make joining easier later
 
 cat('\n-> Calculating mean median age for top 3 dominant species per site per year')
 mean.age.top3.dom.df <- c(med.age.r) |>
@@ -186,10 +162,16 @@ fc.r <- c(pwg.r, dem.r, totalBiomass_stack.r) |>
   ) |>
   left_join(mean.age.top3.dom.df) |>  # join mean age for top 3 species by x, y, Year
   mutate(Pred = predict(fc.glm, pick(Mean.Age, Biomass.sum.gm2, PWG, Elevation))) |>
-  mutate(Pred = ifelse(Pred > 1, 1, ifelse(Pred < 0, 0, Pred))) |>
-  pivot_wider(id_cols = c("x", "y"), names_from = "Year", names_prefix = "FC-", values_from = "Pred") |>
-  select(x, y, starts_with("FC")) |>
-  rast(type = 'xyz', crs = crs(pwg.r), ext = ext(pwg.r))
+  mutate(Pred = ifelse(Pred > 1, 1, ifelse(Pred < 0, 0, Pred))) |>  # ensure values stay between 0 and 1
+  mutate(Pred = ifelse(is.na(Pred) & Biomass.sum.gm2 > 0, 0.1, Pred)) |>  # if grasses where pred is NA but there is biomass, set the value to 0.1
+  complete(Year = 0:simLength, x, y) |>  # add rows for missing year x pixel combinations
+  arrange(Year, x, y) |>  # get the columns in the right order
+  group_by(x, y) |>  # group by pixel and interpolate between years
+  mutate(z = zoo::na.approx(Pred)) |>
+  ungroup() |>
+  mutate(l = paste0("FC-", Year)) |>  # generate a layer name for the output raster stack
+  select(x, y, l, z) |>
+  rast(type = 'xylz', crs = crs(pwg.r), ext = ext(pwg.r))
 
 plot(fc.r)
 
@@ -206,59 +188,25 @@ ht.r <- c(pwg.r, totalBiomass_stack.r) |>
   filter(Rank == 1) |>
   left_join(mean.age.top3.dom.df) |>  # join mean age for top 3 species by x, y, Year
   rename(Age = Mean.Age) |>
-  mutate(Pred = predict(ht.glm, pick(Age, Biomass_gm2, PWG))) |>
-  pivot_wider(id_cols = c("x", "y"), names_from = "Year", names_prefix = "HT-", values_from = "Pred") |>
-  select(x, y, starts_with("HT")) |>
-  rast(type = 'xyz', crs = crs(pwg.r), ext = ext(pwg.r))
+  mutate(Pred = predict(ht.glm, pick(Age, Biomass_gm2, PWG, Species))) |>
+  mutate(Pred = ifelse(Pred < 0, 0, Pred)) |>
+  mutate(Pred = ifelse((is.na(Pred) | Pred <= 1) & Biomass_gm2 > 0, 1, Pred)) |> # if biomass > 0 but the prediction is 0 or NA, set height to 1.
+  complete(Year = 0:simLength, x, y) |>  # add rows for missing year x pixel combinations
+  arrange(Year, x, y) |>  # get the columns in the right order
+  group_by(x, y) |>  # group by pixel and interpolate between years
+  mutate(z = zoo::na.approx(Pred)) |>
+  ungroup() |>
+  mutate(l = paste0("HT-", Year)) |>
+  select(x, y, l, z) |>
+  rast(type = 'xylz', crs = crs(pwg.r), ext = ext(pwg.r))
+plot(ht.r)
 
 writeRaster(fc.r, file.path(landisOutputDir, 'DHSVM', "Veg_FracCov.tif"), overwrite = T)
 writeRaster(ht.r, file.path(landisOutputDir, 'DHSVM', "Veg_Height-m.tif"), overwrite = T)
 
-fc.reclassed.r <- fc.r |> classify(fc.df)  # reclassify to bins for DHSVM code assignment
+# reclassify to bins for DHSVM code assignment
+fc.reclassed.r <- fc.r |> classify(fc.df)  
 ht.reclassed.r <- ht.r |> classify(ht.df)
-
-
-
-## Create data frames based on raster values
-# fc.pred.df<-data.frame('Mean.Age'=unname(values(mean.age.top3.dom.r)),'Biomass.sum.gm2'=unname(values(total.biomass.r)),
-#                        'PWG'=unname(values(pwg.r)),'Elevation'=round(unname(values(dem.r)),-1),'Pred'=NA)
-# ## The bareground PWG level (11) is absent from fc.glm model... model FC as if these were in PWG = 12 (grassland)
-# fc.pred.df[!fc.pred.df$PWG%in%levels(fc.glm@frame$PWG)&!is.na(fc.pred.df$PWG),'PWG']<-12
-
-# ## Create data frames based on raster values
-# ht.pred.df<-data.frame('Age'=unname(values(mean.age.top3.dom.r)),'Biomass_gm2'=unname(values(total.biomass.r)),
-#                        'Species'=names(dominant.spp.lookup[values(dominant.spp)]),'PWG'=unname(values(pwg.r)),'Pred'=NA)
-# ## For cells with non-zero biomass with species = NA, fill in with grass:
-# ht.pred.df[is.na(ht.pred.df$Species) & !is.na(ht.pred.df$Biomass_gm2),'Age']<-1
-# ## The bareground PWG level (11) is absent from fc.glm model... model FC as if these were in PWG = 50 (cold-dry conifer)
-# ht.pred.df[!ht.pred.df$PWG%in%levels(fc.glm@frame$PWG)&!is.na(ht.pred.df$PWG),'PWG']<-50
-
-#---------------------------------------------#      
-# ## Generate fractional cover predicted values
-# fc.pred.df[!is.na(fc.pred.df$Mean.Age),'Pred'] <- 
-#   predict(fc.glm,newdata=fc.pred.df[!is.na(fc.pred.df$Mean.Age),],type='response')
-
-# ## Genearte height predicted values
-# ht.pred.df[!is.na(ht.pred.df$Age) & ht.pred.df$Species%in%levels(ht.glm@flist$Species),'Pred'] <- 
-#   predict(ht.glm,newdata=ht.pred.df[!is.na(ht.pred.df$Age) & ht.pred.df$Species%in%levels(ht.glm@flist$Species),],type='response')
-# # Generic species form for species absent from the model factor levels:
-# ht.pred.df[!is.na(ht.pred.df$Age) & !ht.pred.df$Species%in%levels(ht.glm@flist$Species) & !is.na(ht.pred.df$Species),'Pred'] <- 
-#   predict(ht.glm,newdata=ht.pred.df[!is.na(ht.pred.df$Age) & !ht.pred.df$Species%in%levels(ht.glm@flist$Species) & !is.na(ht.pred.df$Species),],type='response',re.form=~(1 + Age | PWG))
-
-
-# writeRaster(dhsvm.r,file.path(landisOutputDir, 'DHSVM',paste0('DHSVM_yr-',yr,'.tif')),overwrite=T)
-# writeRaster(lai.r,file.path(landisOutputDir, 'DHSVM',paste0('Veg_LAI_yr-',yr,'.tif')),overwrite=T)
-# 
-# writeRaster(mean.age.r,file.path(ageDir, paste0('MeanAge_AllSpp_yr-',landis.yr,'.tif')),overwrite=T)
-# writeRaster(max.age.r,file.path(ageDir, paste0('MaxAge_AllSpp_yr-',landis.yr,'.tif')),overwrite=T)
-# writeRaster(mean.age.domSpp.r,file.path(ageDir, paste0('MeanAge_DominantSpecies_yr-',landis.yr,'.tif')),overwrite=T)
-# writeRaster(mean.age.top3.dom.r,file.path(ageDir, paste0('MeanAge_Top3Species_yr-',landis.yr,'.tif')),overwrite=T)
-# writeRaster(dominant.spp,file.path(ageDir, paste0('DominantSpecies-',landis.yr,'.tif')),overwrite=T)
-# writeRaster(dominant.spp2,file.path(ageDir, paste0('DominantSpecies2-',landis.yr,'.tif')),overwrite=T)
-
-
-
-
 
 
 

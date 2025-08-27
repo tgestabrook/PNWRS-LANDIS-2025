@@ -1,10 +1,34 @@
+### Set up fire events log df: ----
+if(file.exists(file.path(landisOutputDir,'scrapple-events-log.csv'))){
+  fire.df<-read.csv(file.path(landisOutputDir,'scrapple-events-log.csv'), strip.white = T)
+} else {
+  fire.df<-read.csv(file.path(landisOutputDir,'socialclimatefire-events-log.csv'), strip.white = T)
+}
+fire.df <- fire.df |>
+  mutate(color = as.numeric(factor(IgnitionType)),
+         IgnitionType = ifelse(IgnitionType=='Rx', 'Prescribed', IgnitionType),
+         FIRE_SIZE = TotalSitesBurned * 0.81,  # fire size in Ha
+         InitCell = cellFromRowCol(ecos.r, InitRow, InitColumn)  # get initial cell for each fire for severity df later
+  ) |>
+  mutate(color = ifelse(color == 1, grey(0.25,0.75), ifelse(color==2, rgb(0.25,0.05,0.05,0.75), rgb(0.05,0.25,0.05,0.75))),
+         PWG = as.factor(pull(pwg.r$PWG[InitCell])),
+         PercentCohortsKilled = round(CohortsKilled/AvailableCohorts*100,0),
+         PercentCohortsKilled = replace_na(PercentCohortsKilled, 0))  
 
-### Prepare fire maps: ----
+### Load fire maps: ----
+cat('\nLoading fire maps...\n')
+severityStack.r <- rast(file.path(fireOutput, 'fire-dnbr-yr.tif'))
+flamingConsumptionStack.r <- rast(file.path(fireOutput, 'flaming-consumptions-yr.tif'))
+smolderConsumptionStack.r <- rast(file.path(fireOutput, 'smolder-consumption-yr.tif'))
+fireIdStack.r <- rast(file.path(fireOutput, 'event-ID-yr.tif'))
+fineFuelStack.r <- rast(file.path(fireOutput, 'fine-fuels-yr.tif'))
+burned.N.empirical <- rast(file.path(dataDir, 'MTBS_and_FOD_Fires', LANDIS.EXTENT, '_Fires_N.tif'))
+
 severityStackClassified.r <- classify(severityStack.r,rcl=severity.reclass.df,include.lowest=T)
 set.cats(severityStackClassified.r, layer=0, data.frame(id = c(1,2,3,4), severity=c('Unburned','Low','Moderate','High')))
 names(severityStackClassified.r) <- names(severityStack.r)  # for some reason, the classify operation overwrites names
 
-severityStackSmoothedClassified.r <- ifel(severityStack.r==0, NA, severityStack.r) |>  # have to class 0 as NA so that median window only operates on unburned cells
+severityStackSmoothedClassified.r <- ifel(severityStack.r<=1, NA, severityStack.r) |>  # have to class 0 as NA so that median window only operates on unburned cells
   focal(w = 3, fun = median, na.rm=T, pad = TRUE, na.policy = 'only') |>
   classify(rcl=severity.reclass.df,include.lowest=T) 
 set.cats(severityStackSmoothedClassified.r, layer=0, data.frame(id = c(1,2,3,4), severity=c('Unburned','Low','Moderate','High')))

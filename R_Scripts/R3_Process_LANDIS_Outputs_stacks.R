@@ -209,7 +209,7 @@ for(landisOutputDir in landisRuns){
   cat(paste('Start time:', Sys.time(), '\n\n'), file=outFile)
   
   if(!file.exists(file.path(landisOutputDir,'biomassOutput', 'TotalBiomass-yr-biomass.tif'))){
-    source("Post_process/Compress_LANDIS_outputs.R")  # Compress and make stacks if raw LANDIS outputs
+    source("./R_Scripts/Post_process/Compress_LANDIS_outputs.R")  # Compress and make stacks if raw LANDIS outputs
   }
   
   ### Load Ecoregions raster
@@ -263,37 +263,8 @@ for(landisOutputDir in landisRuns){
   
   #### Fires #### ----
   if(dir.exists(fireOutput)){
-    ## Fire Size Correlates: ----
-    if(file.exists(file.path(landisOutputDir,'scrapple-events-log.csv'))){
-      fire.df<-read.csv(file.path(landisOutputDir,'scrapple-events-log.csv'), strip.white = T)
-    } else {
-      fire.df<-read.csv(file.path(landisOutputDir,'socialclimatefire-events-log.csv'), strip.white = T)
-    }
-    
-    ### Set up fire events log df: ----
-    fire.df <- fire.df |>
-      mutate(color = as.numeric(factor(IgnitionType)),
-             IgnitionType = ifelse(IgnitionType=='Rx', 'Prescribed', IgnitionType),
-             FIRE_SIZE = TotalSitesBurned * 0.81,  # fire size in Ha
-             InitCell = cellFromRowCol(ecos.r, InitRow, InitColumn)  # get initial cell for each fire for severity df later
-      ) |>
-      mutate(color = ifelse(color == 1, grey(0.25,0.75), ifelse(color==2, rgb(0.25,0.05,0.05,0.75), rgb(0.05,0.25,0.05,0.75))),
-             PWG = as.factor(pull(pwg.r$PWG[InitCell])),
-             PercentCohortsKilled = round(CohortsKilled/AvailableCohorts*100,0),
-             PercentCohortsKilled = replace_na(PercentCohortsKilled, 0))  
-    
-    ### Load fire maps: ----
-    cat('\nLoading fire maps...\n')
-    severityStack.r <- rast(file.path(fireOutput, 'fire-dnbr-yr.tif'))
-    flamingConsumptionStack.r <- rast(file.path(fireOutput, 'flaming-consumptions-yr.tif'))
-    smolderConsumptionStack.r <- rast(file.path(fireOutput, 'smolder-consumption-yr.tif'))
-    fireIdStack.r <- rast(file.path(fireOutput, 'event-ID-yr.tif'))
-    fineFuelStack.r <- rast(file.path(fireOutput, 'fine-fuels-yr.tif'))
-    burned.N.empirical <- rast(file.path(dataDir, 'MTBS_and_FOD_Fires', LANDIS.EXTENT, '_Fires_N.tif'))
-    
-    
     cat(paste('\nFire routine starting...', Sys.time(), '\n'), file = outFile, append = T)
-    source('Post_process/Post_fires.R')
+    source('./R_Scripts/Post_process/Post_fires.R')
   
     gc()  # free up memory
   }
@@ -327,7 +298,7 @@ for(landisOutputDir in landisRuns){
     
     
     if(nrow(harvestEvents.df>0)){
-      source('Post_process/Post_harvest.R')
+      source('./R_Scripts/Post_process/Post_harvest.R')
     } else {
       rm(harvestEvents.df)  # remove so as not to break downstream code using harvestevents to plot outputs
     }
@@ -336,21 +307,20 @@ for(landisOutputDir in landisRuns){
   }
   
   #### Biomass #### ----
-  source('Post_process/Post_biomass.R')
+  source('./R_Scripts/Post_process/Post_biomass.R')
   gc()
 
   if (!file.exists(file.path(landisOutputDir, "Fire_Severity_fine_fuels.gif"))|
       simOpts$remakeGifs){  # separate out GIFs since they're now the slowest to generate
-    source('Post_process/Make_gifs.R')
+    source('./R_Scripts/Post_process/Make_gifs.R')
   }
-  #stop()
   
   #### DHSVM #### ----
   # if(RUN.DHSVM.MAPS|RERUN.DHSVM.MAPS){
-  #   source('Post_process/Post_DHSVM.R')
+  #   source('./Post_DHSVM.R')
   # }
   
-  rmarkdown::render(input = "Post_process/Sim_diagnostics.Rmd", 
+  rmarkdown::render(input = "./R_Scripts/Post_process/Sim_diagnostics.Rmd", 
                     output_format = "html_document",
                     output_file = file.path(landisOutputDir, "Diagnostics.html"), )
   
@@ -472,7 +442,7 @@ compute_deviation <- function(df, Sc = "BAU wildfire", Sc2 = "Base climate"){
   return(outdf)
 }
 
-rmarkdown::render(input = "Scenario_comparison.Rmd", 
+rmarkdown::render(input = "./R_Scripts/Post_process/Scenario_comparison.Rmd", 
                   output_format = "html_document",
                   output_file = file.path(dirToProcess, "Scenario_comparisons.html"), 
                   params = list(
