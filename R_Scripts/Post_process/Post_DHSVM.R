@@ -104,15 +104,16 @@ names(LAIStack.r)[1] <- "LAI-0"
 LAIStack.r <- LAIStack.r |>
   as.data.frame(xy = T) |>
   pivot_longer(contains("LAI"), names_to = c("drop", "Year"), names_sep = '-', values_to = "LAI") |>
+  mutate(Year = as.numeric(Year)) |>
   complete(Year = 0:simLength, x, y) |>  # add rows for missing year x pixel combinations
   arrange(Year, x, y) |>  # get the columns in the right order
   group_by(x, y) |>  # group by pixel and interpolate between years
-  mutate(z = zoo::na.approx(LAI)) |>
+  mutate(z = zoo::na.approx(LAI, na.rm = F)) |>
   ungroup() |>
   mutate(l = paste0("LAI-", Year)) |>  # generate a layer name for the output raster stack
   select(x, y, l, z) |>
   rast(type = 'xylz', crs = crs(pwg.r), ext = ext(pwg.r))
-
+plot(LAIStack.r)
 
 ### Age: ----
 med.age.r <- rast(file.path(ageOutput, dir(ageOutput)[grepl("MED", dir(ageOutput))]))
@@ -148,6 +149,7 @@ mean.age.top3.dom.df <- c(med.age.r) |>
   summarise(Mean.Age = mean(Med.Age)) |>
   ungroup()
 
+gc()
 ### Generate Rasters for average FC and Height per cell: ----
 cat('\n-> Generating rasters for FC and Height...\n')
 fc.r <- c(pwg.r, dem.r, totalBiomass_stack.r) |>
@@ -167,7 +169,7 @@ fc.r <- c(pwg.r, dem.r, totalBiomass_stack.r) |>
   complete(Year = 0:simLength, x, y) |>  # add rows for missing year x pixel combinations
   arrange(Year, x, y) |>  # get the columns in the right order
   group_by(x, y) |>  # group by pixel and interpolate between years
-  mutate(z = zoo::na.approx(Pred)) |>
+  mutate(z = zoo::na.approx(Pred, na.rm = F)) |>
   ungroup() |>
   mutate(l = paste0("FC-", Year)) |>  # generate a layer name for the output raster stack
   select(x, y, l, z) |>
@@ -175,6 +177,7 @@ fc.r <- c(pwg.r, dem.r, totalBiomass_stack.r) |>
 
 plot(fc.r)
 
+gc()
 ht.r <- c(pwg.r, totalBiomass_stack.r) |>
   as.data.frame(xy=T) |>
   filter(!is.na(PWG)) |>
@@ -194,7 +197,7 @@ ht.r <- c(pwg.r, totalBiomass_stack.r) |>
   complete(Year = 0:simLength, x, y) |>  # add rows for missing year x pixel combinations
   arrange(Year, x, y) |>  # get the columns in the right order
   group_by(x, y) |>  # group by pixel and interpolate between years
-  mutate(z = zoo::na.approx(Pred)) |>
+  mutate(z = zoo::na.approx(Pred, na.rm = F)) |>
   ungroup() |>
   mutate(l = paste0("HT-", Year)) |>
   select(x, y, l, z) |>
