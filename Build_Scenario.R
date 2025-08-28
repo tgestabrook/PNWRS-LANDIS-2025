@@ -38,5 +38,5 @@ if(!is.na(selected_scenario$Harvest)){
 }
 
 cat("\n\nDisturbancesRandomOrder  no\n\n", file=outfile, append=T)
-cat(">> Other Extensions   Initialization File\n>> ----------------------   -------------------\n\"Output Biomass\"	 	../ext_Output_Biomass10.txt\n\"Output Cohort Statistics\"	../ext_Output_CohortStats10.txt", file=outfile, append=T)
+cat(">> Other Extensions   Initialization File\n>> ----------------------   -------------------\n\"Output Biomass\"	 	../Shared_inputs/ext_Output_Biomass10.txt\n\"Output Cohort Statistics\"	../Shared_inputs/ext_Output_CohortStats10.txt", file=outfile, append=T)
 
