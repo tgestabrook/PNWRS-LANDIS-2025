@@ -1,5 +1,5 @@
 ﻿SCNUM,Duration,Scenario,NECN,SCRPPLE,Harvest,MH,Species
-0,50,CalibRun,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_EXTENT.txt,NA,NA,../Shared_inputs/SPECIES.txt
+0,5,CalibRun,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_EXTENT.txt,NA,NA,../Shared_inputs/SPECIES.txt
 1,50,GrowOut,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,NA,NA,NA,../Shared_inputs/SPECIES.txt
 2,50,BAU_Wildfire,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_EXTENT.txt,NA,NA,../Shared_inputs/SPECIES.txt
 3,50,Rx_only,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_Rx_EXTENT.txt,../Shared_inputs/ext_BiomassHarvest_null.txt,../Shared_inputs/ext_magic_harvest_Rx_only.txt,../Shared_inputs/SPECIES.txt
@@ -23,4 +23,4 @@
 21,50,Thin_Rx_Wrx_5pct7,../EXTENT/ext_NECN68_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE32_Rx_EXTENT.txt,../Shared_inputs/ext_BiomassHarvest_mh.txt,../Shared_inputs/ext_magic_harvest_thin_wRx_high.txt,../Shared_inputs/SPECIES_v7.txt
 22,50,Thin_Rx_WFU_5pct7,../EXTENT/ext_NECN68_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE32_WFU_EXTENT.txt,../Shared_inputs/ext_BiomassHarvest_mh.txt,../Shared_inputs/ext_magic_harvest_thin_high.txt,../Shared_inputs/SPECIES_v7.txt
 23,50,Lanzatech7,../EXTENT/ext_NECN68_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE32_Rx_EXTENT.txt,../Shared_inputs/ext_BiomassHarvest_LZ.txt,../Shared_inputs/ext_magic_harvest_LZ.txt,../Shared_inputs/SPECIES_v7.txt
-99,500,Longterm,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_EXTENT.txt,NA,NA,../Shared_inputs/SPECIES.txt
+99,500,Longterm,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_NoSupp_EXTENT.txt,NA,NA,../Shared_inputs/SPECIES.txt

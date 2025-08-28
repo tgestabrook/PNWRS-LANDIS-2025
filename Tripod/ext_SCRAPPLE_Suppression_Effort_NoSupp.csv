@@ -1,0 +1,13 @@
+IgnitionType,MapCode,Suppress_Category_0,FWI_Break_1,Suppress_Category_1,FWI_Break_2,Suppress_Category_2
+Accidental,0,0,20,0,40,0
+Accidental,1,0,20,0,40,0
+Accidental,2,0,20,0,40,0
+Accidental,3,0,20,0,40,0
+Lightning,0,0,20,0,40,0
+Lightning,1,0,20,0,40,0
+Lightning,2,0,20,0,40,0
+Lightning,3,0,20,0,40,0
+Rx,0,50,20,50,40,50
+Rx,1,50,20,50,40,50
+Rx,2,50,20,50,40,50
+Rx,3,50,20,50,40,50
