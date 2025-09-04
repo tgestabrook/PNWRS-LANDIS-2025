@@ -1,0 +1,311 @@
+---
+title: "Scenario Comparison"
+author: "Thomas Estabrook"
+date: "`r Sys.Date()`"
+output: html_document
+params:
+  scenario_column: "Mgt_scenario"
+  scenario_column2: "Climate"
+  reference_scenario1: "BAU wildfire"
+  reference_scenario2: "Base climate"
+  color_column: "Color"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, 
+                      warning = FALSE, 
+                      message = FALSE,
+                      fig.width = 10,
+                      fig.height = 7)
+```
+
+```{r}
+sims.plot.df <- sims.df |>  # add the information from scenario_map
+  mutate(Scenario = get(params$scenario_column),
+         Scenario2 = get(params$scenario_column2)) |>  
+  mutate(Scenario = factor(Scenario, levels=unique(Scenario)),
+         Scenario2 = factor(Scenario2, levels=unique(Scenario2)))
+
+scenario_colors <- iwanthue(length(unique(sims.plot.df$Scenario)), 0, 360, 36, 180, 13, 73)
+names(scenario_colors) <- unique(sims.plot.df$Scenario)
+
+if(params$scenario_column2 == "Climate"){
+  scenario_colors2 <- climate_colors
+} else {
+  scenario_colors2 <- iwanthue(length(unique(sims.plot.df$Scenario2)))
+  names(scenario_colors2) <- unique(sims.plot.df$Scenario2)
+}
+
+nsc1 = length(unique(sims.plot.df$Scenario))
+nsc2 = length(unique(sims.plot.df$Scenario2))
+
+biomass.all.df <- lapply(file.path(sims.df$Run,'Biomass_Annual_Dynamics.csv'), read_and_label) |> bind_rows() |>
+  left_join(sims.plot.df)
+
+fireevents.all.df <- lapply(file.path(sims.df$Run,'scrapple-events-log.csv'), read_and_label) |> bind_rows() |>
+  left_join(sims.plot.df)
+
+fires.all.df <- lapply(file.path(sims.df$Run,'Fire_severity_df.csv'), read_and_label) |> bind_rows() |>
+  left_join(sims.plot.df) |>
+  pivot_longer(c(PercentUnburned, PercentLow, PercentModerate, PercentHigh), names_to = "Severity", names_prefix = "Percent", values_to = "Percent") |>
+  mutate(Area_ha = FIRE_SIZE * (Percent/100),
+         Severity = ifelse(Severity == "Unburned", "Low", Severity)) |>
+  mutate(Severity = factor(Severity, levels = c("Low", "Moderate", "High", labels = c("Low Severity", "Moderate Severity", "High Severity"))))
+
+dnbr.all.df <- lapply(file.path(sims.df$Run,'Fire_all_dnbr_values.csv'), read_and_label) |> bind_rows() |> 
+  rename(dNBR = x) |>
+  bind_rows(emp.fire.dnbr |> filter(Source == 'MTBS') |> mutate(Run = Source) |> select(dNBR, Run)) |>
+  left_join(sims.plot.df |> bind_rows(data.frame("Run" = "MTBS", "Scenario" = "MTBS", "Scenario2" = "Historical")))
+```
+
+
+
+## Landis Scenario Comparison
+
+### Overview
+
+*Simulation folder:* `landisOutputDir`
+
+*Scenario list:*
+
+```{r}
+knitr::kable(sims.plot.df|>group_by(Scenario, Scenario2)|>tally())
+```
+
+
+### Wildfire Comparisons
+
+```{r, fig.cap="Wildfire area burned per severity class (deviation from reference scenario)"}
+df <- fires.all.df |>
+  filter(IgnitionType!="Prescribed") |>
+  group_by(Run, SimulationYear, Scenario, Scenario2, Severity) |>
+  summarise(Area_total = sum(Area_ha)) |>  # total annual area in each severity class
+  ungroup() |>
+  group_by(Run, Scenario, Scenario2, Severity) |>
+  mutate(Area_cumulative = cumsum(Area_total)) |>  # cumulative area for each year
+  ungroup() |> 
+  group_by(Scenario, Scenario2, SimulationYear, Severity) |>
+  summarise(Max = max(Area_cumulative), Min = min(Area_cumulative), Mean = mean(Area_cumulative)) |>
+  compute_deviation(Sc = params$reference_scenario1, Sc2 = params$reference_scenario2)
+
+ggplot(data = df, aes(x = SimulationYear, y = Mean, color = Scenario)) +
+  geom_line() +
+  geom_ribbon(aes(ymin=Min,ymax=Max),alpha=0.2, linewidth = NA) +
+  scale_color_manual(values = scenario_colors) + scale_fill_manual(scenario_colors) +
+  facet_grid(Scenario2~Severity) +
+  ylab("Area (ha)")
+```
+
+
+Area burned per severity class deviation from reference scenario (`r params$reference_scenario1` with `r params$reference_scenario2`):
+
+
+```{r, fig.cap="Wildfire area burned per severity class (deviation from reference scenario)"}
+ggplot(data = df, aes(x = SimulationYear, y = Mean, color = Scenario2)) +
+  geom_line() +
+  geom_ribbon(aes(ymin=Min,ymax=Max),alpha=0.2, linewidth = NA) +
+  scale_color_manual(values = scenario_colors2) + scale_fill_manual(scenario_colors2) +
+  facet_grid(Severity~Scenario)
+```
+
+
+
+```{r, fig.cap="Area burned per severity class (deviation from reference scenario)"}
+df <- fires.all.df |>
+  group_by(Run, SimulationYear, Scenario, Scenario2, Severity) |>
+  summarise(Area_total = sum(Area_ha)) |>  # total annual area in each severity class
+  ungroup() |>
+  group_by(Run, Scenario, Scenario2, Severity) |>
+  mutate(Area_cumulative = cumsum(Area_total)) |>  # cumulative area for each year
+  ungroup() |> 
+  group_by(Scenario, Scenario2, SimulationYear, Severity) |>
+  summarise(Max = max(Area_cumulative), Min = min(Area_cumulative), Mean = mean(Area_cumulative)) |>
+  compute_deviation(Sc = params$reference_scenario1, Sc2 = params$reference_scenario2)
+
+ggplot(data = df, aes(x = SimulationYear, y = Mean, color = Scenario)) +
+  geom_line() +
+  geom_ribbon(aes(ymin=Min,ymax=Max),alpha=0.2, linewidth = NA) +
+  scale_color_manual(values = scenario_colors) + scale_fill_manual(scenario_colors) +
+  facet_grid(Scenario2~Severity) +
+  ylab("Area (ha)")
+```
+
+
+Area burned per severity class deviation from reference scenario (`r params$reference_scenario1` with `r params$reference_scenario2`):
+
+
+```{r, fig.cap="Area burned per severity class (deviation from reference scenario)"}
+ggplot(data = df, aes(x = SimulationYear, y = Mean, color = Scenario2)) +
+  geom_line() +
+  geom_ribbon(aes(ymin=Min,ymax=Max),alpha=0.2, linewidth = NA) +
+  scale_color_manual(values = scenario_colors2) + scale_fill_manual(scenario_colors2) +
+  facet_grid(Severity~Scenario)
+```
+
+
+
+
+```{r, fig.cap="Fire severity (pseudo-dNBR) distribution"}
+ggplot(data = dnbr.all.df, aes(x = dNBR, fill = Scenario2)) +
+  geom_density(alpha = 0.25) + 
+  scale_fill_manual(values = scenario_colors2) +
+  facet_wrap(~Scenario, ncol=1)
+```
+
+
+
+
+```{r, fig.cap="Cohort mortality % distributions"}
+
+```
+
+
+```{r, fig.cap="Fine Fuel Loading"}
+df <- biomass.all.df |>
+  filter(Species == "TotalBiomass", 
+         PWG %in% c(20, 30, 40, 50)) |>
+  group_by(Year, PWG_Name, Scenario, Scenario2) |>
+  summarize(
+    Max = max(FineFuelsMg),
+    Min = min(FineFuelsMg),
+    Mean = mean(FineFuelsMg)
+  )
+
+ggplot(data = df, aes(x = Year, fill = Scenario, color = Scenario)) + 
+  geom_line(aes(y = Mean)) +
+  geom_ribbon(aes(ymin=Min,ymax=Max),alpha=0.2, linewidth = NA) +
+  scale_fill_manual(values = scenario_colors) + scale_color_manual(values = scenario_colors) +
+  facet_grid(Scenario2~PWG_Name) +
+  xlab("Simulation Year") + ylab(expression(paste('Fine Fuels (Mg  ',ha^-1,')')))
+```
+
+
+
+### Biomass Comparisons
+
+
+```{r, fig.cap="Biomass density"}
+df <- biomass.all.df |>
+  filter(Species == "TotalBiomass",
+         PWG %in% c(20, 30, 40, 50)) |>
+  group_by(Year, PWG_Name, Scenario, Scenario2) |>
+  summarize(
+    Max = max(Biomass_mean_MgHaEco),
+    Min = min(Biomass_mean_MgHaEco),
+    Mean = mean(Biomass_mean_MgHaEco)
+  )
+
+ggplot(data = df, aes(x = Year, fill = Scenario, color = Scenario)) + 
+  geom_line(aes(y = Mean)) +
+  geom_ribbon(aes(ymin=Min,ymax=Max),alpha=0.2, linewidth = NA) +
+  scale_fill_manual(values = scenario_colors) + scale_color_manual(values = scenario_colors) +
+  facet_grid(Scenario2~PWG_Name) +
+  xlab("Simulation Year") + ylab(expression(paste('Biomass (Mg  ',ha^-1,')')))
+```
+
+
+
+
+```{r, fig.cap="Total biomass"}
+df <- biomass.all.df |>
+  filter(Species == "TotalBiomass",
+         PWG %in% c(20, 30, 40, 50)) |>
+  group_by(Year, PWG_Name, Scenario, Scenario2) |>
+  summarise(
+    Mean = mean(Biomass_sum_Mg),
+    Max = max(Biomass_sum_Mg),
+    Min = min(Biomass_sum_Mg)
+  )
+
+ggplot(data = df, aes(x = Year, fill = Scenario, color = Scenario)) + 
+  geom_line(aes(y = Mean)) +
+  geom_ribbon(aes(ymin=Min,ymax=Max),colour=NA,alpha=0.2,size=0.25) +
+  scale_fill_manual(values = scenario_colors) + scale_color_manual(values = scenario_colors) +
+  facet_grid(Scenario2~PWG_Name) +
+  xlab("Simulation Year") + ylab(expression(paste('Biomass (Mg)')))
+```
+
+Total biomass deviating from reference scenario (`r params$reference_scenario1` with `r params$reference_scenario2`):
+
+```{r, fig.cap="Total biomass deviation from reference scenario"}
+df <- biomass.all.df |>
+  filter(Species == "TotalBiomass",
+         PWG %in% c(20, 30, 40, 50)) |>
+  group_by(Year, PWG_Name, Scenario, Scenario2) |>
+  summarise(
+    Mean = mean(Biomass_sum_Mg),
+    Max = max(Biomass_sum_Mg),
+    Min = min(Biomass_sum_Mg)
+  ) |>
+  compute_deviation(Sc = params$reference_scenario1, Sc2 = params$reference_scenario2)
+
+ggplot(data = df, aes(x = Year, fill = Scenario, color = Scenario)) + 
+  geom_line(aes(y = Mean)) +
+  geom_ribbon(aes(ymin=Min,ymax=Max),colour=NA,alpha=0.2,size=0.25) +
+  scale_fill_manual(values = scenario_colors) + scale_color_manual(values = scenario_colors) +
+  facet_grid(Scenario2~PWG_Name) +
+  xlab("Simulation Year") + ylab(expression(paste('Biomass (Mg)')))
+```
+
+
+
+
+Biomass by functional type:
+TODO
+
+
+
+### Harvest Comparisons
+
+
+
+```{r, fig.cap="Total harvested biomass by PWG"}
+df <- biomass.all.df |>
+  filter(Species == "TotalBiomass",
+         PWG %in% c(20, 30, 40, 50),
+         Harvest_outputs == "yes",
+         Year > 0) |>
+  group_by(Year, PWG_Name, Scenario, Scenario2) |>
+  summarise(
+    Mean = mean(Harvested_Mg),
+    Max = max(Harvested_Mg),
+    Min = min(Harvested_Mg)
+  )
+
+if(nrow(df) > 0){
+  ggplot(data = df, aes(x = Year, fill = Scenario, color = Scenario)) + 
+    geom_line(aes(y = Mean)) +
+    geom_ribbon(aes(ymin=Min,ymax=Max),colour=NA,alpha=0.2,size=0.25) +
+    scale_fill_manual(values = scenario_colors) + scale_color_manual(values = scenario_colors) +
+    facet_grid(Scenario2~PWG_Name) +
+    xlab("Simulation Year") + ylab(expression(paste('Harvested Biomass (Mg)')))
+}
+
+```
+
+```{r, fig.cap="Total harvested biomass by PWG"}
+if(nrow(df) > 0){
+  ggplot(data = df, aes(x = Year, fill = Scenario2, color = Scenario2)) + 
+    geom_line(aes(y = Mean)) +
+    geom_ribbon(aes(ymin=Min,ymax=Max),colour=NA,alpha=0.2,size=0.25) +
+    scale_fill_manual(values = scenario_colors2) + scale_color_manual(values = scenario_colors2) +
+    facet_grid(Scenario~PWG_Name) +
+    xlab("Simulation Year") + ylab(expression(paste('Harvested Biomass (Mg)')))
+}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
