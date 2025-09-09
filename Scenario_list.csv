@@ -1,6 +1,6 @@
 ﻿SCNUM,Duration,Scenario,NECN,SCRPPLE,Harvest,MH,Species
 0,5,CalibRun,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_EXTENT.txt,NA,NA,../Shared_inputs/SPECIES.txt
-1,100,GrowOut,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,NA,NA,NA,../Shared_inputs/SPECIES.txt
+1,50,GrowOut,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,NA,NA,NA,../Shared_inputs/SPECIES.txt
 2,100,BAU_Wildfire,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_EXTENT.txt,NA,NA,../Shared_inputs/SPECIES.txt
 3,50,Rx_only,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_Rx_EXTENT.txt,../Shared_inputs/ext_BiomassHarvest_null.txt,../Shared_inputs/ext_magic_harvest_Rx_only.txt,../Shared_inputs/SPECIES.txt
 4,50,Thin_2pct,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_EXTENT.txt,../Shared_inputs/ext_BiomassHarvest_mh.txt,../Shared_inputs/ext_magic_harvest_thin_low.txt,../Shared_inputs/SPECIES.txt

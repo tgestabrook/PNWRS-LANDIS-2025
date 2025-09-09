@@ -56,7 +56,7 @@ AccidentalIgnitionsBinomialB1   -2.9473    <<  Fit for WenEnt. << Fit for WenEnt
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >> Determines the scaling of the fine fuel 
-MaximumFineFuels 3000     << The amount of fine fuels (g m-2) used to rescale the fine fuel parameter in equations 3 and 6 of Scheller et al. (in prep.).
+MaximumFineFuels 2000     << The amount of fine fuels (g m-2) used to rescale the fine fuel parameter in equations 3 and 6 of Scheller et al. (in prep.).
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>>   Prescribed Fire Parameters              <<<<<<<<<<<
@@ -65,7 +65,7 @@ MaximumRxFireWeatherIndex 20.0  << Optional
 MinimumRxFireWeatherIndex 3.0   << Optional
 MaximumRxTemperature      22	<< Limit to 72 degrees F. 
 MinimumRxRelativeHumidity 20	<< Optional
-MaximumRxFireIntensity    3
+MaximumRxFireIntensity    2
 NumberRxAnnualFires       10
 NumberRxDailyFires        1
 FirstDayRxFires           1
@@ -87,9 +87,9 @@ MaximumSpreadAreaB2	 -125	<< 100,    60,   10, -2.5  	<< Effective wind speed
 >>SpreadProbabilityB2      0.7       <<   0.85, 0.06, 0.13, 0.3, 0.20,-0.915    Relativized fine fuels. 
 >>SpreadProbabilityB3      0.02      <<  0.045, 0.05, 0.11, 0.1, 0.01, 0.013    Effective wind speed. 
 
-SpreadProbabilityB0      -0.4       <<        -3.5, -3.5,  -8, -10,  -11, -0.79    Intercept
-SpreadProbabilityB1      0.011      << 0.04, 0.055, 0.06, 0.12, 0.2, 0.25,  0.06    FWI
-SpreadProbabilityB2      1.75       <<        0.85, 0.06, 0.13, 0.3, 0.20,-0.915    Relativized fine fuels. 
+SpreadProbabilityB0      -0.5       <<        -3.5, -3.5,  -8, -10,  -11, -0.79    Intercept
+SpreadProbabilityB1      0.01      << 0.04, 0.055, 0.06, 0.12, 0.2, 0.25,  0.06    FWI
+SpreadProbabilityB2      1.4       <<        0.85, 0.06, 0.13, 0.3, 0.20,-0.915    Relativized fine fuels. 
 SpreadProbabilityB3      0.002      << 0.02, 0.045, 0.05, 0.11, 0.1, 0.01, 0.013    Effective wind speed. 
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -102,8 +102,8 @@ SiteMortalityB1    0.04    << The parameter fit for site level clay % in Soil.
 SiteMortalityB2   -0.000001     << The parameter fit for site level previous years annual ET. 
 SiteMortalityB3   -0.000029      << The parameter fit for site level Effective Windspeed. 
 SiteMortalityB4   0    << The parameter fit for site level Climatic Water Deficit (PET-AET). 
-SiteMortalityB5   -0.015    << The parameter fit for fine fuels (a percentage of the maximum, from above). 
-SiteMortalityB6   -0.0000001    << The parameter fit for ladder fuels.
+SiteMortalityB5   -0.005    << The parameter fit for fine fuels (a percentage of the maximum, from above). 
+SiteMortalityB6   -0.00000012    << The parameter fit for ladder fuels.
 
 >>>>>>>>> Cohort level mortality << Parameters updated on 01/31/2022
 CohortMortalityB0  1   << 2.5 << Intercept
