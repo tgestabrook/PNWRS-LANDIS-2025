@@ -2,15 +2,17 @@
 library(terra)
 library(tidyverse)
 library(tidyterra)
+library(pscl)
 
 
 bigDataDir<-'F:/LANDIS_Input_Data_Prep/BigData'
 dataDir<-'F:/LANDIS_Input_Data_Prep/Data'
 modelDir<-'F:/V8_Models'
 
-LANDIS.EXTENT<-'WenEnt'
-TreatPatch.shp <- vect(file.path(dataDir,'PWG',"TreatPatch_WenEnt.shp"))  # Treatment patches - combine watershed (HUC), topo-asp (combined topography and n-s aspect) land use with 4 ha mmu
+#LANDIS.EXTENT<-'WenEnt'
+#TreatPatch.shp <- vect(file.path(dataDir,'PWG',"TreatPatch_WenEnt.shp"))  # Treatment patches - combine watershed (HUC), topo-asp (combined topography and n-s aspect) land use with 4 ha mmu
 
+LANDIS.EXTENT<-'Tripod'
 
 #-----------------------------------------------------------------------------------------------------------------------
 ## Generate study area inputs 
@@ -35,7 +37,7 @@ if (  # if any of the input layers are unavailable
 ) {
   source("Input_data_prep/Generate_study_area_maps.R")
 } else {
-  
+  pwg.r <- rast(file.path(dataDir,paste0('PWG/PWG_', LANDIS.EXTENT ,'.tif')))
   lua.r <- rast(file.path(dataDir,'PWG',paste0("LUA_", LANDIS.EXTENT ,".tif")))
   #wildlands.buffer <- rast(file.path(dataDir,paste0("wildlands_5000m_buffer_",LANDIS.EXTENT,".tif")))  
   wildlands.inner.buffer <- rast(file.path(dataDir,paste0("wildlands_1610m_inner_buffer_",LANDIS.EXTENT,".tif")))  
@@ -64,6 +66,32 @@ if (  # if any of the input layers are unavailable
 
 #-----------------------------------------------------------------------------------------------------------------------
 ## SCRAPPLE ignition model fits 
+fires.r <- rast(file.path(dataDir,paste0("Wildfires_1878_2019_", LANDIS.EXTENT ,".tif")))  # created in 0_StudyAreaMasks[...].R
+ignitions.df <- vect(file.path(bigDataDir,"Fire_Ignitions_1992_2015_RDS-2013-0009/Fires_1992-2015_WA/Fires_1992-2015_WA.shp")) |>
+  project(crs(pwg.r)) |>
+  crop(as.polygons(pwg.r)) |>  # crop down to study AOI, probably a better way to do this
+  mutate(yr = FIRE_YEAR, j_day = DISCOVERY1, IgnitionType = ifelse(STAT_CAU_1 == "Lightning", "Lightning", "Accidental")) |>
+  group_by(yr, j_day, IgnitionType) |>  # group by year, julian day, and ignition type
+  summarise(IgnitionCount = n()) |>
+  as.data.frame() |>
+  pivot_wider(names_from = "IgnitionType", values_from = "IgnitionCount", names_prefix = "Ignitions")
+
+
+### Calculate FWI for fitting ignition model FIX FWI windspeed issue with km/hr vs m/s
+#clim.dat<-read.csv(file.path(dataDir,paste0('Climate_and_FWI_', LANDIS.EXTENT ,'.csv'))) # Note: If you change this to Wen_Ent, you may get different coefficients
+
+fires.by.fwi <- clim.dat |>
+  left_join(ignitions.df, by=c('yr','j_day')) |>
+  mutate(IgnitionsLightning = replace_na(IgnitionsLightning, 0),
+         IgnitionsAccidental = replace_na(IgnitionsAccidental, 0)) |>
+  filter(yr %in% 1992:2015)
+
+# annualsummary.df <- fires.by.fwi |> group_by(yr) |>
+#   summarise(IgnitionsAccidental = sum(IgnitionsAccidental), IgnitionsLightning = sum(IgnitionsLightning))
+# hist(annualsummary.df$IgnitionsLightning)
+
+zeroInf_lm_L <- zeroinfl(data=fires.by.fwi, IgnitionsLightning~FWI,dist="poisson")
+summary(zeroInf_lm_L)
 
 
 #-----------------------------------------------------------------------------------------------------------------------
