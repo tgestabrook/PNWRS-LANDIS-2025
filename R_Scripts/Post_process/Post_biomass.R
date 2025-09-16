@@ -4,26 +4,39 @@ cat('\n\n      ----------------------------------------
     ----------------------------------------\n\n')
 
 cat('------------------------\n Tallying Species Biomass\n------------------------')
-biomassStack.selected.r <- biomassStack.r |> select(starts_with(c("AbieAmab","AbieGran","AbieLasi","LariOcci","PiceEnge","PinuCont",
-                                                         "PinuMont","PinuPond","PseuMenz","ThujPlic","TsugHete","TsugMert","TotalBiomass")))
+
 
 ecos.area.df <- c(pwg.r) |> as.data.frame() |>
   mutate(PWG = as.factor(PWG)) |>
   group_by(PWG) |>
   summarise(PWG_area_Ha = n() * 0.81)
 
-biomass.df <- c(pwg.r, biomassStack.selected.r) |> as.data.frame() |> 
-  filter(!is.na(PWG)&PWG>=12) |>
-  pivot_longer(contains("biomass"), names_to = c('Species', 'Year', 'Drop'), names_sep = '-', values_to = 'Biomass_gm2') |>
-  mutate(Biomass_Mg = Biomass_gm2*0.01*0.81, # convert from g/m^2 to Mg/Ha to Mg
-         active = ifelse(Biomass_gm2 > 0, 1, 0),
-         PWG = as.factor(PWG), 
-         Year = as.numeric(Year)) |>  # mark year-species-pixel observations as active if biomass is nonzero
-  group_by(PWG, Species, Year) |>
-  summarise(
-    ActiveSites = sum(active),
-    Biomass_sum_Mg = sum(Biomass_Mg)
-  )
+gc()
+
+biomass.df <- data.frame(PWG = NULL, Species = NULL, Year = NULL, ActiveSites = NULL, Biomass_sum_Mg = NULL)
+
+for (spp in c("AbieAmab","AbieGran","AbieLasi","LariOcci","PiceEnge","PinuCont",
+                                                         "PinuMont","PinuPond","PseuMenz","ThujPlic","TsugHete","TsugMert","TotalBiomass")){
+  cat(paste0('\n...', spp))
+  biomassStack.selected.r <- biomassStack.r |> select(starts_with(spp))
+  
+  df <- c(pwg.r, biomassStack.selected.r) |> as.data.frame() |> 
+    filter(!is.na(PWG)&PWG>=12) |>
+    pivot_longer(contains("biomass"), names_to = c('Species', 'Year', 'Drop'), names_sep = '-', values_to = 'Biomass_gm2') |>
+    mutate(Biomass_Mg = Biomass_gm2*0.01*0.81, # convert from g/m^2 to Mg/Ha to Mg
+           active = ifelse(Biomass_gm2 > 0, 1, 0),
+           PWG = as.factor(PWG), 
+           Year = as.numeric(Year)) |>  # mark year-species-pixel observations as active if biomass is nonzero
+    group_by(PWG, Species, Year) |>
+    summarise(
+      ActiveSites = sum(active),
+      Biomass_sum_Mg = sum(Biomass_Mg)
+    )
+  
+  biomass.df <- bind_rows(biomass.df, df)
+}
+
+
 
 #### If fire is active, tally fire: flamingconsumptionMg, SmoulderingconsumptionMg, Biomasskilledbyfire_mg, Burned_ha, 
 # biomasskilledbyfire_mgHa, BiomasskilledbyfireMgHaburned, BiomassKilledbyfireMgHaEco,  
@@ -127,6 +140,7 @@ if(dir.exists(harvestOutput)){
                                                 "PinuMont","PinuPond","PseuMenz","ThujPlic","TsugHete","TsugMert","TotalBiomass"),'PWG'=c('12', '13', '14', '15', '20', '30', '40', '50'),'Year'=0:simLength, 'Harvested_Mg'=0, 'Harvested_Ha' = 0, Treatments = 0)
 }
 
+gc()
 biomass.dynamics.df <- expand.grid('Species'=c("AbieAmab","AbieGran","AbieLasi","LariOcci","PiceEnge","PinuCont",  # ensure one row per species x PWG x Year combination
                                                "PinuMont","PinuPond","PseuMenz","ThujPlic","TsugHete","TsugMert","TotalBiomass"),
                                    'PWG'=c('12', '13', '14', '15', '20', '30', '40', '50'), 
@@ -176,7 +190,7 @@ gc()
 ### Plot all time steps for one species: ----
 plotAllYrs <- function(species){
   r <- rast(file.path(biomassOutput, paste0(species, "-yr-biomass.tif"))) |>
-    select(contains(c("-0", "20", "40", "60", "80", "100")))
+    select(contains(paste0("-", as.character(seq(0, simLength, 20)), '-')))
   r <- ifel(is.na(pwg.r), NA, r)
   rmax <- global(r, fun='max', na.rm=T) |> max(na.rm=T)
   names(r) <- paste("Year", seq(0, simLength, 20), species)

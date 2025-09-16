@@ -25,7 +25,7 @@ library(scales)
 library(zip)
 library(hues)
 
-Dir <- 'F:/2025_Q3_Scenarios/FuelFix5'
+Dir <- 'F:/2025_Q3_Scenarios/FuelFix6'
 LANDIS.EXTENT<-'WenEnt'
 
 bigDataDir<-'F:/LANDIS_Input_Data_Prep/BigData'
