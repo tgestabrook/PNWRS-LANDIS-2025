@@ -9,7 +9,7 @@ TimeZeroPET		48
 TimeZeroCWD		25
 
 >> Species level characteristics
-Species_CSV_File	../ext_SCRAPPLE_Species_Table.csv    << Replaces the damage table in previous version of scrapple
+Species_CSV_File	../Shared_inputs/ext_SCRAPPLE_Species_Table.csv    << Replaces the damage table in previous version of scrapple
 
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -39,10 +39,10 @@ ClayMap                         ../Tripod/NECN_input_maps/SoilPercentClay.tif
 >>     2) Extract model coefficients and enter them here: 
 
 >>>>>>>>   Count model coefs   <<<<<<<< Edited Feb. 22, 2022
-LightningIgnitionsB0          -0.357       << Average # ignitions = 1 << Fit for WenEnt-OkaMet: 1.07168 << Lower B0 decreases # of ignitions
-LightningIgnitionsB1          0.014    << Fit for WenEnt-OkaMet: 0.01448 << Lower B1 decreases # of ignitions and flattens response to FWI.  
-AccidentalIgnitionsB0         -3.6       << Fit for WenEnt-OkaMet:-0.75033 
-AccidentalIgnitionsB1         -0.007    << Fit for WenEnt-OkaMet: 0.02279 
+LightningIgnitionsB0          -0.15       << Average # ignitions = 1 << Fit for WenEnt-OkaMet: 1.07168 << Lower B0 decreases # of ignitions
+LightningIgnitionsB1          0.018    << Fit for WenEnt-OkaMet: 0.01448 << Lower B1 decreases # of ignitions and flattens response to FWI.  
+AccidentalIgnitionsB0         0       << Fit for WenEnt-OkaMet:-0.75033 DISABLED for NATURAL IGNITIONS ONLY
+AccidentalIgnitionsB1         0    << Fit for WenEnt-OkaMet: 0.02279 
 
 IgnitionDistribution ZeroInflatedPoisson << Poisson or ZeroInflatedPoisson
 
@@ -50,15 +50,15 @@ IgnitionDistribution ZeroInflatedPoisson << Poisson or ZeroInflatedPoisson
 >>  Probability of zero ignitions at FWI=0: B0 of 4 = 98%, B0 of 3 = 95%, B0 of 2 = 88%, B0 of 1 = 73%
 >>  Probability of zero ignitions at FWI=50: With B0=3: B1 = -0.043: 70%, B1 = -0.032: 80%, B1 = -0.016: 90%
 >> Lightning: Probability of 0 ignitions 0.999 (low fwi) to 0.97  (high fwi) 
-LightningIgnitionsBinomialB0      4.34     << Fit for WenEnt-OkaMet:  3.38147 << Higher B0 increases probability of producing 0 ignitions for that day.
-LightningIgnitionsBinomialB1     -0.031  << Fit for WenEnt-OkaMet: -0.08751 << Smaller B1 increases probability of 0 ignitions and a flatter response to FWI.  
+LightningIgnitionsBinomialB0      4.18     << Fit for WenEnt-OkaMet:  3.38147 << Higher B0 increases probability of producing 0 ignitions for that day.
+LightningIgnitionsBinomialB1     -0.054  << Fit for WenEnt-OkaMet: -0.08751 << Smaller B1 increases probability of 0 ignitions and a flatter response to FWI.  
 >> Accidental: Probability of 0 ignitions 0.998 (low fwi) to 0.97  (high fwi) 
-AccidentalIgnitionsBinomialB0     2.29     << Fit for WenEnt-OkaMet:  1.92460 
-AccidentalIgnitionsBinomialB1    -0.25 << Fit for WenEnt-OkaMet: -3.20139 
+AccidentalIgnitionsBinomialB0     0     << Fit for WenEnt-OkaMet:  1.92460 
+AccidentalIgnitionsBinomialB1    0 << Fit for WenEnt-OkaMet: -3.20139 
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >> Determines the scaling of the fine fuel 
-MaximumFineFuels 1500.0     << The amount of fine fuels (g m-2) used to rescale the fine fuel parameter in equations 3 and 6 of Scheller et al. (in prep.).
+MaximumFineFuels 2000.0     << The amount of fine fuels (g m-2) used to rescale the fine fuel parameter in equations 3 and 6 of Scheller et al. (in prep.).
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>>   Prescribed Fire Parameters              <<<<<<<<<<<
@@ -84,9 +84,9 @@ MaximumSpreadAreaB1	 -125	<< 100,    40,   12, -2.5 	<< FWI
 MaximumSpreadAreaB2	 -125	<< 100,    60,   10, -2.5  	<< Effective wind speed
 
 >> If SpreadProbability is too high, the whole landscape burns up in 1-2 days. If too low, fires don't spread.
-SpreadProbabilityB0      -0.4       <<        -3.5, -3.5,  -8, -10,  -11, -0.79    Intercept
-SpreadProbabilityB1      0.005      << 0.04, 0.055, 0.06, 0.12, 0.2, 0.25,  0.06    FWI
-SpreadProbabilityB2      1       <<        0.85, 0.06, 0.13, 0.3, 0.20,-0.915    Relativized fine fuels. 
+SpreadProbabilityB0      -1       <<        -3.5, -3.5,  -8, -10,  -11, -0.79    Intercept
+SpreadProbabilityB1      0.02      << 0.04, 0.055, 0.06, 0.12, 0.2, 0.25,  0.06    FWI
+SpreadProbabilityB2      1.4       <<        0.85, 0.06, 0.13, 0.3, 0.20,-0.915    Relativized fine fuels. 
 SpreadProbabilityB3      0.002      << 0.02, 0.045, 0.05, 0.11, 0.1, 0.01, 0.013    Effective wind speed. 
 
 
@@ -95,18 +95,18 @@ SpreadProbabilityB3      0.002      << 0.02, 0.045, 0.05, 0.11, 0.1, 0.01, 0.013
 >> See code to generate these on GitHub (note - as of March 2021 this code doesnt actually work on the FTM database): https://github.com/LANDIS-II-Foundation/Extension-SCRPPLE/tree/master/Supporting%20R%20Code/Mortality
 
 >>>>>>> Site level mortality << Parameters updated on 03/09/2022
-SiteMortalityB0    0.00625      << Intercept
-SiteMortalityB1    0.06    << The parameter fit for site level clay % in Soil.
-SiteMortalityB2   -0.00008     << The parameter fit for site level previous years annual ET. 
-SiteMortalityB3   -0.0001      << The parameter fit for site level Effective Windspeed. 
-SiteMortalityB4   0.00005    << The parameter fit for site level Climatic Water Deficit (PET-AET). 
-SiteMortalityB5   -0.02    << The parameter fit for fine fuels (a percentage of the maximum, from above). 
-SiteMortalityB6   -0.0000004    << The parameter fit for ladder fuels.
+SiteMortalityB0    0.005      << Intercept
+SiteMortalityB1    0.04    << The parameter fit for site level clay % in Soil.
+SiteMortalityB2   -0.000001     << The parameter fit for site level previous years annual ET. 
+SiteMortalityB3   -0.000029      << The parameter fit for site level Effective Windspeed. 
+SiteMortalityB4   0    << The parameter fit for site level Climatic Water Deficit (PET-AET). 
+SiteMortalityB5   -0.005    << The parameter fit for fine fuels (a percentage of the maximum, from above). 
+SiteMortalityB6   -0.00000012    << The parameter fit for ladder fuels.
 
 >>>>>>>>> Cohort level mortality << Parameters updated on 01/31/2022
 CohortMortalityB0  1   << 2.5 << Intercept
 CohortMortalityB1 -0.8 << The parameter fit for the relationship between bark thickness and cohort mortality.
-CohortMortalityB2  0.007 << 0.001 << The parameter fit for the relationship between site mortality and cohort mortality. 
+CohortMortalityB2  0.0055 << 0.001 << The parameter fit for the relationship between site mortality and cohort mortality. 
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>     Misc. parameters                     <<<<<<<<<<<<<
