@@ -9,7 +9,7 @@ TimeZeroPET		540
 TimeZeroCWD		440
 
 >> Species level characteristics
-Species_CSV_File	../ext_SCRAPPLE_Species_Table.csv    << Replaces the damage table in previous version of scrapple
+Species_CSV_File	../Shared_inputs/ext_SCRAPPLE_Species_Table.csv    << Replaces the damage table in previous version of scrapple
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 >>>>>>>>>>>>>>>>>   Input maps   <<<<<<<<<<<<<<<<<<<<<<<<<<
