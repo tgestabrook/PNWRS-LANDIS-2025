@@ -6,6 +6,18 @@ cat('\n      -----------------------------------------------
      ---> Processing harvest outputs...
     -----------------------------------------------\n')
 
+harvestEvents.df <- harvestEvents.df |>  # pivot into more usable long form
+  select(!contains(c("Grass_Forb", "Nfixer", "NonFxr"))) |>
+  mutate(BiomassHarvestedMg_TotalBiomass = MgBiomassRemoved,
+         Year = as.numeric(Time)) |>  # rename this for pivot longer to work in the next step
+  pivot_longer(starts_with(c("CohortsHarvested_", "BiomassHarvestedMg_")), names_to = c("Metric", "Species"), names_sep = "_", values_to = "val") |>
+  pivot_wider(names_from = "Metric", values_from = "val") |>
+  mutate(Prescription = gsub(' ','', Prescription),
+         HarvestedHA = HarvestedSites * 0.81) |>
+  left_join(merch_partition.df) |>
+  mutate(HarvestedMerchMg = Merch_frac * BiomassHarvestedMg,
+         HarvestedResidueMg = (1-Merch_frac) * BiomassHarvestedMg)
+
 ### Add snags onto harvest events: -----
 ##### Grab standing dead and patches, filter patches to those corresponding to salvage events, tally biomass of snags and add to 
 

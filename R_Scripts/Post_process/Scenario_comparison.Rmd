@@ -75,6 +75,8 @@ knitr::kable(sims.plot.df|>group_by(Scenario, Scenario2)|>tally())
 
 ### Wildfire Comparisons
 
+*Reference Scenario:* `r params$reference_scenario1` with `r params$reference_scenario2`
+
 ```{r, fig.cap="Wildfire area burned per severity class (deviation from reference scenario)"}
 df <- fires.all.df |>
   filter(IgnitionType!="Prescribed") |>
@@ -88,20 +90,19 @@ df <- fires.all.df |>
   summarise(Max = max(Area_cumulative), Min = min(Area_cumulative), Mean = mean(Area_cumulative)) |>
   compute_deviation(Sc = params$reference_scenario1, Sc2 = params$reference_scenario2)
 
-ggplot(data = df, aes(x = SimulationYear, y = Mean, color = Scenario)) +
+ggplot(data = df, aes(x = SimulationYear, y = Mean, color = Scenario, fill = Scenario)) +
   geom_line() +
   geom_ribbon(aes(ymin=Min,ymax=Max),alpha=0.2, linewidth = NA) +
-  scale_color_manual(values = scenario_colors) + scale_fill_manual(scenario_colors) +
+  scale_color_manual(values = scenario_colors) + scale_fill_manual(values = scenario_colors) +
   facet_grid(Scenario2~Severity) +
   ylab("Area (ha)")
 ```
 
 
-Area burned per severity class deviation from reference scenario (`r params$reference_scenario1` with `r params$reference_scenario2`):
 
 
 ```{r, fig.cap="Wildfire area burned per severity class (deviation from reference scenario)"}
-ggplot(data = df, aes(x = SimulationYear, y = Mean, color = Scenario2)) +
+ggplot(data = df, aes(x = SimulationYear, y = Mean, color = Scenario2, fill = Scenario2)) +
   geom_line() +
   geom_ribbon(aes(ymin=Min,ymax=Max),alpha=0.2, linewidth = NA) +
   scale_color_manual(values = scenario_colors2) + scale_fill_manual(scenario_colors2) +
@@ -110,7 +111,7 @@ ggplot(data = df, aes(x = SimulationYear, y = Mean, color = Scenario2)) +
 
 
 
-```{r, fig.cap="Area burned per severity class (deviation from reference scenario)"}
+```{r, fig.cap="Area (including Rx) burned per severity class (deviation from reference scenario)"}
 df <- fires.all.df |>
   group_by(Run, SimulationYear, Scenario, Scenario2, Severity) |>
   summarise(Area_total = sum(Area_ha)) |>  # total annual area in each severity class
@@ -122,10 +123,10 @@ df <- fires.all.df |>
   summarise(Max = max(Area_cumulative), Min = min(Area_cumulative), Mean = mean(Area_cumulative)) |>
   compute_deviation(Sc = params$reference_scenario1, Sc2 = params$reference_scenario2)
 
-ggplot(data = df, aes(x = SimulationYear, y = Mean, color = Scenario)) +
+ggplot(data = df, aes(x = SimulationYear, y = Mean, color = Scenario, fill = Scenario)) +
   geom_line() +
   geom_ribbon(aes(ymin=Min,ymax=Max),alpha=0.2, linewidth = NA) +
-  scale_color_manual(values = scenario_colors) + scale_fill_manual(scenario_colors) +
+  scale_color_manual(values = scenario_colors) + scale_fill_manual(values = scenario_colors) +
   facet_grid(Scenario2~Severity) +
   ylab("Area (ha)")
 ```
@@ -134,11 +135,11 @@ ggplot(data = df, aes(x = SimulationYear, y = Mean, color = Scenario)) +
 Area burned per severity class deviation from reference scenario (`r params$reference_scenario1` with `r params$reference_scenario2`):
 
 
-```{r, fig.cap="Area burned per severity class (deviation from reference scenario)"}
-ggplot(data = df, aes(x = SimulationYear, y = Mean, color = Scenario2)) +
+```{r, fig.cap="Area (including Rx) burned per severity class (deviation from reference scenario)"}
+ggplot(data = df, aes(x = SimulationYear, y = Mean, color = Scenario2, fill = Scenario2)) +
   geom_line() +
   geom_ribbon(aes(ymin=Min,ymax=Max),alpha=0.2, linewidth = NA) +
-  scale_color_manual(values = scenario_colors2) + scale_fill_manual(scenario_colors2) +
+  scale_color_manual(values = scenario_colors2) + scale_fill_manual(values = scenario_colors2) +
   facet_grid(Severity~Scenario)
 ```
 
@@ -171,7 +172,7 @@ df <- biomass.all.df |>
     Mean = mean(FineFuelsMg)
   )
 
-ggplot(data = df, aes(x = Year, fill = Scenario, color = Scenario)) + 
+ggplot(data = df, aes(x = Year, fill = Scenario, color = Scenario, fill = Scenario)) + 
   geom_line(aes(y = Mean)) +
   geom_ribbon(aes(ymin=Min,ymax=Max),alpha=0.2, linewidth = NA) +
   scale_fill_manual(values = scenario_colors) + scale_color_manual(values = scenario_colors) +
@@ -195,7 +196,7 @@ df <- biomass.all.df |>
     Mean = mean(Biomass_mean_MgHaEco)
   )
 
-ggplot(data = df, aes(x = Year, fill = Scenario, color = Scenario)) + 
+ggplot(data = df, aes(x = Year, fill = Scenario, color = Scenario, fill = Scenario)) + 
   geom_line(aes(y = Mean)) +
   geom_ribbon(aes(ymin=Min,ymax=Max),alpha=0.2, linewidth = NA) +
   scale_fill_manual(values = scenario_colors) + scale_color_manual(values = scenario_colors) +
@@ -217,7 +218,7 @@ df <- biomass.all.df |>
     Min = min(Biomass_sum_Mg)
   )
 
-ggplot(data = df, aes(x = Year, fill = Scenario, color = Scenario)) + 
+ggplot(data = df, aes(x = Year, fill = Scenario, color = Scenario, fill = Scenario)) + 
   geom_line(aes(y = Mean)) +
   geom_ribbon(aes(ymin=Min,ymax=Max),colour=NA,alpha=0.2,size=0.25) +
   scale_fill_manual(values = scenario_colors) + scale_color_manual(values = scenario_colors) +
@@ -239,7 +240,7 @@ df <- biomass.all.df |>
   ) |>
   compute_deviation(Sc = params$reference_scenario1, Sc2 = params$reference_scenario2)
 
-ggplot(data = df, aes(x = Year, fill = Scenario, color = Scenario)) + 
+ggplot(data = df, aes(x = Year, fill = Scenario, color = Scenario, fill = Scenario)) + 
   geom_line(aes(y = Mean)) +
   geom_ribbon(aes(ymin=Min,ymax=Max),colour=NA,alpha=0.2,size=0.25) +
   scale_fill_manual(values = scenario_colors) + scale_color_manual(values = scenario_colors) +
@@ -273,7 +274,7 @@ df <- biomass.all.df |>
   )
 
 if(nrow(df) > 0){
-  ggplot(data = df, aes(x = Year, fill = Scenario, color = Scenario)) + 
+  ggplot(data = df, aes(x = Year, fill = Scenario, color = Scenario, fill = Scenario)) + 
     geom_line(aes(y = Mean)) +
     geom_ribbon(aes(ymin=Min,ymax=Max),colour=NA,alpha=0.2,size=0.25) +
     scale_fill_manual(values = scenario_colors) + scale_color_manual(values = scenario_colors) +
@@ -285,7 +286,7 @@ if(nrow(df) > 0){
 
 ```{r, fig.cap="Total harvested biomass by PWG"}
 if(nrow(df) > 0){
-  ggplot(data = df, aes(x = Year, fill = Scenario2, color = Scenario2)) + 
+  ggplot(data = df, aes(x = Year, fill = Scenario2, color = Scenario2, fill = Scenario2)) + 
     geom_line(aes(y = Mean)) +
     geom_ribbon(aes(ymin=Min,ymax=Max),colour=NA,alpha=0.2,size=0.25) +
     scale_fill_manual(values = scenario_colors2) + scale_color_manual(values = scenario_colors2) +

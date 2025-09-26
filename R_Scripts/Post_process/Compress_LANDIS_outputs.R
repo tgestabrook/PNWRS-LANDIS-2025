@@ -1,7 +1,9 @@
 cat(paste('Compressing', landisOutputDir, '.............'), file = outFile, append = T)
 print(paste('Compressing', landisOutputDir, '.............'))  # print in R console as well
 
-file.remove(file.path(landisOutputDir, 'Climate-spinup-input-log.csv'))  # remove unused climate spinup log
+if (file.exists(file.path(landisOutputDir, 'Climate-spinup-input-log.csv'))){
+  file.remove(file.path(landisOutputDir, 'Climate-spinup-input-log.csv'))  # remove unused climate spinup log
+}
 
 ### Load ecoregions: ----
 eco_files<-dir(file.path(landisOutputDir,'Input_file_archive'))[grepl('.tif',dir(file.path(landisOutputDir,'Input_file_archive')))&

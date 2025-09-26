@@ -41,7 +41,7 @@ landisRuns <- file.path(dirToProcess,dir(dirToProcess)[grepl('Sim',dir(dirToProc
 simOpts <- list(
   rerunBiomassAnnualDynamics = T,
   rerunHarvest = T,
-  rerunFires = F,
+  rerunFires = T,
   remakeGifs = F,
   RUN.DHSVM.MAPS = T,
   RERUN.DHSVM.MAPS = F,
@@ -208,7 +208,10 @@ for(landisOutputDir in landisRuns){
   outFile <- file.path(landisOutputDir, 'post-processing-log.txt')
   cat(paste('Start time:', Sys.time(), '\n\n'), file=outFile)
   
-  if(!file.exists(file.path(landisOutputDir,'biomassOutput', 'TotalBiomass-yr-biomass.tif'))){
+  # if(!file.exists(file.path(landisOutputDir,'biomassOutput', 'TotalBiomass-yr-biomass.tif'))){
+  #   source("./R_Scripts/Post_process/Compress_LANDIS_outputs.R")  # Compress and make stacks if raw LANDIS outputs
+  # }
+  if(length(list.files(landisOutputDir, pattern = '\\.img$', ignore.case = T, recursive = T))>0){
     source("./R_Scripts/Post_process/Compress_LANDIS_outputs.R")  # Compress and make stacks if raw LANDIS outputs
   }
   
@@ -284,18 +287,7 @@ for(landisOutputDir in landisRuns){
       pivot_longer(cols = !starts_with("Species"), names_to = "Prescription", values_to = "Merch_frac")
     
     ### Load harvest logs
-    harvestEvents.df <- read.csv(file.path(landisOutputDir, "biomass-harvest-event-log.csv")) |>  # pivot into more usable long form
-      select(!contains(c("Grass_Forb", "Nfixer", "NonFxr"))) |>
-      mutate(BiomassHarvestedMg_TotalBiomass = MgBiomassRemoved,
-             Year = as.numeric(Time)) |>  # rename this for pivot longer to work in the next step
-      pivot_longer(starts_with(c("CohortsHarvested_", "BiomassHarvestedMg_")), names_to = c("Metric", "Species"), names_sep = "_", values_to = "val") |>
-      pivot_wider(names_from = "Metric", values_from = "val") |>
-      mutate(Prescription = gsub(' ','', Prescription),
-             HarvestedHA = HarvestedSites * 0.81) |>
-      left_join(merch_partition.df) |>
-      mutate(HarvestedMerchMg = Merch_frac * BiomassHarvestedMg,
-             HarvestedResidueMg = (1-Merch_frac) * BiomassHarvestedMg)
-    
+    harvestEvents.df <- read.csv(file.path(landisOutputDir, "biomass-harvest-event-log.csv"))
     
     if(nrow(harvestEvents.df>0)){
       source('./R_Scripts/Post_process/Post_harvest.R')

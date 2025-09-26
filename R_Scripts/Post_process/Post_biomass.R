@@ -36,7 +36,16 @@ for (spp in c("AbieAmab","AbieGran","AbieLasi","LariOcci","PiceEnge","PinuCont",
   biomass.df <- bind_rows(biomass.df, df)
 }
 
-
+deadwood.df <- rast(file.path(necnOutput, "DeadWoodBiomass-yr.tif")) |>
+  zonal(pwg.r, fun = 'sum', na.rm=T) |>
+  filter(!is.na(PWG), !PWG%in%c(10,11,99)) |> 
+  pivot_longer(starts_with('DeadWoodBiomass'), names_to = c('drop1', 'Year'), names_sep = '-', values_to = 'dead_wood_gm2') |>
+  select(!c(drop1)) |>
+  mutate(DeadWoodMg = dead_wood_gm2 * 0.81 * 0.01,
+         Species = 'TotalBiomass',
+         Year = as.numeric(Year),
+         PWG = as.factor(PWG)) |>
+  select(PWG, Year, Species, DeadWoodMg)
 
 #### If fire is active, tally fire: flamingconsumptionMg, SmoulderingconsumptionMg, Biomasskilledbyfire_mg, Burned_ha, 
 # biomasskilledbyfire_mgHa, BiomasskilledbyfireMgHaburned, BiomassKilledbyfireMgHaEco,  
@@ -105,35 +114,33 @@ if(dir.exists(fireOutput)){
     select(PWG, Year, Species, FineFuelsMg)
 }
 #### If harvest is active, tally harvest: harvested mg, harvested mgha, harvested mgha cut, harvested mgha eco, treatments, harvested rastermg, harvested ha  
-if(dir.exists(harvestOutput)){
-  if(exists('harvestEvents.df')){
-    cat('\n\n------------------------\n Tallying Harvest\n------------------------\n\n')
-      
-    harvest.biomass.raster.df <- zonal(biomassRemoved.r, pwg.r, 'sum') |>
-      pivot_longer(cols = names(biomassRemoved.r), names_to = c('drop1', 'drop2', 'Year'), names_sep='-', values_to = 'HarvestedRaster_gm2') |>
-      select(!c(drop1, drop2)) |>
-      mutate(PWG = as.factor(PWG), 
-             Year = as.numeric(str_replace(Year, ".tif", "")), 
-             HarvestedRaster_Mg = HarvestedRaster_gm2 * 0.01 * 0.81, 
-             Species = 'TotalBiomass')
+if(dir.exists(harvestOutput) & exists('harvestEvents.df')){
+  cat('\n\n------------------------\n Tallying Harvest\n------------------------\n\n')
     
-    gc()
-    harvest.biomass.df <- c(pwg.r, standIDmaps.r) |> as.data.frame(na.rm=T) |>  # one pixel per row, columns are years
-      pivot_longer(cols=names(standIDmaps.r), names_to=c("drop1", "drop2", 'Year'), names_sep = '-', values_to='Stand') |>  # one row per pixel-year
-      select(!c(drop1, drop2)) |>
-      mutate(Year = as.numeric(Year)) |>
-      filter(Stand%in%unique(harvestEvents.df$Stand), !PWG%in%c(10,11,99)) |>
-      group_by(PWG, Year, Stand) |> tally() |> # count of pixels in each stand-year-PWG 
-      right_join(harvestEvents.df, by=c('Year', 'Stand')) |>
-      mutate(PWG = as.factor(PWG),
-             Harvested_Mg_Stand_PWG = BiomassHarvestedMg * n/HarvestedSites * 0.81,  # total harvested in a stand times the fraction in the current PWG times the area of a pixel
-             Harvested_HA_PWG = n * 0.81) |>  # calc the Ha of the stand falling within a PWG
-      filter(Harvested_Mg_Stand_PWG > 0) |>  # we want to 
-      group_by(Year, Species, PWG) |>  # consolidate stands by PWG
-      summarize(Harvested_Mg = sum(Harvested_Mg_Stand_PWG),  # this one's just the total biomass for the species for the PWG
-                Harvested_Ha = sum(n)*0.81,  # this should only be grabbing stands with the species present
-                Treatments = n())
-  }
+  harvest.biomass.raster.df <- zonal(biomassRemoved.r, pwg.r, 'sum') |>
+    pivot_longer(cols = names(biomassRemoved.r), names_to = c('drop1', 'drop2', 'Year'), names_sep='-', values_to = 'HarvestedRaster_gm2') |>
+    select(!c(drop1, drop2)) |>
+    mutate(PWG = as.factor(PWG), 
+           Year = as.numeric(str_replace(Year, ".tif", "")), 
+           HarvestedRaster_Mg = HarvestedRaster_gm2 * 0.01 * 0.81, 
+           Species = 'TotalBiomass')
+  
+  gc()
+  harvest.biomass.df <- c(pwg.r, standIDmaps.r) |> as.data.frame(na.rm=T) |>  # one pixel per row, columns are years
+    pivot_longer(cols=names(standIDmaps.r), names_to=c("drop1", "drop2", 'Year'), names_sep = '-', values_to='Stand') |>  # one row per pixel-year
+    select(!c(drop1, drop2)) |>
+    mutate(Year = as.numeric(Year)) |>
+    filter(Stand%in%unique(harvestEvents.df$Stand), !PWG%in%c(10,11,99)) |>
+    group_by(PWG, Year, Stand) |> tally() |> # count of pixels in each stand-year-PWG 
+    right_join(harvestEvents.df, by=c('Year', 'Stand')) |>
+    mutate(PWG = as.factor(PWG),
+           Harvested_Mg_Stand_PWG = BiomassHarvestedMg * n/HarvestedSites * 0.81,  # total harvested in a stand times the fraction in the current PWG times the area of a pixel
+           Harvested_HA_PWG = n * 0.81) |>  # calc the Ha of the stand falling within a PWG
+    filter(Harvested_Mg_Stand_PWG > 0) |>  # we want to 
+    group_by(Year, Species, PWG) |>  # consolidate stands by PWG
+    summarize(Harvested_Mg = sum(Harvested_Mg_Stand_PWG),  # this one's just the total biomass for the species for the PWG
+              Harvested_Ha = sum(n)*0.81,  # this should only be grabbing stands with the species present
+              Treatments = n())
 } else {
   harvest.biomass.raster.df <- expand.grid('Species'="TotalBiomass",'Eco'=c('12', '13', '14', '15', '20', '30', '40', '50'),'Year'=0:simLength, 'HarvestedRaster_Mg'=0)
   harvest.biomass.df <- expand.grid('Species'=c("AbieAmab","AbieGran","AbieLasi","LariOcci","PiceEnge","PinuCont",
@@ -147,6 +154,7 @@ biomass.dynamics.df <- expand.grid('Species'=c("AbieAmab","AbieGran","AbieLasi",
                                    'Year'=0:simLength) |>
   left_join(ecos.area.df) |>
   left_join(biomass.df) |>
+  left_join(deadwood.df) |>
   left_join(bioKilled.df) |>
   left_join(consumption.df) |>
   left_join(finefuels.df) |>
@@ -163,6 +171,7 @@ biomass.dynamics.df <- expand.grid('Species'=c("AbieAmab","AbieGran","AbieLasi",
     BiomassKilledByFire_MgHa = BiomassKilledByFire_Mg/(ActiveSites*0.81),
     BiomassKilledByRxFire_MgHa = BiomassKilledByRxFire_Mg/(ActiveSites*0.81),
     FineFuels_mean_MgHaEco = FineFuelsMg/PWG_area_Ha,
+    DeadWood_mean_MgHaEco = DeadWoodMg/PWG_area_Ha,
     Harvested_MgHaEco = Harvested_Mg/PWG_area_Ha,
     Harvested_MgHa = Harvested_Mg/(ActiveSites*0.81),  # out of the area where the species is present
     Harvested_MgHaCut = Harvested_Mg/Harvested_Ha,  # calculate Mg/HA within sites where species is present!
