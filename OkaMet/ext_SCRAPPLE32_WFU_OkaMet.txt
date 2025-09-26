@@ -9,7 +9,7 @@ TimeZeroPET		541
 TimeZeroCWD		462
 
 >> Species level characteristics
-Species_CSV_File	../ext_SCRAPPLE_Species_Table.csv    << Replaces the damage table in previous version of scrapple
+Species_CSV_File	../Shared_inputs/ext_SCRAPPLE_Species_Table.csv    << Replaces the damage table in previous version of scrapple
 
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -270,7 +270,7 @@ MinimumRxFireWeatherIndex 3.0   << Optional
 MaximumRxTemperature      22	<< Limit to 72 degrees F. 
 MinimumRxRelativeHumidity 20	<< Optional
 MaximumRxFireIntensity    2
-NumberRxAnnualFires       200
+NumberRxAnnualFires       2000
 NumberRxDailyFires        10
 FirstDayRxFires           1
 LastDayRxFires            365	<< Rx FIRE TURNED OFF
