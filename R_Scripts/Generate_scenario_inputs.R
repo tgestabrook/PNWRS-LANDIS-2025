@@ -93,6 +93,8 @@ fires.by.fwi <- clim.dat |>
 zeroInf_lm_L <- zeroinfl(data=fires.by.fwi, IgnitionsLightning~FWI,dist="poisson")
 summary(zeroInf_lm_L)
 
+zeroInf_lm_A <- zeroinfl(data=fires.by.fwi, IgnitionsAccidental~FWI,dist="poisson")
+summary(zeroInf_lm_A)
 
 #-----------------------------------------------------------------------------------------------------------------------
 ## SCRAPPLE suppression maps 

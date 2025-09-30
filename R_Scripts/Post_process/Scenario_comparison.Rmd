@@ -84,7 +84,7 @@ df <- fires.all.df |>
   summarise(Area_total = sum(Area_ha)) |>  # total annual area in each severity class
   ungroup() |>
   group_by(Run, Scenario, Scenario2, Severity) |>
-  mutate(Area_cumulative = cumsum(Area_total)) |>  # cumulative area for each year
+  mutate(Area_cumulative = cumsum(Area_total)/404.6) |>  # cumulative area for each year to 1000s of acres
   ungroup() |> 
   group_by(Scenario, Scenario2, SimulationYear, Severity) |>
   summarise(Max = max(Area_cumulative), Min = min(Area_cumulative), Mean = mean(Area_cumulative)) |>
@@ -95,7 +95,7 @@ ggplot(data = df, aes(x = SimulationYear, y = Mean, color = Scenario, fill = Sce
   geom_ribbon(aes(ymin=Min,ymax=Max),alpha=0.2, linewidth = NA) +
   scale_color_manual(values = scenario_colors) + scale_fill_manual(values = scenario_colors) +
   facet_grid(Scenario2~Severity) +
-  ylab("Area (ha)")
+  ylab("Area (1000s of Acres)")
 ```
 
 
@@ -105,7 +105,7 @@ ggplot(data = df, aes(x = SimulationYear, y = Mean, color = Scenario, fill = Sce
 ggplot(data = df, aes(x = SimulationYear, y = Mean, color = Scenario2, fill = Scenario2)) +
   geom_line() +
   geom_ribbon(aes(ymin=Min,ymax=Max),alpha=0.2, linewidth = NA) +
-  scale_color_manual(values = scenario_colors2) + scale_fill_manual(scenario_colors2) +
+  scale_color_manual(values = scenario_colors2) + scale_fill_manual(values = scenario_colors2) +
   facet_grid(Severity~Scenario)
 ```
 
@@ -117,7 +117,7 @@ df <- fires.all.df |>
   summarise(Area_total = sum(Area_ha)) |>  # total annual area in each severity class
   ungroup() |>
   group_by(Run, Scenario, Scenario2, Severity) |>
-  mutate(Area_cumulative = cumsum(Area_total)) |>  # cumulative area for each year
+  mutate(Area_cumulative = cumsum(Area_total)/404.6) |>  # cumulative area for each year to 1000s of acres
   ungroup() |> 
   group_by(Scenario, Scenario2, SimulationYear, Severity) |>
   summarise(Max = max(Area_cumulative), Min = min(Area_cumulative), Mean = mean(Area_cumulative)) |>
@@ -128,7 +128,7 @@ ggplot(data = df, aes(x = SimulationYear, y = Mean, color = Scenario, fill = Sce
   geom_ribbon(aes(ymin=Min,ymax=Max),alpha=0.2, linewidth = NA) +
   scale_color_manual(values = scenario_colors) + scale_fill_manual(values = scenario_colors) +
   facet_grid(Scenario2~Severity) +
-  ylab("Area (ha)")
+  ylab("Area (1000s of Acres)")
 ```
 
 
@@ -167,9 +167,9 @@ df <- biomass.all.df |>
          PWG %in% c(20, 30, 40, 50)) |>
   group_by(Year, PWG_Name, Scenario, Scenario2) |>
   summarize(
-    Max = max(FineFuelsMg),
-    Min = min(FineFuelsMg),
-    Mean = mean(FineFuelsMg)
+    Max = max(FineFuels_mean_MgHaEco),
+    Min = min(FineFuels_mean_MgHaEco),
+    Mean = mean(FineFuels_mean_MgHaEco)
   )
 
 ggplot(data = df, aes(x = Year, fill = Scenario, color = Scenario, fill = Scenario)) + 
@@ -249,16 +249,33 @@ ggplot(data = df, aes(x = Year, fill = Scenario, color = Scenario, fill = Scenar
 ```
 
 
+```{r, fig.cap="Dead wood pool"}
+df <- biomass.all.df |>
+  filter(Species == "TotalBiomass", 
+         PWG %in% c(20, 30, 40, 50)) |>
+  group_by(Year, PWG_Name, Scenario, Scenario2) |>
+  summarize(
+    Max = max(DeadWood_mean_MgHaEco),
+    Min = min(DeadWood_mean_MgHaEco),
+    Mean = mean(DeadWood_mean_MgHaEco)
+  ) |>
+  filter(!is.na(Mean))
+
+ggplot(data = df, aes(x = Year, fill = Scenario, color = Scenario, fill = Scenario)) + 
+  geom_line(aes(y = Mean)) +
+  geom_ribbon(aes(ymin=Min,ymax=Max),alpha=0.2, linewidth = NA) +
+  scale_fill_manual(values = scenario_colors) + scale_color_manual(values = scenario_colors) +
+  facet_grid(Scenario2~PWG_Name) +
+  xlab("Simulation Year") + ylab(expression(paste('Dead Wood (Mg  ',ha^-1,')')))
+```
 
 
-Biomass by functional type:
-TODO
+TODO: Biomass by functional type:
+
 
 
 
 ### Harvest Comparisons
-
-
 
 ```{r, fig.cap="Total harvested biomass by PWG"}
 df <- biomass.all.df |>

@@ -391,6 +391,7 @@ sims.df <- data.frame('Run'=basename(landisRuns)) |>  # each folder gets a row
   mutate(Folder_name = str_replace(Folder_name, paste0("Sim_", LANDIS.EXTENT, "_"), '')) |> # strip away standard sim prefix 
   mutate(Folder_name = str_to_lower(Folder_name)) |>
   left_join(scenario_map.df)  |> 
+  filter(!is.na(Mgt_scenario)) |>
   mutate(DST_prepared = ifelse(file.exists(file.path(landisRuns, 'DST', 'DST_Metrics_by_PWG.csv')), T, F)) |>  # check if the DST input map script has been run
   mutate(Post_processed = ifelse(file.exists(file.path(landisRuns, 'Biomass_Annual_Dynamics.csv')), T, F))  # this is the last essential file generated in the post-processing script, so if it exists, the run has been fully processed
 

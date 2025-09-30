@@ -530,6 +530,19 @@ ggplot(data=df) +
   facet_wrap(~PWG_Name,nrow=2)
 ```
 
+```{r, fig.cap = "Living/dead trend by PWG (Mg)"}
+df <- biomass.dynamics.df |> filter(Species == "TotalBiomass") |>
+  pivot_longer(cols = c(Biomass_sum_Mg, DeadWoodMg, FineFuelsMg), names_to = "BiomassPool", values_to = "BiomassMg")
+
+ggplot(data=df) +
+  geom_area(aes(x=Year,y=BiomassMg,fill=BiomassPool,color=BiomassPool),size=0.5,linetype='dotdash') +
+  geom_bar(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year,y=BiomassKilledByFire_Mg),width=0.5,stat='identity',fill='darkred',colour=NA,alpha=0.5) +
+  geom_bar(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year+0.5,y=Harvested_Mg),width=0.5,stat='identity',fill='darkgreen',colour=NA,alpha=0.5) +
+  scale_y_continuous(expression(paste('Biomass (Mg)')),expand=c(c(0.01,0),c(0.08,0)))+
+  scale_x_continuous('Year',breaks=seq(0,simLength,simLength/5),labels=c(seq(simOpts$base.year,simOpts$base.year+simLength-1,simLength/5),""),limits=c(0,simLength),expand=c(0.01,0)) +
+  facet_wrap(~PWG_Name,nrow=2)
+```
+
 #### Biomass maps at 20-year intervals
 
 
