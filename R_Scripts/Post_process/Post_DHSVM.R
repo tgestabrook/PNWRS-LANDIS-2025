@@ -5,7 +5,7 @@
 #----------------------------------------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------------------------------------
 
-if(file.exists(file.path(landisOutputDir,'DHSVM','DHSVM.tif')) & RERUN.DHSVM.MAPS == F){
+if(file.exists(file.path(landisOutputDir,'DHSVM','DHSVM.tif')) & SimOpts$RERUN.DHSVM.MAPS == F){
   cat('\nDHSVM outputs already exist for',gsub(dirToProcess,"",landisOutputDir),'. Skipping to next sim...')
   next
 }
@@ -123,21 +123,50 @@ biomass.trees.r <- biomassStack.r |> select(!starts_with(c("Nfixer_Resprt","NonF
 biomass.notTrees.r <- biomassStack.r |> select(starts_with(c("Nfixer_Resprt","NonFxr_Resprt","NonFxr_Seed","Grass_Forb")))
 biomass.all.r <- biomassStack.r |> select(!starts_with("TotalBiomass"))
 
+biomass.years <- names(biomass.all.r) |> str_extract("-\\d+-") |> unique()
+
 gc()
-cat('\n-> Identifying top 3 dominant species per site per year')
-top3sp.df <- c(pwg.r, biomass.trees.r) |>
-  as.data.frame(xy=T) |>
-  filter(!is.na(PWG)) |>  # save some memory by dropping cells outside study area
-  pivot_longer(contains("biomass"), names_to = c("Species", "Year", "drop"), names_sep = '-', values_to = "Biomass_gm2", values_drop_na = T) |>
-  select(!drop) |>
-  filter(Biomass_gm2 > 0) |>  # don't bother ranking species-pixels with 0 biomass
-  mutate(Year = as.numeric(Year)) |>
-  group_by(x, y, Year) |>  # we want the top three species per pixel, so group by pixel and year
-  mutate(Rank = rank(-Biomass_gm2),
-         PWG = as.factor(PWG)) |> # grab the top 3 species in each pixel-year
-  ungroup() |>
-  filter(Rank <= 3) |>
-  select(x, y, Year, Rank, Species)  # only keep pixel location, species, and rank to make joining easier later
+cat('\n-> Identifying top 3 dominant species per site per year\n')
+
+top3sp.df <- data.frame("x" = NULL, 'y' = NULL, "Year" = NULL, "Rank" = NULL, "Species" = NULL)
+for (yr in biomass.years){
+  cat(yr)
+  biomass.trees.yr.r <- biomass.trees.r |> select(contains(yr)) #|> app(rank)
+  
+  # sp1.df <- which.lyr(biomass.trees.r == nlyr(biomass.trees.yr.r))
+  # sp2.df <- which.lyr(biomass.trees.r == nlyr(biomass.trees.yr.r)-1)
+  # sp3.df <- which.lyr(biomass.trees.r == nlyr(biomass.trees.yr.r)-2)
+  
+  top3sp.yr.df <- c(pwg.r, biomass.trees.yr.r) |>
+    as.data.frame(xy=T) |>
+    filter(!is.na(PWG)) |>  # save some memory by dropping cells outside study area
+    pivot_longer(contains("biomass"), names_to = c("Species", "Year", "drop"), names_sep = '-', values_to = "Biomass_gm2", values_drop_na = T) |>
+    select(!drop) |>
+    filter(Biomass_gm2 > 0) |>  # don't bother ranking species-pixels with 0 biomass
+    mutate(Year = as.numeric(Year)) |>
+    group_by(x, y, Year) |>  # we want the top three species per pixel, so group by pixel and year
+    mutate(Rank = rank(-Biomass_gm2),
+           PWG = as.factor(PWG)) |> # grab the top 3 species in each pixel-year
+    ungroup() |>
+    filter(Rank <= 3) |>
+    select(x, y, Year, Rank, Species)  # only keep pixel location, species, and rank to make joining easier later
+  
+  top3sp.df <- bind_rows(top3sp.yr.df)
+}
+
+# top3sp.df <- c(pwg.r, biomass.trees.r) |>
+#   as.data.frame(xy=T) |>
+#   filter(!is.na(PWG)) |>  # save some memory by dropping cells outside study area
+#   pivot_longer(contains("biomass"), names_to = c("Species", "Year", "drop"), names_sep = '-', values_to = "Biomass_gm2", values_drop_na = T) |>
+#   select(!drop) |>
+#   filter(Biomass_gm2 > 0) |>  # don't bother ranking species-pixels with 0 biomass
+#   mutate(Year = as.numeric(Year)) |>
+#   group_by(x, y, Year) |>  # we want the top three species per pixel, so group by pixel and year
+#   mutate(Rank = rank(-Biomass_gm2),
+#          PWG = as.factor(PWG)) |> # grab the top 3 species in each pixel-year
+#   ungroup() |>
+#   filter(Rank <= 3) |>
+#   select(x, y, Year, Rank, Species)  # only keep pixel location, species, and rank to make joining easier later
 
 cat('\n-> Calculating mean median age for top 3 dominant species per site per year')
 mean.age.top3.dom.df <- c(med.age.r) |>
