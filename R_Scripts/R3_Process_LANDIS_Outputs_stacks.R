@@ -22,11 +22,12 @@ library(magick)
 library(landscapemetrics)
 library(gridExtra)
 library(scales)
+library(zoo)
 library(zip)
 library(hues)
 
-Dir <- 'F:/2025_Q3_Scenarios/FuelFix6'
 LANDIS.EXTENT<-'WenEnt'
+Dir <- file.path('F:/2025_Q4_Scenarios', LANDIS.EXTENT)
 
 bigDataDir<-'F:/LANDIS_Input_Data_Prep/BigData'
 dataDir<-'F:/LANDIS_Input_Data_Prep/Data'
@@ -36,12 +37,12 @@ modelDir<-'F:/V8_Models'
 dirToProcess <- file.path(Dir)
 #-----------------------------------------------------------------------------------------------------------------------
 ## List all sims in the directory: ----
-landisRuns <- file.path(dirToProcess,dir(dirToProcess)[grepl('Sim',dir(dirToProcess))])
+landisRuns <- file.path(dirToProcess,dir(dirToProcess)[grepl('Sim',dir(dirToProcess)) & !grepl('.zip', dir(dirToProcess))])
 
 simOpts <- list(
-  rerunBiomassAnnualDynamics = T,
+  rerunBiomassAnnualDynamics = F,
   rerunHarvest = T,
-  rerunFires = T,
+  rerunFires = F,
   remakeGifs = F,
   RUN.DHSVM.MAPS = T,
   RERUN.DHSVM.MAPS = F,
@@ -91,6 +92,7 @@ ecos<-c('Water','Bareground','Grassland','Shrubland','Hardwood','Alpine meadow',
 names(ecos)<-c(10,11,12,13,14,15,20,30,40,50)
 ecos2 <- ecos[3:10]  # for plotting
 pwg.r <-  rast(file.path(dataDir, "PWG", paste0("PWG_", LANDIS.EXTENT, ".tif")))
+pwg.r <- ifel(pwg.r == 0, NA, pwg.r)
 names(pwg.r) <- "PWG"
 
 ### Load LUA raster:
@@ -156,6 +158,7 @@ landfire.r<-rast(file.path(dataDir,paste0("LANDFIREv2.0_EVT_",LANDIS.EXTENT,".ti
 landfire.codes<-read.csv(file.path(dataDir,'LF16_EVT_200.csv')) |>
   filter(VALUE%in%unique(values(landfire.r))) |>
   select(VALUE, EVT_GP_N, EVT_PHYS, EVT_LF)
+lf.codes.present<-unique(values(landfire.r))
 
 if(ext(landfire.r)!=ext(pwg.r)) stop('Extent of pwg.r does not match extent of landfire.r. This will cause major issues.')
 
@@ -181,9 +184,10 @@ pngOut <- function(p, file, width, height, res=600, units="in"){
 ### Function to create landfire mask for name of veg group or list of codes: ----
 landfireReclassFUN<-function(r=landfire.r,codes){
   if(is.character(codes)){
-    codes.num<-landfire.codes[landfire.codes$EVT_PHYS%in%codes|
-                                landfire.codes$EVT_GP_N%in%codes,'VALUE']
+    codes.num<-landfire.codes %>% filter(EVT_PHYS %in% codes | EVT_GP_N %in% codes) |> select(VALUE) |> pull()
   } else codes.num<-codes
+  
+  if (sum(codes.num%in%values(r)) == 0){return(rast(r, vals = NA))}
   
   r2 <- ifel(r%in%codes.num, r, NA)
   
@@ -307,10 +311,11 @@ for(landisOutputDir in landisRuns){
     source('./R_Scripts/Post_process/Make_gifs.R')
   }
   
+  #stop()
   #### DHSVM #### ----
-  # if(RUN.DHSVM.MAPS|RERUN.DHSVM.MAPS){
-  #   source('./Post_DHSVM.R')
-  # }
+  if(simOpts$RUN.DHSVM.MAPS|simOpts$RERUN.DHSVM.MAPS){
+    source('./R_Scripts/Post_process/Post_DHSVM_stopgap.R')
+  }
   
   rmarkdown::render(input = "./R_Scripts/Post_process/Sim_diagnostics.Rmd", 
                     output_format = "html_document",
@@ -357,6 +362,7 @@ for(landisOutputDir in landisRuns){
                           'max.fine.fuels',
                           'landfire.r',
                           'landfire.codes',
+                          'lf.codes.present',
                           'emp.fire.dnbr',
                           'pngOut',
                           'landfireReclassFUN')])  # clear out everything not on this list
