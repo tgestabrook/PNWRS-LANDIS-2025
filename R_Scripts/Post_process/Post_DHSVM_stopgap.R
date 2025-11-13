@@ -27,6 +27,22 @@ MASK = T
 ### Interpolate DHSVM maps to a finer temporal resolution? ----
 INTERPOLATE.DHSVM = T
 
+get_top3_biomass_indices <- function (pixstack){ # input: biomass pixel stack
+  outranks <- order(-pixstack)[1:3]
+  
+  outranks[pixstack[outranks] == 0] <- NA  # if the biomass is 0, the species shouldn't get ranked as this draws down averages
+  
+  return(outranks) 
+}
+
+
+get_ages_of_top3_biomass <- function(pixstack){ # assumes that species are in same order, should be true
+  indices <- pixstack[1:3]  # first three layers are indicies of 1st place, 2nd place, 3rd place
+  agepix <- pixstack[4:length(pixstack)]  # remaining layers have age data, select those corresponding to top biomass
+  
+  return(agepix[indices])
+}
+
 #----------------------------------------------------------------------------------------------------------------------
 ### Trim output to a HUC10 or HUC12? ----
 # TRIM.TO.HUC = c(170200110105,170200110103,170200110111,170200110110,170200110109,170200110108,170200110107,170200110106,170200110101)
@@ -35,69 +51,7 @@ TRIM.TO.HUC = F
 if(length(unique(nchar(TRIM.TO.HUC)))>1) stop('TRIM.TO.HUC values must be a vector of HUC codes AT THE SAME SCALE. 
                                               You can use HUC12, HUC11, or HUC10, but you cant mix them.')
 #----------------------------------------------------------------------------------------------------------------------
-### Define subset of years to run: ----
-# yrs.subset = c(0,50,100) # Set to NULL to run all years
-yrs.subset = NULL # Set to NULL to run all years
-if(!is.null(yrs.subset) & INTERPOLATE.DHSVM == T) {
-  yrs.subset = NULL 
-  warning('INTERPOLATE set to TRUE but you attempted to use yrs.subset. Must use all available yrs if you want to interpolate to a finer temporal resolution.')
-}
 
-#----------------------------------------------------------------------------------------------------------------------
-#######################################################################################################################
-####                                   Load base data and some handy functions                                      ####
-#----------------------------------------------------------------------------------------------------------------------
-
-active.ecos<-ecos.txt[ecos.txt$V1=='yes','V3']
-active.pwgs<-unique(substr(ecos.txt[ecos.txt$V1=='yes','V2'],1,2))
-
-#-------------------------------------------------------------------
-### Suppress .tif.aux.xml files: ----
-## To prevent the creation of .tif.aux.xml files: 
-#invisible(rgdal::setCPLConfigOption("GDAL_PAM_ENABLED", "FALSE"))
-
-### Set color palettes: ----
-sppCols<-colorRampPalette(c('darkslategray','goldenrod1','lightcoral','tomato3','wheat','firebrick4','orchid4','dodgerblue',
-                            'turquoise','forestgreen','darkgreen','olivedrab1','aquamarine4','dodgerblue4'))(100)
-sppColsRandom<-sample(sppCols,35,replace=F)
-
-fireCols<-colorRampPalette(c('grey20','darkslategray','goldenrod1','tomato2','firebrick4'))(10)
-# plot(1:length(fireCols),rep(0,length(fireCols)),col=fireCols,pch=15,cex=5)
-
-
-
-### Function to round up or down to nearest value of roundTo: ----
-roundFUN <- function(x, roundTo, dir = 0) {
-  if(dir == 1) {  ##ROUND UP
-    x + (roundTo - x %% roundTo)
-  } else {
-    if(dir == 0) {  ##ROUND DOWN
-      x - (x %% roundTo)
-    }
-  }
-}
-roundFUN(1:15,5)
-
-raster2csv<-function(r, agg.r = pwg.r, na.value = NA){
-  if(!is.na(na.value)){r[r==na.value]<-NA}
-  
-  r <- ifel(is.na(pwg.r), NA, r)
-  
-  df<-zonal(r,agg.r,fun=function(x,...) {return(data.frame('area.ha'=length(x) * 0.81,'occupied.area.ha'=length(x[!is.na(x)]) * 0.81,
-                                                           'sum'=sum(x,na.rm=T),'mean'=mean(x,na.rm=T),'sd'=sd(x,na.rm=T)))})
-  df<-cbind(as.data.frame(df[,1]), as.data.frame(df[,2]))
-  
-  df<-setNames(as.data.frame(df),c('zone','area.ha','occupied.area.ha','sum','mean','sd'))
-  df$area.ha <- unlist(df$area.ha)
-  df$occupied.area.ha <- unlist(df$occupied.area.ha)
-  df$sum <- unlist(df$sum)
-  df$mean <- unlist(df$mean)
-  df$sd <- unlist(df$sd)
-  
-  
-  df<-df[order(df$zone),]
-  return(df)
-}
 #----------------------------------------------------------------------------------------------------------------------
 #######################################################################################################################
 ####                                 NOW LOOP TO RUN ALL LANDIS OUTPUT FOLDERS:                                     ####
@@ -123,10 +77,7 @@ if(simOpts$RUN.DHSVM.MAPS==T){
   ## Create output folder: ----
   if(!dir.exists(file.path(landisOutputDir, 'DHSVM'))) dir.create(file.path(landisOutputDir, 'DHSVM'))
   
-  ########################################################################################################################
-  #-----------------------------------------------------------------------------------------------------------------------
-  #####  ---------------    DHSVM    --------------------------------------------------------------------------------- #####
-  #-----------------------------------------------------------------------------------------------------------------------
+
   ### Load LANDFIRE raster and definitions: ----
   if(ext(landfire.r)!=ext(pwg.r)) stop('Extent of pwg.r does not match extent of landfire.r. This will cause major issues.')
 
@@ -169,6 +120,18 @@ if(simOpts$RUN.DHSVM.MAPS==T){
                                                 'Developed-Upland Evergreen Forest','Developed-Roads',
                                                 'Snow-Ice','Open Water','Sparse Vegetation'))
 
+  ### Place extra DHSVM categories 161-173 so we don't have to recalc with every timestep!
+  extra_dhsvm.r <- rast(pwg.r, vals = NA)
+  ### TODO shrubs and grass
+  ### For ag land, urban, snow, water, overwrite LANDIS outputs based on Landfire EVT
+  extra_dhsvm.r <- ifel(pwg.r %in% 10:50 & lf.ag.dry, 165, extra_dhsvm.r)  # ag dry, 165
+  extra_dhsvm.r <- ifel(pwg.r %in% 10:50 & lf.ag.moist, 166, extra_dhsvm.r)  # ag moist, 166
+  extra_dhsvm.r <- ifel(pwg.r %in% 10:50 & lf.ag.vineyard, 167, extra_dhsvm.r)  # ag vineyard, 167
+  extra_dhsvm.r <- ifel(pwg.r %in% 10:50 & lf.ag.orchard, 168, extra_dhsvm.r)  # ag vineyard, 168
+  extra_dhsvm.r <- ifel(pwg.r %in% 10:50 & !is.na(lf.urban), 173, extra_dhsvm.r)  # urban, 173
+  extra_dhsvm.r <- ifel(pwg.r %in% 10:50 & !is.na(lf.snowIce), 171, extra_dhsvm.r)  # snow ice 171
+  extra_dhsvm.r <- ifel(pwg.r %in% c(10) & !is.na(lf.water), 170, extra_dhsvm.r)  # water 170
+  
   #-----------------------------------------------------------------------------------------------------------------------
   ### DHSVM Veg Reclass data frame (1-173): ----
   ht.df <- data.frame(
@@ -239,27 +202,35 @@ if(simOpts$RUN.DHSVM.MAPS==T){
     simOpts$RERUN.DHSVM.HEIGHT_FC_and_LAI_MAPS<-T 
   
   LAI.stack <- rast(file.path(necnOutput, "LAI-yr.tif"))
-  MedAge.stack <- rast(file.path(ageOutput, dir(ageOutput)[grepl("yr-MED", dir(ageOutput))]))
-  MaxAge.stack <- rast(file.path(ageOutput, dir(ageOutput)[grepl("yr-MAX", dir(ageOutput))]))
+  MedAgeAllspp.stack <- rast(file.path(ageOutput, dir(ageOutput)[grepl("yr-MED", dir(ageOutput))]))
+  MaxAgeAllspp.stack <- rast(file.path(ageOutput, dir(ageOutput)[grepl("yr-MAX", dir(ageOutput))]))
   BiomassTrees.stack <- biomassStack.r |> select(!starts_with(c("Nfixer_Resprt","NonFxr_Resprt","NonFxr_Seed","Grass_Forb","TotalBiomass")))
   BiomassNotTrees.stack <- biomassStack.r |> select(starts_with(c("Nfixer_Resprt","NonFxr_Resprt","NonFxr_Seed","Grass_Forb")))
   BiomassAll.stack <- biomassStack.r |> select(!starts_with("TotalBiomass"))
+  
+  if (!file.exists(file.path(ageOutput, 'MeanAge_AllSpp.tif'))){
+    cat("\n\nCalculating annual mean & max age...")
+    grouping_index <- names(MedAgeAllspp.stack) |> str_extract("\\d+") |> as.integer() 
+    MeanAge.stack <- MedAgeAllspp.stack |> tapp(index = grouping_index, fun = "mean", na.rm = T)
+    writeRaster(MeanAge.stack,file.path(ageOutput, 'MeanAge_AllSpp.tif'),overwrite=T)
+    
+    grouping_index <- names(MaxAgeAllspp.stack) |> str_extract("\\d+") |> as.integer() 
+    MaxAge.stack <- MaxAgeAllspp.stack |> tapp(index = grouping_index, fun = "max", na.rm = T)
+    writeRaster(MeanAge.stack,file.path(ageOutput, 'MaxAge_AllSpp.tif'),overwrite=T)
+  }
+  
   
   if(simOpts$RERUN.DHSVM.HEIGHT_FC_and_LAI_MAPS==T){
     cat('\n\n----------------------------------------------------------------------------------
 Looping through years...\n----------------------------------------------------------------------------------\n')
     for(yr in unique(yrs)){
       cat(paste0('\n------------\nYear: ',yr,'\n------------\n'))
-
-      # biomassMapFiles<-biomassMaps
-      # ageMapFiles<-ageMaps
-      # laiMapFiles<-laiMaps
       
       cat('-> Loading Total LAI and Biomass maps...\n')
       ### LAI: ----
       ##   For Year 0, you must generate a YR-0 LAI map by running LANDIS with 1-yr succession time steps and no fire and no harvest. Save this file to the data directory. 
       if(as.numeric(yr)==0){
-        lai.r<-rast(file.path(dataDir,'NECN_Outputs_Yr_0', LANDIS.EXTENT, 'LAI-1.tif'))
+        lai.r<-LAI.stack |> select(ends_with(paste0('-', yr)))
         lai.0<-lai.r
       } else lai.r<-LAI.stack |> select(ends_with(paste0('-', yr)))
       
@@ -278,12 +249,13 @@ Looping through years...\n------------------------------------------------------
         # lai.df<-data.frame('is'=x,'becomes'=seq(0,maxLAI,length.out=length(x))) # Linear function
         lai.df<-data.frame('is'=x,'becomes'= round(maxLAI * x/(inflection + x),1)) # Saturation function
         
-        plot(lai.df$is,lai.df$becomes,pch=21,bg=rev(hcl.colors(nrow(lai.df),palette = 'ag_GrnYl')),ylim=c(0,maxLAI))
-        lines(lai.df$is,lai.df$becomes,col=grey(0.2,0.1));lines(0:maxLAI.t0,0:maxLAI.t0,col=grey(0.5,0.5),lty='dotted');abline(h=maxLAI,col='darkred')
-        
+        # plot(lai.df$is,lai.df$becomes,pch=21,bg=rev(hcl.colors(nrow(lai.df),palette = 'ag_GrnYl')),ylim=c(0,maxLAI))
+        # lines(lai.df$is,lai.df$becomes,col=grey(0.2,0.1));lines(0:maxLAI.t0,0:maxLAI.t0,col=grey(0.5,0.5),lty='dotted');abline(h=maxLAI,col='darkred')
+        # 
         ## Reclassify:
+        lai.r <- ifel(lai.r > maxLAI.t0, maxLAI.t0, lai.r)
+        # lai.r[lai.r>maxLAI.t0]<-maxLAI.t0
         
-        lai.r[lai.r>maxLAI.t0]<-maxLAI.t0
         if(length(lai.r[!lai.r%in%lai.df$is & !is.na(lai.r)])>0){
           lai.r<-round(lai.r,0)
           warning('Raw LAI raster has non-integer values. Rounding to integers for reclassification.')
@@ -298,151 +270,90 @@ Looping through years...\n------------------------------------------------------
       ## Set LAI to 0.1 for cells with non-zero biomass but LAI == 0:
       lai.r <- ifel(lai.r==0&!is.na(total.biomass.r)&total.biomass.r>0, 0.1, lai.r)
       
-      
-      
       ### Age: ----
       cat('-> Loading Species Age and Biomass maps')
-      med.age<-MedAge.stack |> select(contains(paste0('-', yr, '-')))
-      max.age<-MaxAge.stack |> select(contains(paste0('-', yr, '-')))
+      med.age<-MedAgeAllspp.stack |> select(contains(paste0('-', yr, '-'))) |> select(!starts_with(c("Nfixer_Resprt","NonFxr_Resprt","NonFxr_Seed","Grass_Forb","TotalBiomass")))
+      max.age<-MaxAgeAllspp.stack |> select(contains(paste0('-', yr, '-'))) |> select(!starts_with(c("Nfixer_Resprt","NonFxr_Resprt","NonFxr_Seed","Grass_Forb","TotalBiomass")))
       biomass.trees<-BiomassTrees.stack |> select(contains(paste0('-', yr, '-')))
-      biomass.notTree<-BiomassNotTrees.stack |> select(contains(paste0('-', yr, '-')))
-      biomass.all<-BiomassAll.stack |> select(contains(paste0('-', yr, '-')))
-      
-      dominant.spp.lookup<-1:length(names(biomass.trees))
-      names(dominant.spp.lookup)<-str_split_i(names(biomass.trees), "-", 1)
-      
-      cat('\n-> Identifying top 3 dominant species per site')
-      top3sp.df <- biomass.trees |>
-        as.data.frame(xy=T, na.rm = T) |>
-        pivot_longer(contains("biomass"), names_to = "Species", values_to = "Biomass_gm2", values_drop_na = T) |>
-        mutate(Species = str_split_i(Species, '-', 1)) |>  # isolate species name
-        filter(Biomass_gm2 > 0) |>  # don't bother ranking species-pixels with 0 biomass
-        group_by(x, y) |>  # we want the top three species per pixel, so group by pixel and year
-        mutate(Rank = rank(-Biomass_gm2)) |> # grab the top 3 species in each pixel-year
-        ungroup() |>
-        filter(Rank <= 3) |>
-        select(x, y, Rank, Species)  # only keep pixel location, species, and rank to make joining easier later
-      
-      topsp.df <- top3sp.df |> 
-        filter(Rank == 1)
-      
-      # mean.age.r
-      cat('\n-> Calculating mean age')
-      mean.age.r<-ifel(is.na(pwg.r), NA, mean(med.age,na.rm=T))
-      
-      # max.age.r
-      cat('\n-> Calculating max age')
-      max.age.r<-ifel(is.na(pwg.r), NA, max(max.age,na.rm=T))
-      
-      # mean.age.domSpp.r
-      cat('\n-> Calculating mean age of dominant species')
-      mean.age.domSpp.r <- med.age |>
-        as.data.frame(xy=T) |>
-        pivot_longer(contains("MED"), names_to = "Species", values_to = 'Med.Age') |>
-        mutate(Species = str_split_i(Species, '-', 1)) |>  # isolate species name
-        inner_join(topsp.df) |>
-        rast(type = "xyz", crs = crs(pwg.r), ext = ext(pwg.r))
-      
-      # mean.age.top3.dom.r
-      cat('\n-> Calculating mean age of dominant 3 species per site')
-      mean.age.top3.dom.r <- med.age |>
-        as.data.frame(xy=T) |>
-        pivot_longer(contains("MED"), names_to = "Species", values_to = 'Med.Age') |>
-        mutate(Species = str_split_i(Species, '-', 1)) |>  # isolate species name
-        inner_join(top3sp.df) |>
-        group_by(x, y) |>
-        summarise(Mean.Age = mean(Med.Age)) |>
-        ungroup() |>
-        rast(type = "xyz", crs = crs(pwg.r), ext = ext(pwg.r))
-      
-      
-      # dominant.spp
-      cat('\n-> Generating dominant species raster')
-      dominant.spp <- topsp.df |>
-        left_join(data.frame("Species" = names(dominant.spp.lookup), "spcode" = dominant.spp.lookup)) |>  # get numerical species code
-        select(x, y, spcode) |>
-        rast(type = "xyz", crs = crs(pwg.r), ext = ext(pwg.r))
-      
-      # dominant.spp2
-      dominant.spp2 <- top3sp.df |>
-        filter(Rank == 2) |>
-        left_join(data.frame("Species" = names(dominant.spp.lookup), "spcode" = dominant.spp.lookup)) |>  # get numerical species code
-        select(x, y, spcode) |>
-        rast(type = "xyz", crs = crs(pwg.r), ext = ext(pwg.r))
-      
-      # 
-      # 
-      # ## Dominant species by biomass: ----
-      # dominant.spp<-which.max(biomass.trees) # How to identify the dominant species per cell???
+
       # dominant.spp.lookup<-1:length(names(biomass.trees))
       # names(dominant.spp.lookup)<-str_split_i(names(biomass.trees), "-", 1)
+      # dom.spp.crosswalk.df <- data.frame("Species" = names(dominant.spp.lookup), "spcode" = dominant.spp.lookup)
       # 
-      # ## Second and third dominant by biomass: ----
-      # ##  Biomass values, ordered (layer 1 is highest biomass, layer 2 is second highest, etc.)
-      # dom.spp.ordered<-app(biomass.trees, fun=function(x,na.rm) x[order(x,decreasing=T)])  # function used to be calc
+      
+      start.time <- Sys.time()
+      cat('\n-> Identifying top 3 dominant species per site')
+      # top3sp.df <- biomass.trees |>  # try reclassing zero to NA in order to save time by dropping na values
+      # # top3sp.df <- ifel(biomass.trees == 0, NA, biomass.trees) |>  # try reclassing zero to NA in order to save time by dropping na values
+      #   as.data.frame(xy=T, na.rm = T) |>
+      #   pivot_longer(contains("biomass"), names_to = "Species", values_to = "Biomass_gm2", values_drop_na = T) |>
+      #   filter(Biomass_gm2 > 0) |>  # don't bother ranking species-pixels with 0 biomass
+      #   mutate(Species = str_split_i(Species, '-', 1)) |>  # isolate species name
+      #   group_by(x, y) |>  # we want the top three species per pixel, so group by pixel and year
+      #   mutate(Rank = rank(-Biomass_gm2, na.last = NA, ties.method = "random")) |> # grab the top 3 species in each pixel-year
+      #   filter(Rank <= 3) |>
+      #   ungroup() |>
+      #   left_join(dom.spp.crosswalk.df) |>
+      #   select(x, y, Rank, Species, spcode)  # only keep pixel location, species, and rank to make joining easier later
+      # print(Sys.time() - start.time)
+      # gc()
+      # # topsp.df <- top3sp.df |> 
+      # #   filter(Rank == 1)
       # 
-      # dominant.spp2<-rast(dominant.spp, vals = 0)  # initialize second and third place dominant species rasters
-      # dominant.spp3<-rast(dominant.spp, vals = 0)
+      # mean.age.top3.dom.df <- med.age |>
+      #   as.data.frame(xy=T) |>
+      #   pivot_longer(contains("MED"), names_to = "Species", values_to = 'Med.Age') |>
+      #   mutate(Species = str_split_i(Species, '-', 1)) |>  # isolate species name
+      #   inner_join(top3sp.df)
+      # print(Sys.time() - start.time)
+      
+      #### Try combining age and biomass
+      # age_by_rank.df <- c(biomass.trees, med.age) |>
+      
+      start.time <- Sys.time()
+      top3sp.r <- app(biomass.trees, get_top3_biomass_indices)
+      print(Sys.time() - start.time)
+      
+      start.time <- Sys.time()
+      age.top.3.dom.r <- app(c(top3sp.r, med.age), get_ages_of_top3_biomass)
+      print(Sys.time() - start.time)
+      
+      cat('\n-> Calculating mean age of dominant 3 species per site')
+      mean.age.top3.dom.r <- mean(age.top.3.dom.r, na.rm = T)
+      mean.age.domSpp.r <- age.top.3.dom.r[[1]]
+      
+      # mean.age.top3.dom.r <- mean.age.top3.dom.df |>
+      #   group_by(x, y) |>
+      #   summarise(Mean.Age = mean(Med.Age)) |>
+      #   ungroup() |>
+      #   select(x, y, Mean.Age) |>
+      #   rast(type = "xyz", crs = crs(pwg.r), ext = ext(pwg.r))
       # 
-      # for(sp in sample(names(dominant.spp.lookup))){  # sample names to randomize in case of ties, species going first wins
-      #   cat('.')
-      #   ## Create a mask for where each species is within the top 3 per site:
-      #   # Second highest biomass:
-      #   spbiomass.r <- biomass.trees |> select(contains(sp))
-      #   dominant.spp2<-ifel(spbiomass.r == dom.spp.ordered[[2]] & dominant.spp2 == 0,dominant.spp.lookup[sp], dominant.spp2)
+      # cat('\n-> Calculating mean age of dominant species')
+      # mean.age.domSpp.r <- mean.age.top3.dom.df |>
+      #   filter(Rank == 1) |> 
+      #   select(x, y, Med.Age) |>
+      #   rast(type = "xyz", crs = crs(pwg.r), ext = ext(pwg.r))
       #   
-      #   dominant.spp3<-ifel(spbiomass.r == dom.spp.ordered[[3]] & dominant.spp3 == 0, dominant.spp.lookup[sp], dominant.spp3)
-      # }
-      # ## View where AbieAmab is the 1st, 2nd, and 3rd dominant species by biomass
-      # # plot(dominant.spp==3,col=c('white','darkred'))
-      # # plot(dominant.spp2==3,col=c(NA,'orange'),add=T)
-      # # plot(dominant.spp3==3,col=c(NA,'gold'),add=T)
+      # rm(mean.age.top3.dom.df)
+
+      # dominant.spp
+      cat('\n-> Generating dominant species raster')
+      dominant.spp <- top3sp.r[[1]]
+      dominant.spp2 <- top3sp.r[[2]]
+      
+      
+      # dominant.spp <- top3sp.df |>
+      #   filter(Rank == 1) |>
+      #   select(x, y, spcode) |>
+      #   rast(type = "xyz", crs = crs(pwg.r), ext = ext(pwg.r))
       # 
-      # ## Max age of any species: ----
-      # max.age.r<-max(max.age,na.rm=T)
-      # # plot(max.age.r)
-      # 
-      # ## Mean age of dominant species per site: ----
-      # mean.age.domSpp.r<- rast(max.age.r, vals = 0)
-      # 
-      # for(sp in sample(str_split_i(names(dominant.spp.lookup), "-", 1))){
-      #   sp.num<-dominant.spp.lookup[sp]
-      #   sp.mask<-ifel(dominant.spp == sp.num, 1, NA) #sp.dom.r==sp.num
-      # 
-      #   sp.med.age<-mask(med.age |> select(contains(sp)),sp.mask)
-      #   sp.med.age<-ifel(is.na(sp.med.age), 0, sp.med.age)
-      # 
-      #   mean.age.domSpp.r<-mean.age.domSpp.r+sp.med.age
-      # }
-      # # plot(mean.age.domSpp.r)
-      # 
-      # ## Mean age of dominant 3 species per site: ----
-      # cat('\n-> Calculating mean age of dominant 3 species per site')
-      # age.top3.dom.Spp<-list()
-      # for(sp in names(dominant.spp.lookup)){
-      #   cat('.')
-      #   # cat(paste0(sp,', '))
-      #   sp.num<-dominant.spp.lookup[sp]
-      #   sp.med.age <- med.age |> select(contains(sp))  # grab median age raster for this species
-      #   
-      #   sp.med.age <- ifel(dominant.spp==sp.num | dominant.spp2==sp.num | dominant.spp3==sp.num, sp.med.age, NA)
-      #   
-      #   # sp.med.age<-ifel(sp.med.age==0, NA, sp.med.age)
-      #   age.top3.dom.Spp[[sp]]<-sp.med.age
-      # }
-      # age.top3.dom.Spp<-rast(age.top3.dom.Spp)
-      # # It works! See:
-      # # med.age[694,400]
-      # # age.top3.dom.Spp[694,400]
-      # mean.age.top3.dom.r<-mean(age.top3.dom.Spp,na.rm=T)
-      # mean.age.top3.dom.r<-ifel(is.na(pwg.r), NA, mean.age.top3.dom.r)
-      # # plot(mean.age.top3.dom.r)
-      # 
-      # # Compare to the overall mean median age (this method is higher if there are younger cohorts present that weight down the med age, lower if the dominant cohort is very old):
-      # mean.age.r<-mean(med.age,na.rm=T)
-      # mean.age.r<-ifel(is.na(pwg.r), NA, mean.age.r)
-      # plot(mean.age.r)
-      # plot(mean.age.domSpp.r-mean.age.r,col=colorRampPalette(c('red','gold','grey80','blue','green','darkgreen'))(50))
+      # # dominant.spp2
+      # dominant.spp2 <- top3sp.df |>
+      #   filter(Rank == 2) |>
+      #   select(x, y, spcode) |>
+      #   rast(type = "xyz", crs = crs(pwg.r), ext = ext(pwg.r))
+      
       #---------------------------------------------#      
       ### Generate Rasters for average FC and Height per cell: ----
       cat('\n-> Generating rasters for FC and Height...\n')
@@ -456,13 +367,13 @@ Looping through years...\n------------------------------------------------------
         ) |>
         mutate(Pred = predict(fc.glm, pick(Mean.Age, Biomass.sum.gm2, PWG, Elevation))) |>
         mutate(Pred = ifelse(Pred > 1, 1, ifelse(Pred < 0, 0, Pred))) |>  # ensure values stay between 0 and 1
-        mutate(Pred = ifelse(is.na(Pred) & Biomass.sum.gm2 > 0, 0.1, Pred)) |>  # if grasses where pred is NA but there is biomass, set the value to 0.1
-        select(x, y, Pred) |>
+        mutate(fc = ifelse(is.na(Pred) & Biomass.sum.gm2 > 0, 0.1, Pred)) |>  # if grasses where pred is NA but there is biomass, set the value to 0.1
+        select(x, y, fc) |>
         rast(type = 'xyz', crs = crs(pwg.r), ext = ext(pwg.r))
       
-      plot(fc.r)
+      # plot(fc.r)
       
-      gc()
+      # gc()
       ht.r <- c(pwg.r, total.biomass.r, mean.age.top3.dom.r) |>
         as.data.frame(xy=T) |>
         filter(!is.na(PWG)) |>
@@ -471,98 +382,13 @@ Looping through years...\n------------------------------------------------------
         ) |>
         right_join(top3sp.df |> filter(Rank == 1)) |>  # join the df with top species by biomass but only keep top-ranked
         rename(Age = names(mean.age.top3.dom.r)[1], Biomass_gm2 = names(total.biomass.r)[1]) |>
-        mutate(Pred = predict(ht.glm, pick(Age, Biomass_gm2, PWG, Species))) |>
+        mutate(Pred = predict(ht.glm, pick(Age, Biomass_gm2, PWG, Species), allow.new.levels = T)) |>
         mutate(Pred = ifelse(Pred < 0, 0, Pred)) |>
-        mutate(Pred = ifelse((is.na(Pred) | Pred <= 1) & Biomass_gm2 > 0, 1, Pred)) |> # if biomass > 0 but the prediction is 0 or NA, set height to 1.
-        select(x, y, Pred) |>
+        mutate(ht = ifelse((is.na(Pred) | Pred <= 1) & Biomass_gm2 > 0, 1, Pred)) |> # if biomass > 0 but the prediction is 0 or NA, set height to 1.
+        select(x, y, ht) |>
         rast(type = 'xyz', crs = crs(pwg.r), ext = ext(pwg.r))
-      plot(ht.r)
-      
-      # 
-      # 
-      # 
-      # 
-      # 
-      # 
-      # ## Create data frames based on raster values
-      # fc.pred.df<-data.frame('Mean.Age'=unname(values(mean.age.top3.dom.r)),'Biomass.sum.gm2'=unname(values(total.biomass.r)),
-      #                        'PWG'=unname(values(pwg.r)),'Elevation'=round(unname(values(dem.r)),-1),'Pred'=NA)
-      # ## The bareground PWG level (11) is absent from fc.glm model... model FC as if these were in PWG = 12 (grassland)
-      # fc.pred.df[!fc.pred.df$PWG%in%levels(fc.glm@frame$PWG)&!is.na(fc.pred.df$PWG),'PWG']<-12
-      # 
-      # ## Create data frames based on raster values
-      # ht.pred.df<-data.frame('Age'=unname(values(mean.age.top3.dom.r)),'Biomass_gm2'=unname(values(total.biomass.r)),
-      #                        'Species'=names(dominant.spp.lookup[values(dominant.spp)]),'PWG'=unname(values(pwg.r)),'Pred'=NA)
-      # ## For cells with non-zero biomass with species = NA, fill in with grass:
-      # ht.pred.df[is.na(ht.pred.df$Species) & !is.na(ht.pred.df$Biomass_gm2),'Age']<-1
-      # ## The bareground PWG level (11) is absent from fc.glm model... model FC as if these were in PWG = 50 (cold-dry conifer)
-      # ht.pred.df[!ht.pred.df$PWG%in%levels(fc.glm@frame$PWG)&!is.na(ht.pred.df$PWG),'PWG']<-50
-      # 
-      # ## A handful of cells are PWG NA but have tree data...
-      # if (nrow(fc.pred.df[!is.na(fc.pred.df$Mean.Age)&is.na(fc.pred.df$PWG),])>0){
-      #   print(paste(nrow(fc.pred.df[!is.na(fc.pred.df$Mean.Age)&is.na(fc.pred.df$PWG),]), 'pixels with tree data but NA pwg.'))
-      #   fc.pred.df[!is.na(fc.pred.df$Mean.Age)&is.na(fc.pred.df$PWG),'PWG'] <- 50
-      # }
-      # 
-      # if (nrow(ht.pred.df[!is.na(ht.pred.df$Age)&is.na(ht.pred.df$PWG),])>0){
-      #   print(paste(nrow(ht.pred.df[!is.na(ht.pred.df$Age)&is.na(ht.pred.df$PWG),]), 'pixels with tree data but NA pwg.'))
-      #   ht.pred.df[!is.na(ht.pred.df$Age)&is.na(ht.pred.df$PWG),'PWG'] <- 50
-      # }
-      # 
-      # #---------------------------------------------#      
-      # ## Generate fractional cover predicted values
-      # fc.pred.df[!is.na(fc.pred.df$Mean.Age),'Pred'] <- 
-      #   predict(fc.glm,newdata=fc.pred.df[!is.na(fc.pred.df$Mean.Age),],type='response')
-      # 
-      # ## Genearte height predicted values
-      # ht.pred.df[!is.na(ht.pred.df$Age) & ht.pred.df$Species%in%levels(ht.glm@flist$Species),'Pred'] <- 
-      #   predict(ht.glm,newdata=ht.pred.df[!is.na(ht.pred.df$Age) & ht.pred.df$Species%in%levels(ht.glm@flist$Species),],type='response')
-      # # Generic species form for species absent from the model factor levels:
-      # ht.pred.df[!is.na(ht.pred.df$Age) & !ht.pred.df$Species%in%levels(ht.glm@flist$Species) & !is.na(ht.pred.df$Species),'Pred'] <- 
-      #   predict(ht.glm,newdata=ht.pred.df[!is.na(ht.pred.df$Age) & !ht.pred.df$Species%in%levels(ht.glm@flist$Species) & !is.na(ht.pred.df$Species),],type='response',re.form=~(1 + Age | PWG))
-      # 
-      # # For cells with non-zero biomass with species = NA, give FC layer low grass cover:
-      # fc.pred.df[is.na(fc.pred.df$Pred) & !is.na(ht.pred.df$Pred),'Pred']<-0.1
-      # #---------------------------------------------#      
-      # ## Convert FC to 0 to 1 scale:
-      # if(mean(fc.pred.df$Pred,na.rm=T)>1)
-      #   fc.pred.df$Pred<-fc.pred.df$Pred / 100
-      # ## Limit FC to 100:
-      # fc.pred.df[fc.pred.df$Pred>1&!is.na(fc.pred.df$Pred),'Pred']<-1
-      # # Fix negative values
-      # ht.pred.df[ht.pred.df$Pred<0&!is.na(ht.pred.df$Pred),'Pred']<-0
-      # fc.pred.df[fc.pred.df$Pred<0&!is.na(fc.pred.df$Pred),'Pred']<-0
-      # 
-      # # Create blank rasters
-      # fc.r<-pwg.r
-      # values(fc.r)<-NA
-      # ht.r<-fc.r
-      # 
-      # # Assign predicted values
-      # values(fc.r)<-fc.pred.df$Pred
-      # values(ht.r)<-ht.pred.df$Pred
-      
-      # plot(fc.r)
       # plot(ht.r)
-      # assign(paste0('FC.',yr),fc.r)
-      # assign(paste0('HT.',yr),ht.r)
       
-      #---------------------------------------------#      
-      
-      # fc.r<-eval(parse(text=paste0('FC.',yr)))
-      # ht.r<-eval(parse(text=paste0('HT.',yr)))
-      
-      # Reclass raster to DHSVM Canopy cover class
-      # fc.r.classed <- classify(fc.r, rcl = fc.df, include.lowest = TRUE)
-      # ht.r.classed <- classify(ht.r, rcl = ht.df, include.lowest = TRUE)
-      
-      #---------------------------------------------#      
-
-      
-      #---------------------------------------------#      
-      #### CREATE DHSVM RASTER BASED ON HEIGHT, FC, and PWG: #### ----
-      ##   *** NOTE: if INTERPOLATE.DHSVM == T, we'll have to re-do this based on interpolated height and FC maps. Skip this here to save time.
-      #---------------------------------------------#   
       ### Trim rasters to study area: ----
       if(MASK == T){
         for(r.name in c('ht.r','fc.r','lai.r','total.biomass.r')){
@@ -572,7 +398,7 @@ Looping through years...\n------------------------------------------------------
           
           assign(r.name,r)
         }
-        plot(total.biomass.r,col=hcl.colors(173))
+        # plot(total.biomass.r,col=hcl.colors(173))
       }
       #---------------------------------------------#   
       ### View result: ----
@@ -615,146 +441,44 @@ Looping through years...\n------------------------------------------------------
       ### WRITE RASTERS: ----
       for(r.name in c('ht.r','fc.r','lai.r','total.biomass.r')){
         r<-eval(parse(text=r.name))
-        r<-round(r,2)
-        r[is.na(r)]<-0
+        r <- ifel(is.na(r), 0, round(r, 2))
         assign(r.name,r)
       }
       
-      # writeRaster(dhsvm.r,file.path(landisOutputDir, 'DHSVM',paste0('DHSVM_yr-',yr,'.tif')),overwrite=T)
       writeRaster(ht.r,file.path(landisOutputDir, 'DHSVM',paste0('Veg_Height-m_yr-',yr,'.tif')),overwrite=T)
       writeRaster(fc.r,file.path(landisOutputDir, 'DHSVM',paste0('Veg_FracCov_yr-',yr,'.tif')),overwrite=T)
       writeRaster(lai.r,file.path(landisOutputDir, 'DHSVM',paste0('Veg_LAI_yr-',yr,'.tif')),overwrite=T)
       
       ## Save Age Rasters:
-      for(r.name in c('mean.age.r','max.age.r','mean.age.domSpp.r','mean.age.top3.dom.r','dominant.spp','dominant.spp2')){
+      for(r.name in c(#'mean.age.r','max.age.r',
+                      'mean.age.domSpp.r',
+                      'mean.age.top3.dom.r','dominant.spp','dominant.spp2')){
         r<-eval(parse(text=r.name))
         r<-round(r,0)
         assign(r.name,r)
       }
-      writeRaster(mean.age.r,file.path(ageOutput, paste0('MeanAge_AllSpp_yr-',yr,'.tif')),overwrite=T)
-      writeRaster(max.age.r,file.path(ageOutput, paste0('MaxAge_AllSpp_yr-',yr,'.tif')),overwrite=T)
       writeRaster(mean.age.domSpp.r,file.path(ageOutput, paste0('MeanAge_DominantSpecies_yr-',yr,'.tif')),overwrite=T)
       writeRaster(mean.age.top3.dom.r,file.path(ageOutput, paste0('MeanAge_Top3Species_yr-',yr,'.tif')),overwrite=T)
       writeRaster(dominant.spp,file.path(ageOutput, paste0('DominantSpecies-',yr,'.tif')),overwrite=T)
       writeRaster(dominant.spp2,file.path(ageOutput, paste0('DominantSpecies2-',yr,'.tif')),overwrite=T)
       
       cat('----> Complete! <----\n')
-      
-      rm(ht.r,fc.r,lai.r)
+      gc()
     } # END YEAR LOOP
-  } # Finished creating Ht, FC, Mean Age, and Dom Spp maps at the succession timesteps.
-  #-----------------------------------------------------------------------------------------------------------------------
-  #-----------------------------------------------------------------------------------------------------------------------
-  #### Interpolate HT and FC maps, create DHSVM maps based on interpolated maps: ----
-
-  if(INTERPOLATE.DHSVM==T){
-    cat('\n\n-----------------------------------------------------------------------
-            Interpolating from',as.numeric(yrs[2]) - as.numeric(yrs[1]),'to',simOpts$increment,'years.\n-----------------------------------------------------------------------\n')
     
-    #------------------------------------------------------#
-    ### Create empty raster: ----
-    NA.r <- ifel(is.na(pwg.r), 0, NA)
-
-    #------------------------------------------------------#
-    ### Loop through years and interpolate FC and HT maps to the desired increment: ----
-    for(yr in unique(yrs)){
-      cat(paste0('\n-------------------\nYear: ',yr,'\n-------------------\n'))
-      
-      #------------------------------------------------------#
-      cat('-> Loading Veg_FracCov, Veg_Height, Veg_LAI, and DHSVM maps...\n')
-      
-      VegHT.r <- rast(file.path(landisOutputDir, 'DHSVM',paste0('Veg_Height-m_yr-',yr,'.tif'))); names(VegHT.r) <- paste0('Veg_Height-m_yr-',yr)
-      VegFC.r <- rast(file.path(landisOutputDir, 'DHSVM',paste0('Veg_FracCov_yr-',yr,'.tif'))); names(VegFC.r) <- paste0('Veg_FracCov_yr-',yr)
-      VegLAI.r<- rast(file.path(landisOutputDir, 'DHSVM',paste0('Veg_LAI_yr-',yr,'.tif'))); names(VegLAI.r) <- paste0('Veg_LAI_yr-',yr)
-      # DHSVM.r <- raster(file.path(landisOutputDir, 'DHSVM',paste0('DHSVM_yr-',yr,'.tif')))
-      
-      #------------------------------------------------------#
-      ## If it's the first year, skip to next: ----
-      if(yr == yrs[1]) {
-        VegHT.prev<-VegHT.r
-        VegFC.prev<-VegFC.r
-        VegLAI.prev<-VegLAI.r
-        # DHSVM.prev<-DHSVM.r
-        prev.yr=yr
-        next
-      } 
-      #------------------------------------------------------#
-      ## Determine number of years to interpolate: ----
-      succession.timestep <- as.numeric(yr) - as.numeric(prev.yr)
-      yrs.needed <- seq(as.numeric(prev.yr)+simOpts$increment,as.numeric(yr)-simOpts$increment,simOpts$increment)
-      yrs.needed
-      cat('-> Interpolating from year',prev.yr,'to',yr,'...\n')
-      
-      ## Create empty raster stack ----
-      for(i in yrs.needed){
-        if(i==yrs.needed[1]) empty.s<-NA.r else
-          empty.s<-c(empty.s,NA.r)
-      }
-      names(empty.s)<-yrs.needed
-      
-      
-      #------------------------------------------------------#
-      ## Interpolate: ----
-      cat('-> Layers: ')
-      start.time<-Sys.time()
-      
-      for(layer in c('VegHT','VegFC','VegLAI')){
-        cat(layer,', ',sep='')
-        layer.r<-eval(parse(text=paste0(layer,'.r')))
-        layer.prev<-eval(parse(text=paste0(layer,'.prev')))
-        
-        ## New method. Much faster.
-        ## Create vectors for time 1 and time 2 values:
-        t1 <- ifel(is.na(NA.r), layer.prev, NA)
-        t2 <- ifel(is.na(NA.r), layer.r, NA)
-
-        ## Calculate distance:
-        delta <- t2-t1
-        ## Interpolate: 
-        s<-empty.s
-        for(i in 1:length(yrs.needed)){
-          # s[[i]][is.na(s[[i]])] <- t1 + i * (delta / succession.timestep)
-          s[[i]] <- ifel(is.na(s[[i]]), t1 + i * (delta / succession.timestep), s[[i]])
-        }
-        ## Join with t1 and t2 maps:
-        layer.interp<-c(layer.prev,s,layer.r)
-        ## Round layers:
-        layer.interp<-round(layer.interp,2)
-        ## Rename:
-        names(layer.interp)<-paste0(gsub("[0-9]","",names(layer.prev)),
-                                    seq(as.numeric(gsub(".*?([0-9]+).*", "\\1", names(layer.prev))),
-                                        as.numeric(gsub(".*?([0-9]+).*", "\\1", names(layer.r))),
-                                        simOpts$increment))
-        ## Write rasters:
-        for(i in 1:nlyr(layer.interp)){
-          if(names(layer.interp[[i]]) %in% c(names(layer.prev),names(layer.r))) next
-          writeRaster(layer.interp[[i]],file.path(landisOutputDir, 'DHSVM',paste0(paste0(gsub("[.]","-",names(layer.interp[[i]]))),'.tif')),overwrite=T)
-        }
-      }
-      
-      # cat('\n -Time diff:',round(difftime(Sys.time(),start.time,units='secs'),0),'seconds')
-      #------------------------------------------------------#
-      ## Save current year maps as previous year maps for next loop level: ----
-      VegHT.prev<-VegHT.r
-      VegFC.prev<-VegFC.r
-      VegLAI.prev<-VegLAI.r
-      # DHSVM.prev<-DHSVM.r
-      prev.yr<-yr
-    } # Close year loop for interpolation
+    #### Start generating DHSVM raster: ----
+    cat('\n\n----------------------------------------------------------------------------------
+Looping through years for DHSVM...\n----------------------------------------------------------------------------------\n')
     
-    #### CREATE DHSVM RASTER BASED ON INTERPOLATED MAPS OF HEIGHT AND FC: ----
-    cat('\n\n-----------------------------------------------------------\n-> Creating DHSVM raster based on LANDIS-II veg outputs...\n-----------------------------------------------------------
-        - Year: ')
-    for(yr in seq(0,max(as.numeric(unique(yrs))),simOpts$increment)){
-      cat(paste0(' ',yr))
-      dhsvm.r<-pwg.r
-      values(dhsvm.r)<-NA
-      
-      ### Load interpolated ht and fc maps: ----
+    cluster <- makeCluster(min(n_cores-1, 2))
+    registerDoParallel(cluster)
+    
+    foreach (yr = unique(yrs), .packages = c("terra", "tidyverse", "tidyterra")) %dopar% {
+    # for(yr in unique(yrs)){
+      cat(paste0('\n------------\nYear: ',yr,'\n------------\n'))
+
       ht.r <- rast(file.path(landisOutputDir, 'DHSVM',paste0('Veg_Height-m_yr-',yr,'.tif')))
-      names(ht.r) <- 'ht'
       fc.r <- rast(file.path(landisOutputDir, 'DHSVM',paste0('Veg_FracCov_yr-',yr,'.tif')))
-      names(fc.r) <- 'fc'
       lai.r<- rast(file.path(landisOutputDir, 'DHSVM',paste0('Veg_LAI_yr-',yr,'.tif')))
       
       ht.r <- ifel(pwg.r<12 | is.na(pwg.r), NA, ht.r)  # Mask out inactive areas
@@ -764,36 +488,18 @@ Looping through years...\n------------------------------------------------------
       fc.r.classed <- classify(fc.r, rcl = fc.df, include.lowest = TRUE)
       ht.r.classed <- classify(ht.r, rcl = ht.df, include.lowest = TRUE)
       
-      ## Assign forested classes: ----
-      # for(i in 1:nrow(rcl.df)){
-      #   if(i %in% seq(1,170,40)) cat('.')
-      #   # cat(paste0(i,', '))
-      #   
-      #   dhsvm.r <- ifel(fc.r.classed==rcl.df$fc[i] & 
-      #                     ht.r.classed==rcl.df$ht[i] & 
-      #                     pwg.r %in% eval(parse(text=as.character(rcl.df$pwg[i]))), rcl.df$DHSVM.class[i])
-      #   
-      #   
-      #   # dhsvm.r[fc.r.classed==rcl.df[i,'fc'] & 
-      #   #           ht.r.classed==rcl.df[i,'ht'] & 
-      #   #           pwg.r %in% eval(parse(text=as.character(rcl.df[i,'pwg'])))] <- 
-      #   #   rcl.df[i,'DHSVM.class']
-      # }
-      
-      
       dhsvm.r <- c(fc.r.classed, ht.r.classed, pwg.r) |>
         as.data.frame(xy = T) |>
         rename('pwg.code' = 'PWG') |>
-        left_join(rcl.expanded.df |> filter(DHSVM.class <= 160)) |>
+        left_join(rcl.expanded.df |> filter(DHSVM.class <= 160)) |>  # tree classes are exclusive, so we can use a table join
         select(x, y, DHSVM.class) |>
         rast(type = 'xyz', crs = crs(pwg.r), ext = ext(pwg.r))
       
       unique(values(dhsvm.r))
-      plot(dhsvm.r)
-      
+      # plot(dhsvm.r)
       
       ## Assign non-forest classes using LANDFIRE layers: ----
-      for(i in 161:173){
+      for(i in 161:164){
         ## Classify herb and shrub using approximate height
         if(grepl("shrub",rcl.df[i,'pwg.name'])|grepl("herb",rcl.df[i,'pwg.name'])){
           dhsvm.r[pwg.r %in% eval(parse(text=as.character(rcl.df[i,'pwg']))) & 
@@ -807,78 +513,21 @@ Looping through years...\n------------------------------------------------------
           dhsvm.r[is.na(dhsvm.r) & 
                     lf.shrub] <- i
         }
-        ## Classify Agricultural and Urban land using LANDFIRE EVT:
-        #   This will only overwrite LANDIS-II pixels within the PWGs specified in rcl.df.
-        if(grepl("agricultural dry",rcl.df[i,'pwg.name'])){
-          dhsvm.r[pwg.r %in% eval(parse(text=as.character(rcl.df[i,'pwg']))) & 
-                    lf.ag.dry ] <- i
-        }
-        if(grepl("agricultural moist",rcl.df[i,'pwg.name'])){
-          dhsvm.r[pwg.r %in% eval(parse(text=as.character(rcl.df[i,'pwg']))) & 
-                    lf.ag.moist ] <- i
-        }
-        if(grepl("agricultural vineyard",rcl.df[i,'pwg.name'])){
-          dhsvm.r[pwg.r %in% eval(parse(text=as.character(rcl.df[i,'pwg']))) & 
-                    lf.ag.vineyard] <- i
-        }
-        if(grepl("agricultural orchard",rcl.df[i,'pwg.name'])){
-          dhsvm.r[pwg.r %in% eval(parse(text=as.character(rcl.df[i,'pwg']))) & 
-                    lf.ag.orchard ] <- i
-        }
-        if(grepl("urban",rcl.df[i,'pwg.name'])){
-          dhsvm.r[pwg.r %in% eval(parse(text=as.character(rcl.df[i,'pwg']))) & 
-                    !is.na(lf.urban)] <- i
-        }
-        if(grepl("snow",rcl.df[i,'pwg.name'])){
-          dhsvm.r[pwg.r %in% eval(parse(text=as.character(rcl.df[i,'pwg']))) & 
-                    !is.na(lf.snowIce)] <- i
-        }
-        if(grepl("water",rcl.df[i,'pwg.name'])){
-          dhsvm.r[pwg.r %in% eval(parse(text=as.character(rcl.df[i,'pwg']))) & 
-                    !is.na(lf.water)] <- i
-        }
-        if(grepl("barren",rcl.df[i,'pwg.name'])){
-          dhsvm.r[pwg.r %in% eval(parse(text=as.character(rcl.df[i,'pwg']))) & 
-                    is.na(dhsvm.r) &
-                    !is.na(lf.barren)] <- i
-        }
-        
-        ## Use PWG layer to classify a few remaining empty pixels:
-        if(grepl("barren",rcl.df[i,'pwg.name'])|grepl("rock",rcl.df[i,'pwg.name'])){
-          dhsvm.r[pwg.r %in% eval(parse(text=as.character(rcl.df[i,'pwg']))) &
-                    (is.na(ht.r.classed) | is.na(fc.r.classed)) & 
-                    is.na(dhsvm.r)] <- i
-        }
       }
-      # Low herb class for any remaining uncategorized pixels.
-      dhsvm.r[is.na(dhsvm.r)&!is.na(pwg.r)]<-164 # Low herb class for any remaining uncategorized pixels.
+      # ## Classify Agricultural and Urban land using LANDFIRE EVT, overwriting LANDIS pixels in specified land use & pwg:
+      dhsvm.r <- ifel(!is.na(extra_dhsvm.r), extra_dhsvm.r, dhsvm.r)
       
+      ### Classify barren
+      dhsvm.r <- ifel(pwg.r == 11 & (is.na(ht.r.classed) | is.na(fc.r.classed) | !is.na(lf.barren)) & is.na(dhsvm.r), 172, dhsvm.r)  # barren
+      dhsvm.r <- ifel(pwg.r %in% 12:50 & (is.na(ht.r.classed) | is.na(fc.r.classed) | !is.na(lf.barren)) & is.na(dhsvm.r), 169, dhsvm.r)  # rock
+
+      dhsvm.r <- ifel(is.na(dhsvm.r)&!is.na(pwg.r), 164, dhsvm.r) # Low herb class for any remaining uncategorized pixels.
+
       ## Mask out inactive areas: ----
-      dhsvm.r[is.na(ht.r) & is.na(fc.r)]<-NA
-      # dhsvm.r[is.na(fc.r)]<-NA
-      
-      ### TRIM RASTERS TO STUDY AREA: ----
-      if(MASK == T){
-        dhsvm.r[is.na(pwg.noBuffer.r)]<-NA
-        ht.r[is.na(pwg.noBuffer.r)]<-NA
-        fc.r[is.na(pwg.noBuffer.r)]<-NA
-        lai.r[is.na(pwg.noBuffer.r)]<-NA
-      }
+      dhsvm.r <- ifel(is.na(ht.r) & is.na(fc.r), NA, dhsvm.r)
       
       ### View result: ----
       if(yr %in% c(0,20,40,60,80,100)){
- 
-        # total.biomass.r[is.na(ht.r) & is.na(fc.r)]<-NA # Mask out inactive areas
-        
-        ## Set NA for inactive areas:
-        ht.r[is.na(total.biomass.r)]<-NA
-        fc.r[is.na(total.biomass.r)]<-NA
-        lai.r[is.na(total.biomass.r)]<-NA
-        
-        ## Set colors:
-        dhsvmCols<-colorRampPalette(c('saddlebrown','goldenrod1','darkslategray','darkgreen','seagreen4',
-                                      'turquoise4','dodgerblue4','midnightblue','navy','orchid4','palegoldenrod','wheat'))(49)
-        # plot(dhsvm.r,col=dhsvmCols,breaks=seq(1,195,4),legend=F,xaxt='n',yaxt='n')
         
         ## Plot:
         tiff(file.path(landisOutputDir,'DHSVM',paste0('Summary_fig_yr-',yr,'.tif')),width=9.75,height=9,res=300,units='in',compression='lzw')
@@ -928,7 +577,6 @@ Looping through years...\n------------------------------------------------------
         plot.new()
         plot.window(xlim=ext(pwg.r)[1:2], ylim=ext(pwg.r)[3:4],xaxs="i",yaxs="i",asp=1)
         plot(pwg.r,col='black',legend=F,add=T)
-        # plot(dhsvm.r,col=rev(hcl.colors(173,palette = 'Zissou 1')),legend=F,xaxt='n',yaxt='n',add=T)
         plot(dhsvm.r,col=dhsvmCols,breaks=seq(1,195,4),legend=F,xaxt='n',yaxt='n',add=T)
         plot(dem.r,col=demCols(50),add=T,alpha=0.15,legend=F)
         plot(hillshade.r,col=colorRampPalette(c('black','grey20','white'))(100),add=T,alpha=0.15,legend=F);box(lwd=3)
@@ -938,24 +586,32 @@ Looping through years...\n------------------------------------------------------
       }
       
       ### Output DHSVM map: ----
-      dhsvm.r[is.na(dhsvm.r)]<-0
+      dhsvm.r <- ifel(is.na(dhsvm.r), 0, dhsvm.r)
       writeRaster(dhsvm.r,file.path(landisOutputDir, 'DHSVM',paste0('DHSVM_yr-',yr,'.tif')),overwrite=T)
       
       
-    } # Close DHSVM year loop
-    #---------------------------------------------#   
+      rm(ht.r,fc.r,lai.r, dhsvm.r)
+    } # END YEAR LOOP
+    stopImplicitCluster()
     
-    #------------------------------------------------------#
-    #------------------------------------------------------
-  } # Finished creating DHSVM rasters based on interplated HT and FC maps.
+    cat("PARALLELL DHSVM RASTER GENERATION FINISHED")
+    
+  } # Finished creating Ht, FC, Mean Age, and Dom Spp maps at the succession timesteps.
   #-----------------------------------------------------------------------------------------------------------------------
+ 
   #-----------------------------------------------------------------------------------------------------------------------
   #### Read in all years, replace NA with -9999, and replace 0 with 0.1: ----
   cat('\n\n-----------------------------------------------------------------------
             Replacing 0 with 0.1 and NA with -9999\n-----------------------------------------------------------------------\n')
   #------------------------------------------------------#
-  cat('\n- Year: ')
-  for(yr in seq(0,max(as.numeric(unique(yrs))),simOpts$increment)){
+  # cat('\n- Year: ')
+  # for(yr in seq(0,max(as.numeric(unique(yrs))),simOpts$increment)){
+  
+  cluster <- makeCluster(min(n_cores-1, 2))
+  
+  registerDoParallel(cluster)
+  
+  foreach (yr = unique(yrs), .packages = c("terra", "stringr")) %dopar% {
     cat(yr,', ',sep='')
     
     ### Load interpolated ht and fc maps: ----
@@ -963,13 +619,9 @@ Looping through years...\n------------------------------------------------------
     fc.r <- rast(file.path(landisOutputDir, 'DHSVM',paste0('Veg_FracCov_yr-',yr,'.tif')))
     lai.r<- rast(file.path(landisOutputDir, 'DHSVM',paste0('Veg_LAI_yr-',yr,'.tif')))
     
-    ht.r[ht.r==0]<-0.1
-    fc.r[fc.r==0]<-0.01
-    lai.r[lai.r==0]<-0.1
-    
-    ht.r[pwg.r<12 | is.na(pwg.r) | is.na(pwg.noBuffer.r)]  <- -9999
-    fc.r[pwg.r<12 | is.na(pwg.r) | is.na(pwg.noBuffer.r)]  <- -9999 
-    lai.r[pwg.r<12 | is.na(pwg.r) | is.na(pwg.noBuffer.r)] <- -9999 
+    ht.r <- ifel(ht.r == 0, 0.1, ifel(pwg.r<12 | is.na(pwg.r) | is.na(pwg.noBuffer.r), -9999, ht.r))
+    fc.r <- ifel(fc.r == 0, 0.01, ifel(pwg.r<12 | is.na(pwg.r) | is.na(pwg.noBuffer.r), -9999, fc.r))
+    lai.r <- ifel(lai.r == 0, 0.1, ifel(pwg.r<12 | is.na(pwg.r) | is.na(pwg.noBuffer.r), -9999, lai.r))
     
     ### Output DHSVM map: ----
     writeRaster(ht.r,file.path(landisOutputDir, 'DHSVM',paste0('Veg_Height-m_yr-',yr,'.tif')),overwrite=T)
@@ -977,20 +629,18 @@ Looping through years...\n------------------------------------------------------
     writeRaster(lai.r,file.path(landisOutputDir, 'DHSVM',paste0('Veg_LAI_yr-',yr,'.tif')),overwrite=T)
     
   } # Close year loop
+  
+  stopImplicitCluster()
   #---------------------------------------------#   
   #-----------------------------------------------------------------------------------------------------------------------
   #-----------------------------------------------------------------------------------------------------------------------
   #### Zip results: ----
-  scenarioName = gsub(dirToProcess,"",landisOutputDir)
-  scenarioName = gsub("[_]|LANDIS_Sim_Wen|/","",scenarioName)
-  scenarioName = gsub("NECN","100yr",scenarioName)
-  #scenarioName = gsub("NECN","30yr",scenarioName)
-  scenarioName = gsub("SCRAPPLE","WILDFIRE",scenarioName)
-  scenarioName = gsub("HARVEST","_HARVEST",scenarioName)
-  scenarioName = gsub("NECN100","NO_FIRE",scenarioName)
-  scenarioName = gsub("NECN","NO_FIRE",scenarioName)
-  scenarioName = paste(substr(scenarioName,1,nchar(scenarioName)-12),substr(scenarioName,nchar(scenarioName)-11,nchar(scenarioName)-4),sep='_')
-  scenarioName
+  scenarioName <- landisOutputDir |> 
+    str_replace(dirToProcess, "") |>
+    #str_replace_all("_", "") |>
+    str_replace_all("/", "") |>
+    str_replace("Sim.{6}", "DHSVM")
+
   
   if(simOpts$OVERWRITE.ZIP.FILES==T |
      !file.exists(paste0(dirToProcess,'/DHSVM_Inputs_',scenarioName,'.zip'))){
@@ -1010,67 +660,3 @@ Looping through years...\n------------------------------------------------------
   ***************************************************************************************************
   ===================================================================================================\n\n')
 }
-#----------------------------------------------------------------------------------------------------------------------
-#######################################################################################################################
-#----------------------------------------------------------------------------------------------------------------------
-
-#----------------------------------------------------------------------------------------------------------------------
-#######################################################################################################################
-#----------------------------------------------------------------------------------------------------------------------
-### TRIM OUTPUT RASTERS TO HUC EXTENT: ----
-##  If TRIM.TO.HUC contains HUCs to trim to, loop through rasters and trim to focal HUCs.
-# if(TRIM.TO.HUC[1]!=F){
-#   for(landisOutputDir in RunsToProcess){
-#     if(!dir.exists(file.path(landisOutputDir,'SubExtents',TRIM.TO.HUC[1],'DHSVM'))) dir.create(file.path(landisOutputDir,'SubExtents',TRIM.TO.HUC[1],'DHSVM'))
-#     cat('\nTRIMMING RESULTS TO SMALLER OUTPUT EXTENT...\n\n')
-#     focalHUC.nchar<-max(nchar(TRIM.TO.HUC))
-#     cat(' ---> Trimming to HUC',focalHUC.nchar,'level. Focal HUCs:',TRIM.TO.HUC)
-#     
-#     focalHUC.sf<-HUC12.sf[substr(HUC12.sf$HUC12,1,focalHUC.nchar)%in%TRIM.TO.HUC,]
-#     plot(HUC12.sf$geometry)
-#     plot(focalHUC.sf$geometry,add=T,col='red')
-#     
-#     focalHUC.r <- mask(pwg.r,focalHUC.sf,updatevalue=NA)
-#     # plot(pwg.r,col='black',yaxt='n',xaxt='n',legend=F)
-#     # plot(pwg.noBuffer.r,col=demCols,add=T,legend=F)
-#     # plot(focalHUC.r,col=hcl.colors(20),add=T)
-#     plot(focalHUC.r)
-#     
-#     ## This loop assumes that the rasters are in your R environment.
-#     # for(r.name in c( 'smoke.r',  'dhsvm.r','ht.r','fc.r','lai.r','total.biomass.r')){
-#     #   r<-eval(parse(text=r.name))
-#     #   r[is.na(focalHUC.r)]<-NA
-#     #   # r[is.na(r)]<-0
-#     #   
-#     #   ## Trim raster? r<-trim(r)
-#     #   assign(paste0('focalHUC.',r.name),r)
-#     # }
-#     # plot(focalHUC.dhsvm.r,col=hcl.colors(173))
-#     
-#     # ## Write rasters:
-#     # writeRaster(focalHUC.dhsvm.r,file.path(landisOutputDir,'SubExtents',TRIM.TO.HUC[1],paste0('smoke_yr-',yr,'.tif')),'GTiff',overwrite=T)
-#     # 
-#     # writeRaster(focalHUC.dhsvm.r,file.path(landisOutputDir,'SubExtents',TRIM.TO.HUC[1],paste0('DHSVM_yr-',yr,'.tif')),'GTiff',overwrite=T)
-#     # writeRaster(focalHUC.ht.r,file.path(landisOutputDir,'SubExtents',TRIM.TO.HUC[1],paste0('Veg_Height-m_yr-',yr,'.tif')),'GTiff',overwrite=T)
-#     # writeRaster(focalHUC.fc.r,file.path(landisOutputDir,'SubExtents',TRIM.TO.HUC[1],paste0('Veg_FracCov_yr-',yr,'.tif')),'GTiff',overwrite=T)
-#     # writeRaster(focalHUC.lai.r,file.path(landisOutputDir,'SubExtents',TRIM.TO.HUC[1],paste0('Veg_LAI_yr-',yr,'.tif')),'GTiff',overwrite=T)
-#     # 
-#     # rm(  smoke.r,  focalHUC.dhsvm.r,focalHUC.ht.r,focalHUC.fc.r,focalHUC.lai.r)
-#     
-#     
-#     ## Instead, read in rasters from DHSVM folder:
-#     r.to.trim<-dir(file.path(landisOutputDir,'DHSVM'))
-#     for(r.name in r.to.trim){
-#       r<-rast(file.path(landisOutputDir,'DHSVM',r.name))
-#       r[is.na(focalHUC.r)]<-NA
-#       # r[is.na(r)]<-0
-#       
-#       ## Trim raster? r<-trim(r)
-#       writeRaster(r,file.path(landisOutputDir,'SubExtents',TRIM.TO.HUC[1],'DHSVM',r.name),'GTiff',overwrite=T)
-#     }
-#     # Check:
-#     r<-rast(file.path(landisOutputDir,'SubExtents',TRIM.TO.HUC[1],"DHSVM_yr-30.tif"))
-#     plot(focalHUC.dhsvm.r,col=hcl.colors(173))
-#     
-#   }
-# }

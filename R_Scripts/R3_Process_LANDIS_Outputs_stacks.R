@@ -25,8 +25,11 @@ library(scales)
 library(zoo)
 library(zip)
 library(hues)
+library(foreach)
+library(doParallel)
 
-LANDIS.EXTENT<-'WenEnt'
+LANDIS.EXTENT<-'OkaMet'
+# Dir <- file.path('F:/2025_Q4_Scenarios', "Test")
 Dir <- file.path('F:/2025_Q4_Scenarios', LANDIS.EXTENT)
 
 bigDataDir<-'F:/LANDIS_Input_Data_Prep/BigData'
@@ -85,6 +88,9 @@ harvestColsClassified<-data.frame('value'=1:14,
                                   ),
                                   'id'=1:14,
                                   'Treatment'=c('MBValley', 'MBMesic', 'MBXeric', 'Industrial', 'PCTgeneric', 'Salvage','WA DNR', 'PCTdry', 'PCTmoist', 'PCTcold', 'CTdry', 'CTmoist', 'CCcold', 'WCcold'))
+## Set colors:
+dhsvmCols<-colorRampPalette(c('saddlebrown','goldenrod1','darkslategray','darkgreen','seagreen4',
+                              'turquoise4','dodgerblue4','midnightblue','navy','orchid4','palegoldenrod','wheat'))(49)
 options(scipen=999)
 
 #### Define ecoregions: ----
@@ -194,13 +200,32 @@ landfireReclassFUN<-function(r=landfire.r,codes){
   return(r2)
 }
 
-landisOutputDir <- landisRuns[1]
+### Function to interpolate a continuous raster stack: ----
+interpolateRaster <- function(r){
+  prefix <- str_extract(names(r)[1], "^[^0-9]*")  # grab all text before numerals appear
+  suffix <- str_extract(names(r)[1], "[^0-9]*$")
+
+  data.yrs <- names(r) |> str_extract("\\d+") |> as.integer()
+  missing.yrs <- seq(0, simLength)[!seq(0, simLength) %in% data.yrs]
+  
+  missing.lyrs <- rast(r, vals = NA, nlyrs = length(missing.yrs))
+  names(missing.lyrs) <- paste0(prefix, missing.yrs, suffix)
+  
+  r_interpolated <- c(r, missing.lyrs) 
+  r_interpolated <- r_interpolated[[paste0(prefix, 0:simLength, suffix)]]  # this will sort the stack into the correct order
+  r_interpolated <- approximate(r_interpolated, method = 'linear', rule = 2)
+  
+  return(r_interpolated)
+}
+
+
+landisOutputDir <- landisRuns[5]
 
 #-----------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------
 ### Core post-processing loop: ----
-for(landisOutputDir in landisRuns){
+for(landisOutputDir in sample(landisRuns)){
   if(length(dir(landisOutputDir))==0) stop("LANDIS output folder is empty! Check file path...")
   
   #----------------------------------------------------------------------#
@@ -212,9 +237,7 @@ for(landisOutputDir in landisRuns){
   outFile <- file.path(landisOutputDir, 'post-processing-log.txt')
   cat(paste('Start time:', Sys.time(), '\n\n'), file=outFile)
   
-  # if(!file.exists(file.path(landisOutputDir,'biomassOutput', 'TotalBiomass-yr-biomass.tif'))){
-  #   source("./R_Scripts/Post_process/Compress_LANDIS_outputs.R")  # Compress and make stacks if raw LANDIS outputs
-  # }
+
   if(length(list.files(landisOutputDir, pattern = '\\.img$', ignore.case = T, recursive = T))>0){
     source("./R_Scripts/Post_process/Compress_LANDIS_outputs.R")  # Compress and make stacks if raw LANDIS outputs
   }
@@ -225,7 +248,7 @@ for(landisOutputDir in landisRuns){
   if(length(eco_files)==1) {
     ecos.r<-rast(file.path(landisOutputDir,'Input_file_archive',eco_files))
   } else {stop("FIX ECOREGIONS in input file archive")}
-  ecos.r[ecos.r==0]<-NA
+  ecos.r <- ifel(ecos.r == 0, NA, ecos.r)
   names(ecos.r) <- "PWG"
   
   ## Ecoregions text file
@@ -252,6 +275,11 @@ for(landisOutputDir in landisRuns){
   necnOutput <- file.path(landisOutputDir, "NECN")
   MHOutput <- file.path(landisOutputDir, 'MagicHarvest')
   
+  simLength <- rast(file.path(biomassOutput, "TotalBiomass-yr-biomass.tif")) |> names() |> str_extract("\\d+") |> as.integer() |> max() 
+  
+  ### Interpolate rasters
+  source("./R_Scripts/Post_process/Interpolate_outputs.R")
+  
   ## Generate lists of output map names: ----
   biomassMaps<-dir(biomassOutput)[grepl('.tif',dir(biomassOutput))]
   ageMaps<-dir(ageOutput)[grepl('MED.tif',dir(ageOutput))]
@@ -262,11 +290,15 @@ for(landisOutputDir in landisRuns){
   biomassStack.r <- rast(file.path(biomassOutput, dir(biomassOutput)[grepl("yr-biomass", dir(biomassOutput))]))  # one mega-stack with biomass of all species
   
   ## List all years: ----
-  unlisted<-unlist(strsplit(names(totalBiomass_stack.r),"-"))
-  yrs<-unique(unlisted[seq(2,length(unlisted),3)])
-  yrs<-yrs[order(as.numeric(yrs))]
-  ## Extract simulation length: ----
-  simLength<-max(as.numeric(yrs))
+  yrs <- totalBiomass_stack.r |> names() |> str_extract("\\d+") |> as.integer()
+  
+  # unlisted<-unlist(strsplit(names(totalBiomass_stack.r),"-"))
+  # yrs<-unique(unlisted[seq(2,length(unlisted),3)])
+  # yrs<-yrs[order(as.numeric(yrs))]
+  # ## Extract simulation length: ----
+  # simLength<-max(as.numeric(yrs))
+  
+  
   
   #### Fires #### ----
   if(dir.exists(fireOutput)){
@@ -340,6 +372,7 @@ for(landisOutputDir in landisRuns){
                           'biomassCols',
                           'severityColsClassified',
                           'harvestColsClassified',
+                          'dhsvmCols',
                           'ecos',
                           'ecos2',
                           'pwg.r',
@@ -365,7 +398,8 @@ for(landisOutputDir in landisRuns){
                           'lf.codes.present',
                           'emp.fire.dnbr',
                           'pngOut',
-                          'landfireReclassFUN')])  # clear out everything not on this list
+                          'landfireReclassFUN', 
+                          'interpolateRaster')])  # clear out everything not on this list
   gc()
   
 }
