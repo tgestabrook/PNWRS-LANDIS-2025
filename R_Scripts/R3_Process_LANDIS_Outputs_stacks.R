@@ -291,15 +291,7 @@ for(landisOutputDir in sample(landisRuns)){
   
   ## List all years: ----
   yrs <- totalBiomass_stack.r |> names() |> str_extract("\\d+") |> as.integer()
-  
-  # unlisted<-unlist(strsplit(names(totalBiomass_stack.r),"-"))
-  # yrs<-unique(unlisted[seq(2,length(unlisted),3)])
-  # yrs<-yrs[order(as.numeric(yrs))]
-  # ## Extract simulation length: ----
-  # simLength<-max(as.numeric(yrs))
-  
-  
-  
+
   #### Fires #### ----
   if(dir.exists(fireOutput)){
     cat(paste('\nFire routine starting...', Sys.time(), '\n'), file = outFile, append = T)
@@ -345,9 +337,28 @@ for(landisOutputDir in sample(landisRuns)){
   
   #stop()
   #### DHSVM #### ----
-  if(simOpts$RUN.DHSVM.MAPS|simOpts$RERUN.DHSVM.MAPS){
+  if((simOpts$RUN.DHSVM.MAPS&!file.exists(file.path(landisOutputDir,'DHSVM','DHSVM_yr-100.tif')))|simOpts$RERUN.DHSVM.MAPS){
     source('./R_Scripts/Post_process/Post_DHSVM_stopgap.R')
   }
+  
+  #### Zip results: ----
+  scenarioName <- landisOutputDir |> 
+    str_replace(dirToProcess, "") |>
+    str_replace_all("/", "") |>
+    str_replace("Sim.{6}", "DHSVM")
+  
+  if(simOpts$OVERWRITE.ZIP.FILES==T |
+     !file.exists(paste0(dirToProcess,'/',scenarioName,'.zip'))){
+    cat('\n***  ZIPPING DHSVM output maps for',landisOutputDir,'  ***\n')
+    zipr(paste0(dirToProcess,'/',scenarioName,'.zip'),files = file.path(landisOutputDir,'DHSVM',dir(file.path(landisOutputDir,'DHSVM'))))
+  }
+  
+  # 
+  # if(file.exists(file.path(landisOutputDir,'DST','DST_Metrics_by_HUC12.csv')) & simOpts$RERUN.DST.MAPS == F){
+  #   cat('\nDST outputs already exist for',gsub(dirToProcess,"",landisOutputDir),'. Skipping to next sim...')
+  # } else {
+  #   source('./R_Scripts/Post_process/Generate_DST_Maps.R')
+  # }
   
   rmarkdown::render(input = "./R_Scripts/Post_process/Sim_diagnostics.Rmd", 
                     output_format = "html_document",

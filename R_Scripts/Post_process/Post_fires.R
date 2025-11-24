@@ -28,28 +28,40 @@ severityStackClassified.r <- classify(severityStack.r,rcl=severity.reclass.df,in
 set.cats(severityStackClassified.r, layer=0, data.frame(id = c(1,2,3,4), severity=c('Unburned','Low','Moderate','High')))
 names(severityStackClassified.r) <- names(severityStack.r)  # for some reason, the classify operation overwrites names
 
-severityStackSmoothedClassified.r <- ifel(severityStack.r<=1, NA, severityStack.r) |>  # have to class 0 as NA so that median window only operates on unburned cells
-  focal(w = 3, fun = median, na.rm=T, pad = TRUE, na.policy = 'only') |>
-  classify(rcl=severity.reclass.df,include.lowest=T) 
-set.cats(severityStackSmoothedClassified.r, layer=0, data.frame(id = c(1,2,3,4), severity=c('Unburned','Low','Moderate','High')))
-names(severityStackSmoothedClassified.r) <- names(severityStack.r)
-
-burnFootprints.r <- ifel(fireIdStack.r == 0|is.na(fireIdStack.r), 0, 1)
-burnFootprintsSmooth.r <- fireIdStack.r |>  # classifying by fire ID and TotalSitesBurned in fire df takes FOREVER
-  as.data.frame(xy = T) |>
-  pivot_longer(starts_with("event-ID"), names_to = "Year", values_to = "event_ID", names_prefix = "event-ID-") |>
-  filter(event_ID!=0) |>  # eliminate unburned areas
-  group_by(event_ID) |>
-  mutate(fire_size = n()) |> ungroup() |>  # calculate number of pixels in each event
-  mutate(footprint = ifelse(fire_size > 3, 1, 0)) |>  # filter out fires smaller than three pixels -- if a pixel belongs to a fire of larger size, it's flagged as in the footprint
-  pivot_wider(names_from = "Year", names_prefix = "fire-Size-", values_from = "footprint", names_sort = T) |> 
-  select(!c(event_ID, fire_size)) |>
-  rast(type = "xyz") |>
-  focal(w=matrix(1,3,3), fun = median, na.rm=T, pad = TRUE, na.policy = 'only') |>  # finally, smooth footprints of fires bigger than 3 pixels
-  extend(ext(pwg.r))  # add back in na cells removed by filtering above
-crs(burnFootprints.r) <- crs(pwg.r)
-crs(burnFootprintsSmooth.r) <- crs(pwg.r)
-
+if(!file.exists(file.path(fireOutput, 'fire-dnbr-classified-yr.tif'))){
+  severityStackSmoothedClassified.r <- ifel(severityStack.r<=1, NA, severityStack.r) |>  # have to class 0 as NA so that median window only operates on unburned cells
+    focal(w = 3, fun = median, na.rm=T, pad = TRUE, na.policy = 'only') |>
+    classify(rcl=severity.reclass.df,include.lowest=T) 
+  set.cats(severityStackSmoothedClassified.r, layer=0, data.frame(id = c(1,2,3,4), severity=c('Unburned','Low','Moderate','High')))
+  names(severityStackSmoothedClassified.r) <- names(severityStack.r)
+  writeRaster(severityStackSmoothedClassified.r, file.path(fireOutput, 'fire-dnbr-classified-yr.tif'))
+} else {
+  severityStackSmoothedClassified.r <- rast(file.path(fireOutput, 'fire-dnbr-classified-yr.tif'))
+  names(severityStackSmoothedClassified.r) <- names(severityStack.r)
+}
+  
+if(!file.exists(file.path(fireOutput, 'burn-footprints-yr.tif'))){
+  burnFootprints.r <- ifel(fireIdStack.r == 0|is.na(fireIdStack.r), 0, 1)
+  burnFootprintsSmooth.r <- fireIdStack.r |>  # classifying by fire ID and TotalSitesBurned in fire df takes FOREVER
+    as.data.frame(xy = T) |>
+    pivot_longer(starts_with("event-ID"), names_to = "Year", values_to = "event_ID", names_prefix = "event-ID-") |>
+    filter(event_ID!=0) |>  # eliminate unburned areas
+    group_by(event_ID) |>
+    mutate(fire_size = n()) |> ungroup() |>  # calculate number of pixels in each event
+    mutate(footprint = ifelse(fire_size > 3, 1, 0)) |>  # filter out fires smaller than three pixels -- if a pixel belongs to a fire of larger size, it's flagged as in the footprint
+    pivot_wider(names_from = "Year", names_prefix = "fire-Size-", values_from = "footprint", names_sort = T) |> 
+    select(!c(event_ID, fire_size)) |>
+    rast(type = "xyz") |>
+    focal(w=matrix(1,3,3), fun = median, na.rm=T, pad = TRUE, na.policy = 'only') |>  # finally, smooth footprints of fires bigger than 3 pixels
+    extend(ext(pwg.r))  # add back in na cells removed by filtering above
+  crs(burnFootprints.r) <- crs(pwg.r)
+  crs(burnFootprintsSmooth.r) <- crs(pwg.r)
+  writeRaster(burnFootprints.r, file.path(fireOutput, "burn-footprints-yr.tif"))
+  writeRaster(burnFootprintsSmooth.r, file.path(fireOutput, "burn-footprints-smooth-yr.tif"))
+} else {
+  burnFootprintsSmooth.r <- rast(file.path(fireOutput, "burn-footprints-smooth-yr.tif"))
+  burnFootprints.r <- rast(file.path(fireOutput, "burn-footprints-yr.tif"))
+}
 #-----------------------------------------------------------------------------------------------------------------------
 ## Fire Size Distribution: ----
 cat('\n      -----------------------------------------------

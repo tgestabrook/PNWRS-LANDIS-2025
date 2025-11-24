@@ -13,8 +13,13 @@ for (folder in c("ageOutput", "biomassOutput", "NECN")){
 
   foreach (stack = files, .packages = c("terra", "stringr")) %dopar% {
     s <- rast(file.path(landisOutputDir, folder, stack))
-    if (nlyr(s) %in% c(simLength, simLength+1, 1, 2, 3, 4)){# if there is already a layer for each year, or if it's a single layer, or 3 layers in the case of mean age of top 3 species I guess
+    
+    if (nlyr(s) %in% c(1, 2, 3, 4)){# if there is already a layer for each year, or if it's a single layer, or 3 layers in the case of mean age of top 3 species
       message(paste0('\n -  Skipping ', stack, ' due to layer count.'))
+    } else if (nlyr(s) %in% c(simLength, simLength+1)) {
+      if (folder%in%c('biomassOutput', 'ageOutput') & "FLT4S"%in%datatype(s)){
+        writeRaster(as.int(s), file.path(landisOutputDir, folder, stack), overwrite=T, datatype="INT4S")
+      }
     } else {
       message(paste0('\n -  Interpolating ', stack))
 
@@ -25,7 +30,12 @@ for (folder in c("ageOutput", "biomassOutput", "NECN")){
       }
 
       s <- interpolateRaster(s)
-      writeRaster(s, file.path(landisOutputDir, folder, stack), overwrite=T)
+      
+      if (folder%in%c('biomassOutput', 'ageOutput')){
+        dtype = "INT46"
+      } else {dtype = "FLT4S"}
+      
+      writeRaster(s, file.path(landisOutputDir, folder, stack), overwrite=T, datatype = dtype)
       cat("...done!")
     }
   }
@@ -35,10 +45,10 @@ stopImplicitCluster()
 #rm(s)
 gc()
 
-print(paste("Parallel interpolation took", Sys.time() - start_time))
+print(Sys.time() - start_time)
 
 
-# 
+# 9.56 gb, with int it's
 # 
 # start_time <- Sys.time()
 # for (folder in c("ageOutput", "biomassOutput", "NECN")){
