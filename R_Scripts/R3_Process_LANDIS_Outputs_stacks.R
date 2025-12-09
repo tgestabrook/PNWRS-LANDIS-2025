@@ -29,7 +29,7 @@ library(foreach)
 library(doParallel)
 
 LANDIS.EXTENT<-'OkaMet'
-# Dir <- file.path('F:/2025_Q4_Scenarios', "Test")
+# Dir <- file.path('F:/2025_Q4_Scenarios', "FEMC")
 Dir <- file.path('F:/2025_Q4_Scenarios', LANDIS.EXTENT)
 
 bigDataDir<-'F:/LANDIS_Input_Data_Prep/BigData'
@@ -219,7 +219,7 @@ interpolateRaster <- function(r){
 }
 
 
-landisOutputDir <- landisRuns[5]
+landisOutputDir <- landisRuns[1]
 
 #-----------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------
@@ -330,10 +330,10 @@ for(landisOutputDir in sample(landisRuns)){
   source('./R_Scripts/Post_process/Post_biomass.R')
   gc()
 
-  if (!file.exists(file.path(landisOutputDir, "Fire_Severity_fine_fuels.gif"))|
-      simOpts$remakeGifs){  # separate out GIFs since they're now the slowest to generate
-    source('./R_Scripts/Post_process/Make_gifs.R')
-  }
+  # if (!file.exists(file.path(landisOutputDir, "Fire_Severity_fine_fuels.gif"))|
+  #     simOpts$remakeGifs){  # separate out GIFs since they're now the slowest to generate
+  #   source('./R_Scripts/Post_process/Make_gifs.R')
+  # }
   
   #stop()
   #### DHSVM #### ----
@@ -360,9 +360,12 @@ for(landisOutputDir in sample(landisRuns)){
   #   source('./R_Scripts/Post_process/Generate_DST_Maps.R')
   # }
   
-  rmarkdown::render(input = "./R_Scripts/Post_process/Sim_diagnostics.Rmd", 
+  if(!file.exists(file.path(landisOutputDir, "Diagnostics.html"))){
+    rmarkdown::render(input = "./R_Scripts/Post_process/Sim_diagnostics.Rmd", 
                     output_format = "html_document",
                     output_file = file.path(landisOutputDir, "Diagnostics.html"), )
+  }
+  
   
   cat('\n\n###################################################################################################################################
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~          Post-processing COMPLETE!        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -480,8 +483,8 @@ compute_deviation <- function(df, Sc = "BAU wildfire", Sc2 = "Base climate"){
     left_join(baseline_vals) |>
     mutate(
       Mean = Mean - bMean,
-      Max = Max - bMax,
-      Min = Min - bMin
+      Max = Max - bMean,
+      Min = Min - bMean
     )
   return(outdf)
 }

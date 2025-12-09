@@ -60,11 +60,13 @@ for(folder in c('biomassOutput','ageOutput','Harvest', 'NECN','social-climate-fi
   if(folder == "MagicHarvest"){mapTypes <- c("MH_mgmt_areas_(\\d+).tif", "MH_stands_(\\d+).tif")}
   
   for(mapType in mapTypes){
+    outName <- str_replace(mapType, '\\(\\\\d\\+\\)', 'yr') |> str_replace('.img', '.tif')
+    if (file.exists(file.path(landisOutputDir, folder, outName))){next}
+    
     cat(paste0(mapType, '...'))
     oldMaps <- dir(file.path(landisOutputDir, folder))[grepl(mapType, dir(file.path(landisOutputDir, folder)))]  # get the names of the maps to delete after loading
     stack <- get_maps(folder, mapType)
     
-    outName <- str_replace(mapType, '\\(\\\\d\\+\\)', 'yr') |> str_replace('.img', '.tif')
     writeRaster(stack, file.path(landisOutputDir, folder, outName))
     file.remove(file.path(landisOutputDir, folder, oldMaps))  # remove the old loose map files
   }
