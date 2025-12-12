@@ -1,7 +1,7 @@
 start_time <- Sys.time()
 
 n_cores <- detectCores()
-cluster <- makeCluster(min(n_cores-1, 2))
+cluster <- makeCluster(min(n_cores-1, 3))
 
 registerDoParallel(cluster)
 
@@ -15,15 +15,13 @@ for (folder in c("ageOutput", "biomassOutput", "NECN")){
     s <- rast(file.path(landisOutputDir, folder, stack))
     
     if (nlyr(s) %in% c(1, 2, 3, 4)){# if there is already a layer for each year, or if it's a single layer, or 3 layers in the case of mean age of top 3 species
-      message(paste0('\n -  Skipping ', stack, ' due to layer count.'))
     } else if (nlyr(s) %in% c(simLength, simLength+1)) {
       if (folder%in%c('biomassOutput', 'ageOutput') & "FLT4S"%in%datatype(s)){
         writeRaster(as.int(s), file.path(landisOutputDir, folder, stack), overwrite=T, datatype="INT4S")
       }
     } else {
-      message(paste0('\n -  Interpolating ', stack))
 
-      if (folder == 'NECN'){  # grab year zero NECN
+      if (folder == 'NECN'){  # grab year zero NECN from single-year simulation
         y0 <- rast(file.path(dataDir,'NECN_Outputs_Yr_0', LANDIS.EXTENT, str_replace(stack, 'yr', '1')))
         names(y0) <- str_replace(stack, 'yr', '0') |> str_replace(".tif", '')
         s <- c(y0, s)
@@ -32,7 +30,7 @@ for (folder in c("ageOutput", "biomassOutput", "NECN")){
       s <- interpolateRaster(s)
       
       if (folder%in%c('biomassOutput', 'ageOutput')){
-        dtype = "INT46"
+        dtype = "INT46"  # turn biomass and age rasters into integers to make some processing faster
       } else {dtype = "FLT4S"}
       
       writeRaster(s, file.path(landisOutputDir, folder, stack), overwrite=T, datatype = dtype)
@@ -42,42 +40,10 @@ for (folder in c("ageOutput", "biomassOutput", "NECN")){
 }
 
 stopImplicitCluster()
-#rm(s)
 gc()
 
 print(Sys.time() - start_time)
 
 
-# 9.56 gb, with int it's
-# 
-# start_time <- Sys.time()
-# for (folder in c("ageOutput", "biomassOutput", "NECN")){
-#   cat(paste0('\nInterpolating raster stacks in ', folder))
-# 
-#   files <- dir(file.path(landisOutputDir,folder))
-#   files <- files[grepl(".tif", files)]
-# 
-#   for (stack in files) {
-#     s <- rast(file.path(landisOutputDir, folder, stack))
-#     if (nlyr(s) %in% c(simLength, simLength+1, 1, 2, 3, 4)){# if there is already a layer for each year, or if it's a single layer, or 3 layers in the case of mean age of top 3 species I guess
-#       message(paste0('\n -  Skipping ', stack, ' due to layer count.'))
-#     } else {
-#       message(paste0('\n -  Interpolating ', stack))
-# 
-#       if (folder == 'NECN'){  # grab year zero NECN
-#         y0 <- rast(file.path(dataDir,'NECN_Outputs_Yr_0', LANDIS.EXTENT, str_replace(stack, 'yr', '1')))
-#         names(y0) <- str_replace(stack, 'yr', '0') |> str_replace(".tif", '')
-#         s <- c(y0, s)
-#       }
-# 
-#       s <- interpolateRaster(s)
-#       writeRaster(s, file.path(landisOutputDir, folder, stack), overwrite=T)
-#       cat("...done!")
-#     }
-#   }
-# }
-# print(paste("Regular interpolation took", Sys.time() - start_time))
-# 
-# 
 
 

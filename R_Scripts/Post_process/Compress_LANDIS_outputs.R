@@ -2,7 +2,7 @@ cat(paste('Compressing', landisOutputDir, '.............'), file = outFile, appe
 print(paste('Compressing', landisOutputDir, '.............'))  # print in R console as well
 
 if (file.exists(file.path(landisOutputDir, 'Climate-spinup-input-log.csv'))){
-  file.remove(file.path(landisOutputDir, 'Climate-spinup-input-log.csv'))  # remove unused climate spinup log
+  file.remove(file.path(landisOutputDir, 'Climate-spinup-input-log.csv'))  # remove unused climate spinup log to save disk space
 }
 
 ### Load ecoregions: ----

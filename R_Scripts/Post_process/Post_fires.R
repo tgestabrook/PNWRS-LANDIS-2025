@@ -22,6 +22,7 @@ flamingConsumptionStack.r <- rast(file.path(fireOutput, 'flaming-consumptions-yr
 smolderConsumptionStack.r <- rast(file.path(fireOutput, 'smolder-consumption-yr.tif'))
 fireIdStack.r <- rast(file.path(fireOutput, 'event-ID-yr.tif'))
 fineFuelStack.r <- rast(file.path(fireOutput, 'fine-fuels-yr.tif'))
+ignitionTypeStack.r <- rast(file.path(fireOutput, 'ignition-type-yr.tif'))
 burned.N.empirical <- rast(file.path(dataDir, 'MTBS_and_FOD_Fires', LANDIS.EXTENT, '_Fires_N.tif'))
 
 severityStackClassified.r <- classify(severityStack.r,rcl=severity.reclass.df,include.lowest=T)
@@ -35,10 +36,11 @@ if(!file.exists(file.path(fireOutput, 'fire-dnbr-classified-yr.tif'))){
   set.cats(severityStackSmoothedClassified.r, layer=0, data.frame(id = c(1,2,3,4), severity=c('Unburned','Low','Moderate','High')))
   names(severityStackSmoothedClassified.r) <- names(severityStack.r)
   writeRaster(severityStackSmoothedClassified.r, file.path(fireOutput, 'fire-dnbr-classified-yr.tif'))
-} else {
-  severityStackSmoothedClassified.r <- rast(file.path(fireOutput, 'fire-dnbr-classified-yr.tif'))
-  names(severityStackSmoothedClassified.r) <- names(severityStack.r)
-}
+} 
+
+severityStackSmoothedClassified.r <- rast(file.path(fireOutput, 'fire-dnbr-classified-yr.tif'))
+set.cats(severityStackSmoothedClassified.r, layer=0, data.frame(id = c(1,2,3,4), severity=c('Unburned','Low','Moderate','High')))
+names(severityStackSmoothedClassified.r) <- names(severityStack.r)
   
 if(!file.exists(file.path(fireOutput, 'burn-footprints-yr.tif'))){
   burnFootprints.r <- ifel(fireIdStack.r == 0|is.na(fireIdStack.r), 0, 1)
@@ -389,7 +391,7 @@ for (i in 1984:2019){
     filter(!is.na(PWG)) |> 
     mutate(sev_class = cut(dnbr, c(0, 1, 2, 3, 4), c('UB', 'Low', 'Moderate', 'High'))) |>
     group_by(PWG, sev_class) |> summarise(count = dplyr::n()) |>
-    mutate(PWG = as.factor(PWG), year = i) |> filter(!is.na(sev_class))
+    mutate(PWG = as.factor(PWG), year = i, sev_class = as.character(sev_class)) |> filter(!is.na(sev_class))
   
   #hist(yr_df$dnbr)
   annual_sev.df <- dplyr::bind_rows(annual_sev.df, yr_df)

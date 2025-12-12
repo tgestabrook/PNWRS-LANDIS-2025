@@ -28,7 +28,7 @@ library(hues)
 library(foreach)
 library(doParallel)
 
-LANDIS.EXTENT<-'OkaMet'
+LANDIS.EXTENT<-'WenEnt'
 # Dir <- file.path('F:/2025_Q4_Scenarios', "FEMC")
 Dir <- file.path('F:/2025_Q4_Scenarios', LANDIS.EXTENT)
 
@@ -101,8 +101,16 @@ pwg.r <-  rast(file.path(dataDir, "PWG", paste0("PWG_", LANDIS.EXTENT, ".tif")))
 pwg.r <- ifel(pwg.r == 0, NA, pwg.r)
 names(pwg.r) <- "PWG"
 
-### Load LUA raster:
+active.r <- ifel(pwg.r < 12, NA, 0)# inactive = NA, active = 0
+
+### Load LUA raster: ----
 lua.r<-rast(file.path(dataDir,'PWG',paste0('LUA_',LANDIS.EXTENT,'.tif')))
+### Define LUA codes: 
+luas<-c('Water','Federal-Active Mgmt','Federal Wildlands','State-Active Mgmt','State/Local Park','NGO-Conservation',
+        'Private-Undeveloped/Ag.','Private Industrial Forest','Urban/Rural',
+        'Tribal-Undeveloped/Ag.','Tribal Industrial Forest','Tribal Urban/Rural','Other Govt. Lands')
+names(luas)<-c(10,11,12,18,20,21,22,24,26,27,29,31,32)
+
 
 ### Load Study Area mask without 5-km buffer: ----
 pwg.noBuffer.r<-rast(file.path(dataDir,"PWG",paste0('PWG_noBuffer_',LANDIS.EXTENT,'.tif')))
@@ -114,6 +122,7 @@ PWGxHUC10.sf<-vect(file.path(dataDir,'PWG',paste0('PWGxHUC_',LANDIS.EXTENT,'.shp
 dem.r<-rast(file.path(dataDir,paste0("DEM_90m_", LANDIS.EXTENT, ".tif")))
 names(dem.r) <- "Elevation"
 hillshade.r<-rast(file.path(dataDir, paste0("Hillshade_", LANDIS.EXTENT, ".tif")))
+slope.percent.r<-tan(terrain(dem.r,'slope',unit='radians'))*100
 
 ### Load HUC rasters: ----
 ## Shapefile:
@@ -158,6 +167,15 @@ species.subset<-c('PseuMenz','TsugMert','AbieLasi','PiceEnge','PinuAlbi',
 
 #### Get Study area size: ----
 study.area.size.Ha<-length(pwg.r[pwg.r%in%12:50&!is.na(pwg.r)]) * res(pwg.r)[1] * res(pwg.r)[2] / 10000
+
+### Load Distance to Roads raster: ----
+if(file.exists(file.path(dataDir,'PWG',paste0("road_dist_",LANDIS.EXTENT,".tif"))) & file.exists(file.path(dataDir,'PWG',paste0("road_noWild_dist_",LANDIS.EXTENT,".tif")))){
+  roads.r<-rast(file.path(dataDir,'PWG',paste0("roads_",LANDIS.EXTENT,"_45m.tif")))
+  road.dist.r<-rast(file.path(dataDir,'PWG',paste0("road_dist_",LANDIS.EXTENT,".tif")))
+  roads.no.wild.r<-rast(file.path(dataDir,'PWG',paste0("roads_noWild_",LANDIS.EXTENT,"_45m.tif")))
+  road.no.wild.dist.r<-rast(file.path(dataDir,'PWG',paste0("road_noWild_dist_",LANDIS.EXTENT,".tif")))
+} else {stop('MISSING ROAD MAPS: Rerun in 0_Study_area_masks_and_raw_layer_prep.R')  }
+
 
 ### Load LANDFIRE raster and definitions: ----
 landfire.r<-rast(file.path(dataDir,paste0("LANDFIREv2.0_EVT_",LANDIS.EXTENT,".tif")))
@@ -316,6 +334,8 @@ for(landisOutputDir in sample(landisRuns)){
     
     ### Load harvest logs
     harvestEvents.df <- read.csv(file.path(landisOutputDir, "biomass-harvest-event-log.csv"))
+    harvestSum.df<-read.csv(file.path(landisOutputDir,'biomass-harvest-summary-log.csv')) |>
+      rename(Time = Year)
     
     if(nrow(harvestEvents.df>0)){
       source('./R_Scripts/Post_process/Post_harvest.R')
@@ -335,7 +355,6 @@ for(landisOutputDir in sample(landisRuns)){
   #   source('./R_Scripts/Post_process/Make_gifs.R')
   # }
   
-  #stop()
   #### DHSVM #### ----
   if((simOpts$RUN.DHSVM.MAPS&!file.exists(file.path(landisOutputDir,'DHSVM','DHSVM_yr-100.tif')))|simOpts$RERUN.DHSVM.MAPS){
     source('./R_Scripts/Post_process/Post_DHSVM_stopgap.R')
