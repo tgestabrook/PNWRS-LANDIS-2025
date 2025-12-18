@@ -23,7 +23,8 @@ if(dir.exists(fireOutput)){
       plot(ecos.r,col=colorRampPalette(c('black','black'))(20),legend=F,add=T)  
       if(yr>1){plot(input_stack[[yr-1]],col=severityColsClassified,legend=F,add=T,alpha=0.75,all_levels=T)}  # fade-out for fire severity
       if(fine_fuels==T){
-        plot(fineFuelStack.r[[yr]], col=colorRampPalette(c('#ffffcc', '#c2e699', '#78c679', '#31a354', '#006837'))(100), legend=F, range=c(0,simOpts$max.fine.fuels), fill_range=T, add=T)
+        r <- ifel(!is.na(pwg.r), fineFuelStack.r[[yr]], NA)
+        plot(r, col=colorRampPalette(c('#ffffcc', '#c2e699', '#78c679', '#31a354', '#006837'))(100), legend=F, range=c(0,simOpts$max.fine.fuels), fill_range=T, add=T)
       } else{
         plot(yrs.since.fire.r,col=colorRampPalette(c('grey80','grey30','grey20','grey10','grey10'))(simLength),legend=F,add=T,alpha=0.5, range=c(0,50), fill_range=T, type = 'continuous')
       }

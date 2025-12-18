@@ -175,173 +175,230 @@ MedAgeAllspp.stack <- rast(file.path(ageOutput, dir(ageOutput)[grepl("yr-MED", d
 MaxAgeAllspp.stack <- rast(file.path(ageOutput, dir(ageOutput)[grepl("yr-MAX", dir(ageOutput))]))
 BiomassTrees.stack <- biomassStack.r |> select(!starts_with(c("Nfixer_Resprt","NonFxr_Resprt","NonFxr_Seed","Grass_Forb","TotalBiomass"))) 
 
-if (!file.exists(file.path(ageOutput, 'MeanAge_AllSpp.tif'))){
+if (!file.exists(file.path(ageOutput, 'MeanAge_AllSpp-yr.tif'))){
   cat("\n\nCalculating annual mean & max age...")
   grouping_index <- names(MedAgeAllspp.stack) |> str_extract("\\d+") |> as.integer() 
   MeanAge.stack <- MedAgeAllspp.stack |> tapp(index = grouping_index, fun = "mean", na.rm = T)
-  writeRaster(MeanAge.stack,file.path(ageOutput, 'MeanAge_AllSpp.tif'),overwrite=T)
+  writeRaster(MeanAge.stack,file.path(ageOutput, 'MeanAge_AllSpp-yr.tif'),overwrite=T)
   
   grouping_index <- names(MaxAgeAllspp.stack) |> str_extract("\\d+") |> as.integer() 
   MaxAge.stack <- MaxAgeAllspp.stack |> tapp(index = grouping_index, fun = "max", na.rm = T)
-  writeRaster(MeanAge.stack,file.path(ageOutput, 'MaxAge_AllSpp.tif'),overwrite=T)
+  writeRaster(MeanAge.stack,file.path(ageOutput, 'MaxAge_AllSpp-yr.tif'),overwrite=T)
 }
 
 
 
 cat('\n\n----------------------------------------------------------------------------------\nLooping through years...\n----------------------------------------------------------------------------------\n')
+
+# n_cores <- detectCores()
+# cluster <- makeCluster(min(n_cores-1, 3))
+# 
+# registerDoParallel(cluster)
+# 
+# foreach (yr = unique(yrs),  .packages = c("terra", "tidyverse", "tidyterra")) %dopar% {
 for(yr in unique(yrs)){
   cat(paste0('\n------------\nYear: ',yr,'\n------------\n'))
   
-  if (file.exists(file.path(landisOutputDir, 'DHSVM',paste0('Veg_Height-m_yr-',yr,'.tif'))) &
+  # if (file.exists(file.path(landisOutputDir, 'DHSVM',paste0('Veg_Height-m_yr-',yr,'.tif'))) &
+  #     file.exists(file.path(landisOutputDir, 'DHSVM',paste0('Veg_FracCov_yr-',yr,'.tif'))) &
+  #     file.exists(file.path(landisOutputDir, 'DHSVM',paste0('Veg_LAI_yr-',yr,'.tif')))) {next}
+  
+  if (
+      file.exists(file.path(landisOutputDir, 'DHSVM',paste0('Veg_Height-m_yr-',yr,'.tif'))) &
       file.exists(file.path(landisOutputDir, 'DHSVM',paste0('Veg_FracCov_yr-',yr,'.tif'))) &
-      file.exists(file.path(landisOutputDir, 'DHSVM',paste0('Veg_LAI_yr-',yr,'.tif')))) {next}
-  
-  cat('-> Loading Total LAI and Biomass maps...\n')
-  ### LAI: ----
-  lai.r<-LAI.stack |> select(ends_with(paste0('-', yr)))
-
-  ### Biomass: ----
-  total.biomass.r<-totalBiomass_stack.r |> select(contains(paste0('-', yr, '-')))
-  
-  ## Set LAI to 0.1 for cells with non-zero biomass but LAI == 0:
-  lai.r <- ifel(lai.r==0&!is.na(total.biomass.r)&total.biomass.r>0, 0.1, lai.r)
-  
-  ### Age: ----
-  cat('-> Loading Species Age and Biomass maps')
-  med.age<-MedAgeAllspp.stack |> select(contains(paste0('-', yr, '-'))) |> select(!starts_with(c("Nfixer_Resprt","NonFxr_Resprt","NonFxr_Seed","Grass_Forb","TotalBiomass")))
-  max.age<-MaxAgeAllspp.stack |> select(contains(paste0('-', yr, '-'))) |> select(!starts_with(c("Nfixer_Resprt","NonFxr_Resprt","NonFxr_Seed","Grass_Forb","TotalBiomass")))
-  biomass.trees<-BiomassTrees.stack |> select(contains(paste0('-', yr, '-')))
-
-  start.time <- Sys.time()
-  cat('\n-> Identifying top 3 dominant species per site')
-  
-  start.time <- Sys.time()
-  top3sp.r <- app(biomass.trees, order, decreasing = T)[[1:3]]
-  names(top3sp.r) <- c("BiomassRank1", "BiomassRank2", "BiomassRank3")
-  print(Sys.time() - start.time)
-  
-  start.time <- Sys.time()
-  age.top.3.dom.r <- app(c(top3sp.r, med.age), get_ages_of_top3_biomass)
-  print(Sys.time() - start.time)
-  
-  cat('\n-> Calculating mean age of dominant 3 species per site')
-  mean.age.top3.dom.r <- mean(age.top.3.dom.r, na.rm = T)
-  mean.age.domSpp.r <- age.top.3.dom.r[[1]]
-  
-  # dominant.spp
-  cat('\n-> Generating dominant species raster')
-  dominant.spp <- top3sp.r[[1]]
-  dominant.spp2 <- top3sp.r[[2]]
-  
-  #---------------------------------------------#      
-  ### Generate Rasters for average FC and Height per cell: ----
-  cat('\n-> Generating rasters for FC and Height...\n')
-  start.time <- Sys.time()
-  fc.r <- c(pwg.r, dem.r, total.biomass.r, mean.age.top3.dom.r) |>
-    as.data.frame(xy=T) |>
-    filter(!is.na(PWG)) |>
-    rename(Biomass.sum.gm2 = names(total.biomass.r)[1], Mean.Age = names(mean.age.top3.dom.r)[1]) |>
-    mutate(
-      PWG = as.factor(ifelse(PWG <= 11, 12, PWG)),  # The bareground PWG level (11) is absent from fc.glm model... model FC as if these were in PWG = 12 (grassland)
-      Elevation = round(Elevation, -1)
-    ) |>
-    mutate(Pred = predict(fc.glm, pick(Mean.Age, Biomass.sum.gm2, PWG, Elevation))) |>
-    mutate(Pred = ifelse(Pred > 1, 1, ifelse(Pred < 0, 0, Pred))) |>  # ensure values stay between 0 and 1
-    mutate(fc = ifelse(is.na(Pred) & Biomass.sum.gm2 > 0, 0.1, Pred)) |>  # if grasses where pred is NA but there is biomass, set the value to 0.1
-    select(x, y, fc) |>
-    rast(type = 'xyz', crs = crs(pwg.r), ext = ext(pwg.r))
-
-  ht.r <- c(pwg.r, total.biomass.r, mean.age.top3.dom.r, top3sp.r) |>
-    as.data.frame(xy=T) |>
-    filter(!is.na(PWG)) |>
-    mutate(
-      PWG = as.factor(ifelse(!PWG%in%levels(ht.glm@frame$PWG), 50, PWG))  # The bareground PWG level (11) is absent from fc.glm model... model FC as if these were in PWG = 50 (cold-dry conifer)
-    ) |>
-    left_join(data.frame("BiomassRank1" = 1:length(names(biomass.trees)), "Species" = str_split_i(names(biomass.trees), "-", 1))) |>  # join the df with name of species with highest biomass
-    rename(Age = names(mean.age.top3.dom.r)[1], Biomass_gm2 = names(total.biomass.r)[1]) |>
-    mutate(Pred = predict(ht.glm, pick(Age, Biomass_gm2, PWG, Species), allow.new.levels = T)) |>
-    mutate(Pred = ifelse(Pred < 0, 0, Pred)) |>
-    mutate(ht = ifelse((is.na(Pred) | Pred <= 1) & Biomass_gm2 > 0, 1, Pred)) |> # if biomass > 0 but the prediction is 0 or NA, set height to 1.
-    select(x, y, ht) |>
-    rast(type = 'xyz', crs = crs(pwg.r), ext = ext(pwg.r))
-  # plot(ht.r)
-  print(Sys.time() - start.time)
-  
-  
-  ### Trim rasters to study area: ----
-  if(MASK == T){
-    cat('\n-> Trimming rasters to study area')
+      file.exists(file.path(landisOutputDir, 'DHSVM',paste0('Veg_LAI_yr-',yr,'.tif'))) &
+      (file.exists(file.path(landisOutputDir, 'ageOutput','MeanAge_DominantSpecies-yr.tif')) | file.exists(file.path(landisOutputDir, 'ageOutput',paste0('MeanAge_DominantSpecies-', yr, '.tif')))) & 
+      (file.exists(file.path(landisOutputDir, 'ageOutput','MeanAge_TopThreeSpecies-yr.tif')) | file.exists(file.path(landisOutputDir, 'ageOutput',paste0('MeanAge_TopThreeSpecies-', yr, '.tif')))) & 
+      (file.exists(file.path(landisOutputDir, 'ageOutput','DominantSpecies-yr.tif')) | file.exists(file.path(landisOutputDir, 'ageOutput',paste0('DominantSpecies-', yr, '.tif')))) & 
+      (file.exists(file.path(landisOutputDir, 'ageOutput','DominantSpeciesTwo-yr.tif')) | file.exists(file.path(landisOutputDir, 'ageOutput',paste0('DominantSpeciesTwo-', yr, '.tif')))) 
+      ) {
+    
+  } else {
+    cat('-> Loading Total LAI and Biomass maps...\n')
+    ### LAI: ----
+    lai.r<-LAI.stack |> select(ends_with(paste0('-', yr)))
+    
+    ### Biomass: ----
+    total.biomass.r<-totalBiomass_stack.r |> select(contains(paste0('-', yr, '-')))
+    
+    ## Set LAI to 0.1 for cells with non-zero biomass but LAI == 0:
+    lai.r <- ifel(lai.r==0&!is.na(total.biomass.r)&total.biomass.r>0, 0.1, lai.r)
+    
+    ### Age: ----
+    cat('-> Loading Species Age and Biomass maps')
+    med.age<-MedAgeAllspp.stack |> select(contains(paste0('-', yr, '-'))) |> select(!starts_with(c("Nfixer_Resprt","NonFxr_Resprt","NonFxr_Seed","Grass_Forb","TotalBiomass")))
+    max.age<-MaxAgeAllspp.stack |> select(contains(paste0('-', yr, '-'))) |> select(!starts_with(c("Nfixer_Resprt","NonFxr_Resprt","NonFxr_Seed","Grass_Forb","TotalBiomass")))
+    biomass.trees<-BiomassTrees.stack |> select(contains(paste0('-', yr, '-')))
+    
+    start.time <- Sys.time()
+    cat('\n-> Identifying top 3 dominant species per site')
+    
+    start.time <- Sys.time()
+    top3sp.r <- app(biomass.trees, order, decreasing = T)[[1:3]]
+    names(top3sp.r) <- c("BiomassRank1", "BiomassRank2", "BiomassRank3")
+    print(Sys.time() - start.time)
+    
+    start.time <- Sys.time()
+    age.top.3.dom.r <- app(c(top3sp.r, med.age), get_ages_of_top3_biomass)
+    print(Sys.time() - start.time)
+    
+    cat('\n-> Calculating mean age of dominant 3 species per site')
+    mean.age.top3.dom.r <- mean(age.top.3.dom.r, na.rm = T)
+    mean.age.domSpp.r <- age.top.3.dom.r[[1]]
+    
+    # dominant.spp
+    cat('\n-> Generating dominant species raster')
+    dominant.spp <- top3sp.r[[1]]
+    dominant.spp2 <- top3sp.r[[2]]
+    
+    #---------------------------------------------#      
+    ### Generate Rasters for average FC and Height per cell: ----
+    cat('\n-> Generating rasters for FC and Height...\n')
+    start.time <- Sys.time()
+    fc.r <- c(pwg.r, dem.r, total.biomass.r, mean.age.top3.dom.r) |>
+      as.data.frame(xy=T) |>
+      filter(!is.na(PWG)) |>
+      rename(Biomass.sum.gm2 = names(total.biomass.r)[1], Mean.Age = names(mean.age.top3.dom.r)[1]) |>
+      mutate(
+        PWG = as.factor(ifelse(PWG <= 11, 12, PWG)),  # The bareground PWG level (11) is absent from fc.glm model... model FC as if these were in PWG = 12 (grassland)
+        Elevation = round(Elevation, -1)
+      ) |>
+      mutate(Pred = predict(fc.glm, pick(Mean.Age, Biomass.sum.gm2, PWG, Elevation))) |>
+      mutate(Pred = ifelse(Pred > 1, 1, ifelse(Pred < 0, 0, Pred))) |>  # ensure values stay between 0 and 1
+      mutate(fc = ifelse(is.na(Pred) & Biomass.sum.gm2 > 0, 0.1, Pred)) |>  # if grasses where pred is NA but there is biomass, set the value to 0.1
+      select(x, y, fc) |>
+      rast(type = 'xyz', crs = crs(pwg.r), ext = ext(pwg.r))
+    
+    ht.r <- c(pwg.r, total.biomass.r, mean.age.top3.dom.r, top3sp.r) |>
+      as.data.frame(xy=T) |>
+      filter(!is.na(PWG)) |>
+      mutate(
+        PWG = as.factor(ifelse(!PWG%in%levels(ht.glm@frame$PWG), 50, PWG))  # The bareground PWG level (11) is absent from fc.glm model... model FC as if these were in PWG = 50 (cold-dry conifer)
+      ) |>
+      left_join(data.frame("BiomassRank1" = 1:length(names(biomass.trees)), "Species" = str_split_i(names(biomass.trees), "-", 1))) |>  # join the df with name of species with highest biomass
+      rename(Age = names(mean.age.top3.dom.r)[1], Biomass_gm2 = names(total.biomass.r)[1]) |>
+      mutate(Pred = predict(ht.glm, pick(Age, Biomass_gm2, PWG, Species), allow.new.levels = T)) |>
+      mutate(Pred = ifelse(Pred < 0, 0, Pred)) |>
+      mutate(ht = ifelse((is.na(Pred) | Pred <= 1) & Biomass_gm2 > 0, 1, Pred)) |> # if biomass > 0 but the prediction is 0 or NA, set height to 1.
+      select(x, y, ht) |>
+      rast(type = 'xyz', crs = crs(pwg.r), ext = ext(pwg.r))
+    # plot(ht.r)
+    print(Sys.time() - start.time)
+    
+    
+    ### Trim rasters to study area: ----
+    if(MASK == T){
+      cat('\n-> Trimming rasters to study area')
+      for(r.name in c('ht.r','fc.r','lai.r','total.biomass.r')){
+        r<-eval(parse(text=r.name))
+        r <- ifel(is.na(pwg.noBuffer.r), NA, r)
+        assign(r.name,r)
+      }
+    }
+    #---------------------------------------------#   
+    ### View result: ----
+    # if(as.numeric(yr) %in% c(0,20,40,60,80,100)){
+    #   dhsvmCols<-colorRampPalette(c('saddlebrown','goldenrod1','darkslategray','darkgreen','seagreen4',
+    #                                 'turquoise4','dodgerblue4','midnightblue','navy','orchid4','palegoldenrod','wheat'))(49)
+    #   
+    #   tiff(file.path(landisOutputDir,'DHSVM',paste0('Summary_fig_yr-',yr,'.tif')),width=6.5,height=9,res=300,units='in',compression='lzw')
+    #   
+    #   par(mfrow=c(2,2),oma=c(0,0,0,0),mar=c(0,0,0,0),mgp=c(1,0.01,0),tck=-0.002,ps=10,cex=1)
+    #   plot.new()
+    #   plot.window(xlim=ext(pwg.r)[1:2], ylim=ext(pwg.r)[3:4],xaxs="i",yaxs="i",asp=1)
+    #   plot(pwg.r,col='black',legend=F,add=T)
+    #   plot(ht.r,col=rev(hcl.colors(length(ht.df$to),palette = 'ag_GrnYl')),breaks=c(0,ht.df$to),legend=F,xaxt='n',yaxt='n',add=T)
+    #   plot(dem.r,col=demCols(50),add=T,alpha=0.15,legend=F)
+    #   plot(hillshade.r,col=colorRampPalette(c('black','grey20','white'))(100),add=T,alpha=0.15,legend=F);box(lwd=3)
+    #   mtext(paste0('Height (',2020+as.numeric(yr),')'),font=2,line=-1,adj=0.99,cex=1)
+    #   
+    #   plot.new()
+    #   plot.window(xlim=ext(pwg.r)[1:2], ylim=ext(pwg.r)[3:4],xaxs="i",yaxs="i",asp=1)
+    #   plot(pwg.r,col='black',legend=F,add=T)
+    #   plot(fc.r,col=rev(hcl.colors(length(fc.df$to),palette = 'ag_GrnYl')),breaks=c(0,fc.df$to),legend=F,xaxt='n',yaxt='n',add=T)
+    #   plot(dem.r,col=demCols(50),add=T,alpha=0.15,legend=F)
+    #   plot(hillshade.r,col=colorRampPalette(c('black','grey20','white'))(100),add=T,alpha=0.15,legend=F);box(lwd=3)
+    #   mtext(paste0('Fractional cover (',2020+as.numeric(yr),')'),font=2,line=-1,adj=0.99,cex=1)
+    #   
+    #   plot.new()
+    #   plot.window(xlim=ext(pwg.r)[1:2], ylim=ext(pwg.r)[3:4],xaxs="i",yaxs="i",asp=1)
+    #   plot(pwg.r,col='black',legend=F,add=T)
+    #   plot(total.biomass.r,col=rev(hcl.colors(6,palette = 'Viridis')),breaks=c(1,5000,10000,20000,40000,100000),legend=F,xaxt='n',yaxt='n',add=T)
+    #   plot(dem.r,col=demCols(50),add=T,alpha=0.15,legend=F)
+    #   plot(hillshade.r,col=colorRampPalette(c('black','grey20','white'))(100),add=T,alpha=0.15,legend=F);box(lwd=3)
+    #   mtext(paste0('Total biomass (',2020+as.numeric(yr),')'),font=2,line=-1,adj=0.99,cex=1)
+    #   
+    #   dev.off()
+    #   
+    #   gc()
+    # }
+    #---------------------------------------------#   
+    ### WRITE RASTERS: ----
     for(r.name in c('ht.r','fc.r','lai.r','total.biomass.r')){
       r<-eval(parse(text=r.name))
-      r <- ifel(is.na(pwg.noBuffer.r), NA, r)
+      r <- ifel(is.na(r), 0, round(r, 2))
       assign(r.name,r)
     }
-  }
-  #---------------------------------------------#   
-  ### View result: ----
-  if(as.numeric(yr) %in% c(0,20,40,60,80,100)){
-    dhsvmCols<-colorRampPalette(c('saddlebrown','goldenrod1','darkslategray','darkgreen','seagreen4',
-                                  'turquoise4','dodgerblue4','midnightblue','navy','orchid4','palegoldenrod','wheat'))(49)
     
-    tiff(file.path(landisOutputDir,'DHSVM',paste0('Summary_fig_yr-',yr,'.tif')),width=6.5,height=9,res=300,units='in',compression='lzw')
+    writeRaster(ht.r,file.path(landisOutputDir, 'DHSVM',paste0('Veg_Height-m_yr-',yr,'.tif')),overwrite=T)
+    writeRaster(fc.r,file.path(landisOutputDir, 'DHSVM',paste0('Veg_FracCov_yr-',yr,'.tif')),overwrite=T)
+    writeRaster(lai.r,file.path(landisOutputDir, 'DHSVM',paste0('Veg_LAI_yr-',yr,'.tif')),overwrite=T)
     
-    par(mfrow=c(2,2),oma=c(0,0,0,0),mar=c(0,0,0,0),mgp=c(1,0.01,0),tck=-0.002,ps=10,cex=1)
-    plot.new()
-    plot.window(xlim=ext(pwg.r)[1:2], ylim=ext(pwg.r)[3:4],xaxs="i",yaxs="i",asp=1)
-    plot(pwg.r,col='black',legend=F,add=T)
-    plot(ht.r,col=rev(hcl.colors(length(ht.df$to),palette = 'ag_GrnYl')),breaks=c(0,ht.df$to),legend=F,xaxt='n',yaxt='n',add=T)
-    plot(dem.r,col=demCols(50),add=T,alpha=0.15,legend=F)
-    plot(hillshade.r,col=colorRampPalette(c('black','grey20','white'))(100),add=T,alpha=0.15,legend=F);box(lwd=3)
-    mtext(paste0('Height (',2020+as.numeric(yr),')'),font=2,line=-1,adj=0.99,cex=1)
+    ## Save Age Rasters:
+    for(r.name in c(#'mean.age.r','max.age.r',
+      'mean.age.domSpp.r',
+      'mean.age.top3.dom.r','dominant.spp','dominant.spp2')){
+      r<-eval(parse(text=r.name))
+      r<-round(r,0)
+      assign(r.name,r)
+    }
     
-    plot.new()
-    plot.window(xlim=ext(pwg.r)[1:2], ylim=ext(pwg.r)[3:4],xaxs="i",yaxs="i",asp=1)
-    plot(pwg.r,col='black',legend=F,add=T)
-    plot(fc.r,col=rev(hcl.colors(length(fc.df$to),palette = 'ag_GrnYl')),breaks=c(0,fc.df$to),legend=F,xaxt='n',yaxt='n',add=T)
-    plot(dem.r,col=demCols(50),add=T,alpha=0.15,legend=F)
-    plot(hillshade.r,col=colorRampPalette(c('black','grey20','white'))(100),add=T,alpha=0.15,legend=F);box(lwd=3)
-    mtext(paste0('Fractional cover (',2020+as.numeric(yr),')'),font=2,line=-1,adj=0.99,cex=1)
+    if (!file.exists(file.path(ageOutput, 'MeanAge_DominantSpecies-yr.tif'))){
+      writeRaster(mean.age.domSpp.r,file.path(ageOutput, paste0('MeanAge_DominantSpecies-',yr,'.tif')),overwrite=T)
+      writeRaster(mean.age.top3.dom.r,file.path(ageOutput, paste0('MeanAge_TopThreeSpecies-',yr,'.tif')),overwrite=T)
+      writeRaster(dominant.spp,file.path(ageOutput, paste0('DominantSpecies-',yr,'.tif')),overwrite=T)
+      writeRaster(dominant.spp2,file.path(ageOutput, paste0('DominantSpeciesTwo-',yr,'.tif')),overwrite=T)
+    }
     
-    plot.new()
-    plot.window(xlim=ext(pwg.r)[1:2], ylim=ext(pwg.r)[3:4],xaxs="i",yaxs="i",asp=1)
-    plot(pwg.r,col='black',legend=F,add=T)
-    plot(total.biomass.r,col=rev(hcl.colors(6,palette = 'Viridis')),breaks=c(1,5000,10000,20000,40000,100000),legend=F,xaxt='n',yaxt='n',add=T)
-    plot(dem.r,col=demCols(50),add=T,alpha=0.15,legend=F)
-    plot(hillshade.r,col=colorRampPalette(c('black','grey20','white'))(100),add=T,alpha=0.15,legend=F);box(lwd=3)
-    mtext(paste0('Total biomass (',2020+as.numeric(yr),')'),font=2,line=-1,adj=0.99,cex=1)
     
-    dev.off()
-    
-    gc()
-  }
-  #---------------------------------------------#   
-  ### WRITE RASTERS: ----
-  for(r.name in c('ht.r','fc.r','lai.r','total.biomass.r')){
-    r<-eval(parse(text=r.name))
-    r <- ifel(is.na(r), 0, round(r, 2))
-    assign(r.name,r)
+    cat('----> Complete! <----\n')
   }
   
-  writeRaster(ht.r,file.path(landisOutputDir, 'DHSVM',paste0('Veg_Height-m_yr-',yr,'.tif')),overwrite=T)
-  writeRaster(fc.r,file.path(landisOutputDir, 'DHSVM',paste0('Veg_FracCov_yr-',yr,'.tif')),overwrite=T)
-  writeRaster(lai.r,file.path(landisOutputDir, 'DHSVM',paste0('Veg_LAI_yr-',yr,'.tif')),overwrite=T)
-  
-  ## Save Age Rasters:
-  for(r.name in c(#'mean.age.r','max.age.r',
-                  'mean.age.domSpp.r',
-                  'mean.age.top3.dom.r','dominant.spp','dominant.spp2')){
-    r<-eval(parse(text=r.name))
-    r<-round(r,0)
-    assign(r.name,r)
-  }
-  writeRaster(mean.age.domSpp.r,file.path(ageOutput, paste0('MeanAge_DominantSpecies_yr-',yr,'.tif')),overwrite=T)
-  writeRaster(mean.age.top3.dom.r,file.path(ageOutput, paste0('MeanAge_Top3Species_yr-',yr,'.tif')),overwrite=T)
-  writeRaster(dominant.spp,file.path(ageOutput, paste0('DominantSpecies-',yr,'.tif')),overwrite=T)
-  writeRaster(dominant.spp2,file.path(ageOutput, paste0('DominantSpecies2-',yr,'.tif')),overwrite=T)
-  
-  cat('----> Complete! <----\n')
-  gc()
 } # END YEAR LOOP
+gc()
+
+
+#### Replace loose rasters with stacks: ----
+flip_rasters <- FALSE
+for(folder in c('ageOutput')){
+  cat(paste0('\nCreating stacks...', folder, '...'))
+  
+  ### Remove tif.aux.xml
+  auxxml <- files <- list.files(path = file.path(landisOutputDir,folder), pattern = "\\.aux.xml$", full.names = TRUE)
+  file.remove(auxxml)
+  
+  files<-dir(file.path(landisOutputDir,folder))
+  if(length(files)==0) next
+  
+  ### Get the unique map types: ----
+  mapTypes <- str_replace(files, '(\\d+)', '(\\\\d+)') |>  # replace year numbers with generic number matching string for use later
+    unique()  # get the unique map types
+  
+  for(mapType in mapTypes){
+    outName <- str_replace(mapType, '\\(\\\\d\\+\\)', 'yr') |> str_replace('.img', '.tif')
+    if (file.exists(file.path(landisOutputDir, folder, outName))){next}
+    
+    cat(paste0(mapType, '...'))
+    oldMaps <- dir(file.path(landisOutputDir, folder))[grepl(paste0("^", mapType), dir(file.path(landisOutputDir, folder)))]  # get the names of the maps to delete after loading
+    stack <- get_maps(folder, mapType)
+    
+    writeRaster(stack, file.path(landisOutputDir, folder, outName))
+    file.remove(file.path(landisOutputDir, folder, oldMaps))  # remove the old loose map files
+  }
+  
+}
+
+gc()
   
 #### Start generating DHSVM raster: ----
 cat('\n\n----------------------------------------------------------------------------------\n Looping through years for DHSVM...\n----------------------------------------------------------------------------------\n')
@@ -363,6 +420,9 @@ for(yr in unique(yrs)){
   
   fc.r.classed <- classify(fc.r, rcl = fc.df, include.lowest = TRUE)
   ht.r.classed <- classify(ht.r, rcl = ht.df, include.lowest = TRUE)
+  
+  names(fc.r.classed) <- 'fc'
+  names(ht.r.classed) <- 'ht'
   
   dhsvm.r <- c(fc.r.classed, ht.r.classed, pwg.r) |>
     as.data.frame(xy = T) |>
@@ -403,63 +463,63 @@ for(yr in unique(yrs)){
   dhsvm.r <- ifel(is.na(ht.r) & is.na(fc.r), NA, dhsvm.r)
   
   ### View result: ----
-  if(yr %in% c(0,20,40,60,80,100)){
-    
-    ## Plot:
-    tiff(file.path(landisOutputDir,'DHSVM',paste0('Summary_fig_yr-',yr,'.tif')),width=9.75,height=9,res=300,units='in',compression='lzw')
-    
-    par(mfrow=c(2,3),oma=c(0,0,0,0),mar=c(0,0,0,0),mgp=c(1,0.01,0),tck=-0.002,ps=10,cex=1)
-    
-    plot.new()
-    plot.window(xlim=ext(pwg.r)[1:2], ylim=ext(pwg.r)[3:4],xaxs="i",yaxs="i",asp=1)
-    plot(pwg.r,col='black',legend=F,add=T)
-    plot(total.biomass.r,col=rev(hcl.colors(6,palette = 'Viridis')),breaks=c(1,5000,10000,20000,40000,100000),legend=F,xaxt='n',yaxt='n',add=T)
-    plot(dem.r,col=demCols(50),add=T,alpha=0.15,legend=F)
-    plot(hillshade.r,col=colorRampPalette(c('black','grey20','white'))(100),add=T,alpha=0.15,legend=F);box(lwd=3)
-    mtext(paste0('Total biomass (',2020+as.numeric(yr),')'),font=2,line=-1,adj=0.99,cex=1)
-    
-    plot.new()
-    plot.window(xlim=ext(pwg.r)[1:2], ylim=ext(pwg.r)[3:4],xaxs="i",yaxs="i",asp=1)
-    plot(pwg.r,col='black',legend=F,add=T)
-    plot(mean.age.top3.dom.r,col=rev(hcl.colors(7,palette = 'Viridis')),breaks=c(1,20,40,80,120,160,300),legend=F,xaxt='n',yaxt='n',add=T)
-    plot(dem.r,col=demCols(50),add=T,alpha=0.15,legend=F)
-    plot(hillshade.r,col=colorRampPalette(c('black','grey20','white'))(100),add=T,alpha=0.15,legend=F);box(lwd=3)
-    mtext(paste0('Age (',2020+as.numeric(yr),')'),font=2,line=-1,adj=0.99,cex=1)
-    
-    plot.new()
-    plot.window(xlim=ext(pwg.r)[1:2], ylim=ext(pwg.r)[3:4],xaxs="i",yaxs="i",asp=1)
-    plot(pwg.r,col='black',legend=F,add=T)
-    plot(lai.r,col=rev(hcl.colors(6,palette = 'Viridis')),breaks=c(1,2,4,6,8,10),legend=F,xaxt='n',yaxt='n',add=T)
-    plot(dem.r,col=demCols(50),add=T,alpha=0.15,legend=F)
-    plot(hillshade.r,col=colorRampPalette(c('black','grey20','white'))(100),add=T,alpha=0.15,legend=F);box(lwd=3)
-    mtext(paste0('LAI (',2020+as.numeric(yr),')'),font=2,line=-1,adj=0.99,cex=1)
-    
-    plot.new()
-    plot.window(xlim=ext(pwg.r)[1:2], ylim=ext(pwg.r)[3:4],xaxs="i",yaxs="i",asp=1)
-    plot(pwg.r,col='black',legend=F,add=T)
-    plot(ht.r,col=rev(hcl.colors(length(ht.df$to),palette = 'ag_GrnYl')),breaks=c(0,ht.df$to),legend=F,xaxt='n',yaxt='n',add=T)
-    plot(dem.r,col=demCols(50),add=T,alpha=0.15,legend=F)
-    plot(hillshade.r,col=colorRampPalette(c('black','grey20','white'))(100),add=T,alpha=0.15,legend=F);box(lwd=3)
-    mtext(paste0('Height (',2020+as.numeric(yr),')'),font=2,line=-1,adj=0.99,cex=1)
-    
-    plot.new()
-    plot.window(xlim=ext(pwg.r)[1:2], ylim=ext(pwg.r)[3:4],xaxs="i",yaxs="i",asp=1)
-    plot(pwg.r,col='black',legend=F,add=T)
-    plot(fc.r,col=rev(hcl.colors(length(fc.df$to),palette = 'ag_GrnYl')),breaks=c(0,fc.df$to),legend=F,xaxt='n',yaxt='n',add=T)
-    plot(dem.r,col=demCols(50),add=T,alpha=0.15,legend=F)
-    plot(hillshade.r,col=colorRampPalette(c('black','grey20','white'))(100),add=T,alpha=0.15,legend=F);box(lwd=3)
-    mtext(paste0('Fractional cover (',2020+as.numeric(yr),')'),font=2,line=-1,adj=0.99,cex=1)
-    
-    plot.new()
-    plot.window(xlim=ext(pwg.r)[1:2], ylim=ext(pwg.r)[3:4],xaxs="i",yaxs="i",asp=1)
-    plot(pwg.r,col='black',legend=F,add=T)
-    plot(dhsvm.r,col=dhsvmCols,breaks=seq(1,195,4),legend=F,xaxt='n',yaxt='n',add=T)
-    plot(dem.r,col=demCols(50),add=T,alpha=0.15,legend=F)
-    plot(hillshade.r,col=colorRampPalette(c('black','grey20','white'))(100),add=T,alpha=0.15,legend=F);box(lwd=3)
-    mtext(paste0('DHSVM class (',2020+as.numeric(yr),')'),font=2,line=-1,adj=0.99,cex=1)
-    
-    dev.off()
-  }
+  # if(yr %in% c(0,20,40,60,80,100)){
+  #   
+  #   ## Plot:
+  #   tiff(file.path(landisOutputDir,'DHSVM',paste0('Summary_fig_yr-',yr,'.tif')),width=9.75,height=9,res=300,units='in',compression='lzw')
+  #   
+  #   par(mfrow=c(2,3),oma=c(0,0,0,0),mar=c(0,0,0,0),mgp=c(1,0.01,0),tck=-0.002,ps=10,cex=1)
+  #   
+  #   plot.new()
+  #   plot.window(xlim=ext(pwg.r)[1:2], ylim=ext(pwg.r)[3:4],xaxs="i",yaxs="i",asp=1)
+  #   plot(pwg.r,col='black',legend=F,add=T)
+  #   plot(totalBiomass_stack.r |> select(contains(paste0('-', yr, '-'))),col=rev(hcl.colors(6,palette = 'Viridis')),breaks=c(1,5000,10000,20000,40000,100000),legend=F,xaxt='n',yaxt='n',add=T)
+  #   plot(dem.r,col=demCols(50),add=T,alpha=0.15,legend=F)
+  #   plot(hillshade.r,col=colorRampPalette(c('black','grey20','white'))(100),add=T,alpha=0.15,legend=F);box(lwd=3)
+  #   mtext(paste0('Total biomass (',2020+as.numeric(yr),')'),font=2,line=-1,adj=0.99,cex=1)
+  #   
+  #   plot.new()
+  #   plot.window(xlim=ext(pwg.r)[1:2], ylim=ext(pwg.r)[3:4],xaxs="i",yaxs="i",asp=1)
+  #   plot(pwg.r,col='black',legend=F,add=T)
+  #   plot(mean.age.top3.dom.r,col=rev(hcl.colors(7,palette = 'Viridis')),breaks=c(1,20,40,80,120,160,300),legend=F,xaxt='n',yaxt='n',add=T)
+  #   plot(dem.r,col=demCols(50),add=T,alpha=0.15,legend=F)
+  #   plot(hillshade.r,col=colorRampPalette(c('black','grey20','white'))(100),add=T,alpha=0.15,legend=F);box(lwd=3)
+  #   mtext(paste0('Age (',2020+as.numeric(yr),')'),font=2,line=-1,adj=0.99,cex=1)
+  #   
+  #   plot.new()
+  #   plot.window(xlim=ext(pwg.r)[1:2], ylim=ext(pwg.r)[3:4],xaxs="i",yaxs="i",asp=1)
+  #   plot(pwg.r,col='black',legend=F,add=T)
+  #   plot(lai.r,col=rev(hcl.colors(6,palette = 'Viridis')),breaks=c(1,2,4,6,8,10),legend=F,xaxt='n',yaxt='n',add=T)
+  #   plot(dem.r,col=demCols(50),add=T,alpha=0.15,legend=F)
+  #   plot(hillshade.r,col=colorRampPalette(c('black','grey20','white'))(100),add=T,alpha=0.15,legend=F);box(lwd=3)
+  #   mtext(paste0('LAI (',2020+as.numeric(yr),')'),font=2,line=-1,adj=0.99,cex=1)
+  #   
+  #   plot.new()
+  #   plot.window(xlim=ext(pwg.r)[1:2], ylim=ext(pwg.r)[3:4],xaxs="i",yaxs="i",asp=1)
+  #   plot(pwg.r,col='black',legend=F,add=T)
+  #   plot(ht.r,col=rev(hcl.colors(length(ht.df$to),palette = 'ag_GrnYl')),breaks=c(0,ht.df$to),legend=F,xaxt='n',yaxt='n',add=T)
+  #   plot(dem.r,col=demCols(50),add=T,alpha=0.15,legend=F)
+  #   plot(hillshade.r,col=colorRampPalette(c('black','grey20','white'))(100),add=T,alpha=0.15,legend=F);box(lwd=3)
+  #   mtext(paste0('Height (',2020+as.numeric(yr),')'),font=2,line=-1,adj=0.99,cex=1)
+  #   
+  #   plot.new()
+  #   plot.window(xlim=ext(pwg.r)[1:2], ylim=ext(pwg.r)[3:4],xaxs="i",yaxs="i",asp=1)
+  #   plot(pwg.r,col='black',legend=F,add=T)
+  #   plot(fc.r,col=rev(hcl.colors(length(fc.df$to),palette = 'ag_GrnYl')),breaks=c(0,fc.df$to),legend=F,xaxt='n',yaxt='n',add=T)
+  #   plot(dem.r,col=demCols(50),add=T,alpha=0.15,legend=F)
+  #   plot(hillshade.r,col=colorRampPalette(c('black','grey20','white'))(100),add=T,alpha=0.15,legend=F);box(lwd=3)
+  #   mtext(paste0('Fractional cover (',2020+as.numeric(yr),')'),font=2,line=-1,adj=0.99,cex=1)
+  #   
+  #   plot.new()
+  #   plot.window(xlim=ext(pwg.r)[1:2], ylim=ext(pwg.r)[3:4],xaxs="i",yaxs="i",asp=1)
+  #   plot(pwg.r,col='black',legend=F,add=T)
+  #   plot(dhsvm.r,col=dhsvmCols,breaks=seq(1,195,4),legend=F,xaxt='n',yaxt='n',add=T)
+  #   plot(dem.r,col=demCols(50),add=T,alpha=0.15,legend=F)
+  #   plot(hillshade.r,col=colorRampPalette(c('black','grey20','white'))(100),add=T,alpha=0.15,legend=F);box(lwd=3)
+  #   mtext(paste0('DHSVM class (',2020+as.numeric(yr),')'),font=2,line=-1,adj=0.99,cex=1)
+  #   
+  #   dev.off()
+  # }
   
   ### Output DHSVM map: ----
   dhsvm.r <- ifel(is.na(dhsvm.r), 0, dhsvm.r)
@@ -490,6 +550,8 @@ for (yr in unique(yrs)){
   fc.r <- ifel(fc.r == 0, 0.01, ifel(pwg.r<12 | is.na(pwg.r) | is.na(pwg.noBuffer.r), -9999, fc.r))
   lai.r <- ifel(lai.r == 0, 0.1, ifel(pwg.r<12 | is.na(pwg.r) | is.na(pwg.noBuffer.r), -9999, lai.r))
   
+  names(ht.r) <- ""
+  
   ### Output DHSVM map: ----
   writeRaster(ht.r,file.path(landisOutputDir, 'DHSVM',paste0('Veg_Height-m_yr-',yr,'.tif')),overwrite=T)
   writeRaster(fc.r,file.path(landisOutputDir, 'DHSVM',paste0('Veg_FracCov_yr-',yr,'.tif')),overwrite=T)
@@ -500,6 +562,9 @@ for (yr in unique(yrs)){
 gc()
 
 #-----------------------------------------------------------------------------------------------------------------------
+
+
+
 #-----------------------------------------------------------------------------------------------------------------------
 
 cat('\n\n

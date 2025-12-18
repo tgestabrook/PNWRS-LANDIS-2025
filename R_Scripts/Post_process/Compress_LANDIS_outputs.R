@@ -23,25 +23,6 @@ cat('###########################################################################
  Post-processing LANDIS-II outputs. Assigning CRS, applying LZW compression to .tiff files, and converting .img files to GeoTiff.
 ###################################################################################################################################\n\n', file = outFile, append = T)
 
-get_maps <- function(subdir, name_prefix){
-  subdir_files <- dir(file.path(landisOutputDir, subdir))
-  maps <- subdir_files[grepl(name_prefix, subdir_files)]  # get files in the directory that match the output map type
-  
-  maps <- maps[order(as.numeric(str_extract(maps, "(\\d+)")))]  # sort by year
-  map_paths <- file.path(landisOutputDir, subdir, maps)
-  maprs <- rast(map_paths)
-
-  names(maprs) <- str_replace(maps, '.tif', '') |>
-    str_replace('.img', '')
-  
-  if(flip_rasters){maprs <- flip(maprs)}  # flip if upside-down
-  
-  crs(maprs) <- crs(ecos.r)  # update CRS and extent
-  ext(maprs) <- ext(ecos.r)
-  
-  return(maprs)
-}
-
 for(folder in c('biomassOutput','ageOutput','Harvest', 'NECN','social-climate-fire', 'MagicHarvest')){
   cat(paste0('\n', folder, '...'))
   
@@ -64,7 +45,7 @@ for(folder in c('biomassOutput','ageOutput','Harvest', 'NECN','social-climate-fi
     if (file.exists(file.path(landisOutputDir, folder, outName))){next}
     
     cat(paste0(mapType, '...'))
-    oldMaps <- dir(file.path(landisOutputDir, folder))[grepl(mapType, dir(file.path(landisOutputDir, folder)))]  # get the names of the maps to delete after loading
+    oldMaps <- dir(file.path(landisOutputDir, folder))[grepl(paste0("^", mapType), dir(file.path(landisOutputDir, folder)))]  # get the names of the maps to delete after loading
     stack <- get_maps(folder, mapType)
     
     writeRaster(stack, file.path(landisOutputDir, folder, outName))
@@ -77,6 +58,7 @@ gc()
 
 cat(paste('\n\nCompression routine complete.', Sys.time(), '\n'), file = outFile, append = T)
 
+flip_rasters <- F  # set to false for future uses of get_maps
 
 
 
@@ -85,8 +67,12 @@ cat(paste('\n\nCompression routine complete.', Sys.time(), '\n'), file = outFile
 
 
 
-
-
+# for (landisOutputDir in landisRuns){
+#   looseagerasters <- dir(file.path(landisOutputDir, "ageOutput"))
+#   looseagerasters <- looseagerasters[grepl("DominantSpecies", looseagerasters)|grepl("MaxAge", looseagerasters)|grepl("MeanAge", looseagerasters)]
+#   
+#   file.remove(file.path(landisOutputDir, "ageOutput", looseagerasters))
+# }
 
 
 

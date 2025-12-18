@@ -31,6 +31,7 @@ Wildfire,Pm 10 smoke emissions,Smoke_Emissions_Kg_pm10,kg,Smoke emissions,Less i
 Wildfire,Timing of smoke emissions,Smoke_Timing_quantile,quantile,Timing of smoke emissions relative to the worst smoke days in each year,Less is better,,
 Wildfire,Fire severity class,Fire_Severity_Class,severity class,Fire severity,Less is better,,
 Wildfire,Fire mortality percent,Fire_Mortality_Percent,%,Fire mortality,Less is better,,
+Wildfire,Surface Fuels,Surface_Fuel_Mg,Mg,Surface fuel loading,Less is better,,
 Wildfire,Distance_from_high_severity_m,Distance_from_high_severity_m,m,Distance to high severity from pixels that burned at lower severity,NA,,
 Forest health and resilience,Percent mature forest area per HUC12,Percent_Forest_gt50yr,%,Area covered by forest greater than 50 years old,Greater is better,,
 Forest health and resilience,Area of old forest patches >10 ha,Area_of_mature_forest_patches_120yo_over_10_ha,ha,Area covered by large patches (>10 ha) of old forest (>120 yrs old),Greater is better,,

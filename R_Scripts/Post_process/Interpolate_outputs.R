@@ -19,6 +19,9 @@ for (folder in c("ageOutput", "biomassOutput", "NECN")){
       if (folder%in%c('biomassOutput', 'ageOutput') & "FLT4S"%in%datatype(s)){
         writeRaster(as.int(s), file.path(landisOutputDir, folder, stack), overwrite=T, datatype="INT4S")
       }
+    } else if (nlyr(s) > simLength+1) {
+      warning(paste("Raster stack", stack, "has too many layers!"))
+      
     } else {
 
       if (folder == 'NECN'){  # grab year zero NECN from single-year simulation
@@ -30,7 +33,7 @@ for (folder in c("ageOutput", "biomassOutput", "NECN")){
       s <- interpolateRaster(s)
       
       if (folder%in%c('biomassOutput', 'ageOutput')){
-        dtype = "INT46"  # turn biomass and age rasters into integers to make some processing faster
+        dtype = "INT4S"  # turn biomass and age rasters into integers to make some processing faster
       } else {dtype = "FLT4S"}
       
       writeRaster(s, file.path(landisOutputDir, folder, stack), overwrite=T, datatype = dtype)

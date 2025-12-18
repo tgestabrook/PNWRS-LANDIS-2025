@@ -13,7 +13,8 @@ fire.df <- fire.df |>
   mutate(color = ifelse(color == 1, grey(0.25,0.75), ifelse(color==2, rgb(0.25,0.05,0.05,0.75), rgb(0.05,0.25,0.05,0.75))),
          PWG = as.factor(pull(pwg.r$PWG[InitCell])),
          PercentCohortsKilled = round(CohortsKilled/AvailableCohorts*100,0),
-         PercentCohortsKilled = replace_na(PercentCohortsKilled, 0))  
+         PercentCohortsKilled = replace_na(PercentCohortsKilled, 0),
+         Duration = sizeToDurationFUN(FIRE_SIZE))  # Use a logistic function to estimate fire duration based on fire size:
 
 ### Load fire maps: ----
 cat('\nLoading fire maps...\n')

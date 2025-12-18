@@ -23,8 +23,8 @@ harvestEvents.df <- harvestEvents.df |>  # pivot into more usable long form
 
 
 ### Process LanzaTech dataframe: -----
-if(file.exists(file.path(LANDIS.EXTENT, paste0("BiomassCollectionHexes_", LANDIS.EXTENT, ".gpkg")))){
-  hexes.shp <- vect(file.path(LANDIS.EXTENT, paste0("BiomassCollectionHexes_", LANDIS.EXTENT, ".gpkg")))
+if(file.exists(file.path(LANDIS.EXTENT, "Ancillary_data", paste0("BiomassCollectionHexes_", LANDIS.EXTENT, ".gpkg")))){
+  hexes.shp <- vect(file.path(LANDIS.EXTENT, "Ancillary_data", paste0("BiomassCollectionHexes_", LANDIS.EXTENT, ".gpkg")))
 
   
   df <- harvestEvents.df |>
@@ -54,7 +54,7 @@ if(file.exists(file.path(LANDIS.EXTENT, paste0("BiomassCollectionHexes_", LANDIS
 
   
   
-  write.csv(as.data.frame(merch.hexes.df), file.path(landisOutputDir, 'Merch_biomass_hexes.csv'))
+  write.csv(as.data.frame(merch.hexes.df), file.path(landisOutputDir, paste0('Merch_biomass_hexes', basename(landisOutputDir), '.csv')))
 }
 
 

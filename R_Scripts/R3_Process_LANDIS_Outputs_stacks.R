@@ -48,7 +48,7 @@ simOpts <- list(
   rerunFires = F,
   remakeGifs = F,
   RUN.DHSVM.MAPS = T,
-  RERUN.DHSVM.MAPS = F,
+  RERUN.DHSVM.MAPS = T,
   RERUN.DHSVM.HEIGHT_FC_and_LAI_MAPS = F,
   SUMMARIZE.BY.PWG.and.HUC = T,
   OVERWRITE.ZIP.FILES = T,
@@ -57,7 +57,8 @@ simOpts <- list(
   RERUN.DST.MAPS = F,
   RERUN.DST.INTERPOLATION = F,
   base.year = 2020,
-  max.fine.fuels = 2000  # max fine fuels for gif
+  max.fine.fuels = 2000,  # max fine fuels for gif
+  DST.comparison.yr = 50  # year to compare treatments in spatial DST
 )
 
 #-----------------------------------------------------------------------------------------------------------------------
@@ -205,6 +206,26 @@ pngOut <- function(p, file, width, height, res=600, units="in"){
   dev.off()
 }
 
+### Function to turn loose rasters into a stack: ----
+get_maps <- function(subdir, name_prefix){
+  subdir_files <- dir(file.path(landisOutputDir, subdir))
+  maps <- subdir_files[grepl(paste0('^', name_prefix), subdir_files)]  # get files in the directory that match the output map type
+  
+  maps <- maps[order(as.numeric(str_extract(maps, "(\\d+)")))]  # sort by year
+  map_paths <- file.path(landisOutputDir, subdir, maps)
+  maprs <- rast(map_paths)
+  
+  names(maprs) <- str_replace(maps, '.tif', '') |>
+    str_replace('.img', '')
+  
+  if(flip_rasters){maprs <- flip(maprs)}  # flip if upside-down
+  
+  crs(maprs) <- crs(ecos.r)  # update CRS and extent
+  ext(maprs) <- ext(ecos.r)
+  
+  return(maprs)
+}
+
 ### Function to create landfire mask for name of veg group or list of codes: ----
 landfireReclassFUN<-function(r=landfire.r,codes){
   if(is.character(codes)){
@@ -236,6 +257,33 @@ interpolateRaster <- function(r){
   return(r_interpolated)
 }
 
+### Function to turn fire size into duration: ----
+sizeToDurationFUN=function(x) {
+  k=0.00008 # steepness
+  x0=40000 # midpoint
+  ymax=20 # max duration
+  adj=0.5 # adjust so min fire duration is 1
+  return(round(ymax/(1 + exp(-k*(x-x0))) + adj,0))
+}
+
+### Function to summarize metrics by area unit
+raster2csv<-function(r, agg.r = pwg.r, na.value = NA){
+  if(is.na(na.value)){
+    r[is.na(pwg.r) | is.na(r)] <- NA 
+  } else {
+    r[is.na(pwg.r) | r==na.value] <- NA
+  }
+  
+  sum.df <- zonal(r, agg.r, fun = "sum", wide = F) |> mutate(metric = "sum")
+  
+  mean.df <- zonal(r, agg.r, fun = "mean", wide = F) |> mutate(metric = "mean")
+   
+  sd.df <- zonal(r, agg.r, fun = "sd", wide = F) |> mutate(metric = "sd")
+  
+  df <- bind_rows(sum.df, mean.df, sd.df)
+  
+  return(df)
+}
 
 landisOutputDir <- landisRuns[1]
 
@@ -245,6 +293,8 @@ landisOutputDir <- landisRuns[1]
 ### Core post-processing loop: ----
 for(landisOutputDir in sample(landisRuns)){
   if(length(dir(landisOutputDir))==0) stop("LANDIS output folder is empty! Check file path...")
+  
+  
   
   #----------------------------------------------------------------------#
   cat('\n\n\n***********************************************************************************************\n-----------------------------------------------------------------------------------------------
@@ -307,6 +357,11 @@ for(landisOutputDir in sample(landisRuns)){
   totalBiomass_stack.r <- rast(file.path(biomassOutput, "TotalBiomass-yr-biomass.tif"))
   biomassStack.r <- rast(file.path(biomassOutput, dir(biomassOutput)[grepl("yr-biomass", dir(biomassOutput))]))  # one mega-stack with biomass of all species
   
+  LAI.stack <- rast(file.path(necnOutput, "LAI-yr.tif"))
+  MedAgeAllspp.stack <- rast(file.path(ageOutput, dir(ageOutput)[grepl("yr-MED", dir(ageOutput))]))
+  MaxAgeAllspp.stack <- rast(file.path(ageOutput, dir(ageOutput)[grepl("yr-MAX", dir(ageOutput))]))
+  BiomassTrees.stack <- biomassStack.r |> select(!starts_with(c("Nfixer_Resprt","NonFxr_Resprt","NonFxr_Seed","Grass_Forb","TotalBiomass"))) 
+  
   ## List all years: ----
   yrs <- totalBiomass_stack.r |> names() |> str_extract("\\d+") |> as.integer()
 
@@ -335,7 +390,7 @@ for(landisOutputDir in sample(landisRuns)){
     ### Load harvest logs
     harvestEvents.df <- read.csv(file.path(landisOutputDir, "biomass-harvest-event-log.csv"))
     harvestSum.df<-read.csv(file.path(landisOutputDir,'biomass-harvest-summary-log.csv')) |>
-      rename(Time = Year)
+      rename('Year' = 'Time')
     
     if(nrow(harvestEvents.df>0)){
       source('./R_Scripts/Post_process/Post_harvest.R')
@@ -356,7 +411,7 @@ for(landisOutputDir in sample(landisRuns)){
   # }
   
   #### DHSVM #### ----
-  if((simOpts$RUN.DHSVM.MAPS&!file.exists(file.path(landisOutputDir,'DHSVM','DHSVM_yr-100.tif')))|simOpts$RERUN.DHSVM.MAPS){
+  if((simOpts$RUN.DHSVM.MAPS&(!file.exists(file.path(landisOutputDir,'DHSVM','DHSVM_yr-100.tif'))))|simOpts$RERUN.DHSVM.MAPS){
     source('./R_Scripts/Post_process/Post_DHSVM_stopgap.R')
   }
   
@@ -432,6 +487,8 @@ for(landisOutputDir in sample(landisRuns)){
                           'emp.fire.dnbr',
                           'pngOut',
                           'landfireReclassFUN', 
+                          'sizeToDurationFUN',
+                          'get_maps',
                           'interpolateRaster')])  # clear out everything not on this list
   gc()
   
