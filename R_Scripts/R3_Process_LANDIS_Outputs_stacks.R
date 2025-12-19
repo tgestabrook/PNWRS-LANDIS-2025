@@ -27,8 +27,7 @@ library(zip)
 library(hues)
 library(foreach)
 library(doParallel)
-
-source("./R_Scripts/Post_process/Post_functions.R")
+source("./R_Scripts/Post_process/Post_functions.R") # load custom functions
 
 LANDIS.EXTENT<-'WenEnt'
 # Dir <- file.path('F:/2025_Q4_Scenarios', "FEMC")
@@ -44,6 +43,7 @@ dirToProcess <- file.path(Dir)
 ## List all sims in the directory: ----
 landisRuns <- file.path(dirToProcess,dir(dirToProcess)[grepl('Sim',dir(dirToProcess)) & !grepl('.zip', dir(dirToProcess))])
 
+### Define post-processing options:
 simOpts <- list(
   rerunBiomassAnnualDynamics = F,
   rerunHarvest = T,
@@ -54,12 +54,12 @@ simOpts <- list(
   RERUN.DHSVM.HEIGHT_FC_and_LAI_MAPS = F,
   SUMMARIZE.BY.PWG.and.HUC = T,
   OVERWRITE.ZIP.FILES = T,
-  increment = 1, # Define Desired Interval to interpolate DHSVM maps to:
+  increment = 1, # Define Desired Interval to interpolate DHSVM maps to
   RUN.DST.MAPS = F,
   RERUN.DST.MAPS = F,
   RERUN.DST.INTERPOLATION = F,
   base.year = 2020,
-  max.fine.fuels = 2000,  # max fine fuels for gif
+  max.fine.fuels = 2000,  # max fine fuels for gif -- should be same as SCF parameter
   DST.comparison.yr = 50  # year to compare treatments in spatial DST
 )
 
@@ -168,7 +168,7 @@ species.subset<-c('PseuMenz','TsugMert','AbieLasi','PiceEnge','PinuAlbi',
 
 
 
-#### Get Study area size: ----
+#### Calculate Study area size: ----
 study.area.size.Ha<-length(pwg.r[pwg.r%in%12:50&!is.na(pwg.r)]) * res(pwg.r)[1] * res(pwg.r)[2] / 10000
 
 ### Load Distance to Roads raster: ----
@@ -201,6 +201,7 @@ theme_set(theme_classic()+theme(panel.background = element_rect(color='black',fi
                                 legend.box.background = element_rect(colour='grey20',fill='white'),legend.background = element_blank(),
                                 legend.key.size=unit(0.4,'cm')))
 
+#### If testing on single run, run this line and then the code inside the for loop below.
 landisOutputDir <- landisRuns[1]
 
 #-----------------------------------------------------------------------------------------------------------------------
