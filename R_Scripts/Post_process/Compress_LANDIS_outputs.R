@@ -67,22 +67,6 @@ flip_rasters <- F  # set to false for future uses of get_maps
 
 
 
-# for (landisOutputDir in landisRuns){
-#   looseagerasters <- dir(file.path(landisOutputDir, "ageOutput"))
-#   looseagerasters <- looseagerasters[grepl("DominantSpecies", looseagerasters)|grepl("MaxAge", looseagerasters)|grepl("MeanAge", looseagerasters)]
-#   
-#   file.remove(file.path(landisOutputDir, "ageOutput", looseagerasters))
-# }
-
-
-
-
-
-
-
-
-
-
 
 
 
