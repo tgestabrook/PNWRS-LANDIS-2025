@@ -1,7 +1,7 @@
 start_time <- Sys.time()
 
 n_cores <- detectCores()
-cluster <- makeCluster(min(n_cores-1, 3))
+cluster <- makeCluster(min(n_cores-1, 4))
 
 registerDoParallel(cluster)
 
@@ -11,7 +11,7 @@ for (folder in c("ageOutput", "biomassOutput", "NECN")){
   files <- dir(file.path(landisOutputDir,folder))
   files <- files[grepl(".tif", files)]
 
-  foreach (stack = files, .packages = c("terra", "stringr")) %dopar% {
+  foreach (stack = files, .packages = c("terra", "stringr"), .inorder = F) %dopar% {
     s <- rast(file.path(landisOutputDir, folder, stack))
     
     if (nlyr(s) %in% c(1, 2, 3, 4)){# if there is already a layer for each year, or if it's a single layer, or 3 layers in the case of mean age of top 3 species

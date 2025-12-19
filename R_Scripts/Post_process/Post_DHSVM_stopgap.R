@@ -24,12 +24,12 @@ wDir <- file.path('F:', "LANDIS_Input_Data_Prep", LANDIS.EXTENT)
 ### Trim output to wenatchee - entiat without 5-km buffer? ----
 MASK = T
 
-get_ages_of_top3_biomass <- function(pixstack){ # assumes that species are in same order, should be true
-  indices <- pixstack[1:3]  # first three layers are indicies of 1st place, 2nd place, 3rd place
-  agepix <- pixstack[4:length(pixstack)]  # remaining layers have age data, select those corresponding to top biomass
-  
-  return(agepix[indices])
-}
+# get_ages_of_top3_biomass <- function(pixstack){ # assumes that species are in same order, should be true
+#   indices <- pixstack[1:3]  # first three layers are indicies of 1st place, 2nd place, 3rd place
+#   agepix <- pixstack[4:length(pixstack)]  # remaining layers have age data, select those corresponding to top biomass
+#   
+#   return(agepix[indices])
+# }
 
 ### Run DHSVM! ----
 
@@ -173,7 +173,6 @@ if(FALSE %in% c(paste0('Veg_Height-m_yr-',yrs,'.tif') %in% dir(file.path(landisO
 LAI.stack <- rast(file.path(necnOutput, "LAI-yr.tif"))
 MedAgeAllspp.stack <- rast(file.path(ageOutput, dir(ageOutput)[grepl("yr-MED", dir(ageOutput))]))
 MaxAgeAllspp.stack <- rast(file.path(ageOutput, dir(ageOutput)[grepl("yr-MAX", dir(ageOutput))]))
-BiomassTrees.stack <- biomassStack.r |> select(!starts_with(c("Nfixer_Resprt","NonFxr_Resprt","NonFxr_Seed","Grass_Forb","TotalBiomass"))) 
 
 if (!file.exists(file.path(ageOutput, 'MeanAge_AllSpp-yr.tif'))){
   cat("\n\nCalculating annual mean & max age...")
@@ -186,7 +185,11 @@ if (!file.exists(file.path(ageOutput, 'MeanAge_AllSpp-yr.tif'))){
   writeRaster(MeanAge.stack,file.path(ageOutput, 'MaxAge_AllSpp-yr.tif'),overwrite=T)
 }
 
-
+mean.age.domSpp.stack.r <- rast(file.path(ageOutput, paste0('MeanAge_DominantSpecies-yr.tif')))
+mean.age.top3.dom.stack.r <- rast(file.path(ageOutput, paste0('MeanAge_TopThreeSpecies-yr.tif')))
+dominant.spp.stack.r<- rast(file.path(ageOutput, paste0('DominantSpecies-yr.tif')))
+dominant.spp2.stack.r<- rast(file.path(ageOutput, paste0('DominantSpeciesTwo-yr.tif')))
+dominant.spp3.stack.r<- rast(file.path(ageOutput, paste0('DominantSpeciesThree-yr.tif')))
 
 cat('\n\n----------------------------------------------------------------------------------\nLooping through years...\n----------------------------------------------------------------------------------\n')
 
@@ -206,11 +209,11 @@ for(yr in unique(yrs)){
   if (
       file.exists(file.path(landisOutputDir, 'DHSVM',paste0('Veg_Height-m_yr-',yr,'.tif'))) &
       file.exists(file.path(landisOutputDir, 'DHSVM',paste0('Veg_FracCov_yr-',yr,'.tif'))) &
-      file.exists(file.path(landisOutputDir, 'DHSVM',paste0('Veg_LAI_yr-',yr,'.tif'))) &
-      (file.exists(file.path(landisOutputDir, 'ageOutput','MeanAge_DominantSpecies-yr.tif')) | file.exists(file.path(landisOutputDir, 'ageOutput',paste0('MeanAge_DominantSpecies-', yr, '.tif')))) & 
-      (file.exists(file.path(landisOutputDir, 'ageOutput','MeanAge_TopThreeSpecies-yr.tif')) | file.exists(file.path(landisOutputDir, 'ageOutput',paste0('MeanAge_TopThreeSpecies-', yr, '.tif')))) & 
-      (file.exists(file.path(landisOutputDir, 'ageOutput','DominantSpecies-yr.tif')) | file.exists(file.path(landisOutputDir, 'ageOutput',paste0('DominantSpecies-', yr, '.tif')))) & 
-      (file.exists(file.path(landisOutputDir, 'ageOutput','DominantSpeciesTwo-yr.tif')) | file.exists(file.path(landisOutputDir, 'ageOutput',paste0('DominantSpeciesTwo-', yr, '.tif')))) 
+      file.exists(file.path(landisOutputDir, 'DHSVM',paste0('Veg_LAI_yr-',yr,'.tif'))) #&
+      # (file.exists(file.path(landisOutputDir, 'ageOutput','MeanAge_DominantSpecies-yr.tif')) | file.exists(file.path(landisOutputDir, 'ageOutput',paste0('MeanAge_DominantSpecies-', yr, '.tif')))) & 
+      # (file.exists(file.path(landisOutputDir, 'ageOutput','MeanAge_TopThreeSpecies-yr.tif')) | file.exists(file.path(landisOutputDir, 'ageOutput',paste0('MeanAge_TopThreeSpecies-', yr, '.tif')))) & 
+      # (file.exists(file.path(landisOutputDir, 'ageOutput','DominantSpecies-yr.tif')) | file.exists(file.path(landisOutputDir, 'ageOutput',paste0('DominantSpecies-', yr, '.tif')))) & 
+      # (file.exists(file.path(landisOutputDir, 'ageOutput','DominantSpeciesTwo-yr.tif')) | file.exists(file.path(landisOutputDir, 'ageOutput',paste0('DominantSpeciesTwo-', yr, '.tif')))) 
       ) {
     
   } else {
@@ -226,30 +229,38 @@ for(yr in unique(yrs)){
     
     ### Age: ----
     cat('-> Loading Species Age and Biomass maps')
-    med.age<-MedAgeAllspp.stack |> select(contains(paste0('-', yr, '-'))) |> select(!starts_with(c("Nfixer_Resprt","NonFxr_Resprt","NonFxr_Seed","Grass_Forb","TotalBiomass")))
-    max.age<-MaxAgeAllspp.stack |> select(contains(paste0('-', yr, '-'))) |> select(!starts_with(c("Nfixer_Resprt","NonFxr_Resprt","NonFxr_Seed","Grass_Forb","TotalBiomass")))
+    # med.age<-MedAgeAllspp.stack |> select(contains(paste0('-', yr, '-'))) |> select(!starts_with(c("Nfixer_Resprt","NonFxr_Resprt","NonFxr_Seed","Grass_Forb","TotalBiomass")))
+    # max.age<-MaxAgeAllspp.stack |> select(contains(paste0('-', yr, '-'))) |> select(!starts_with(c("Nfixer_Resprt","NonFxr_Resprt","NonFxr_Seed","Grass_Forb","TotalBiomass")))
     biomass.trees<-BiomassTrees.stack |> select(contains(paste0('-', yr, '-')))
+    # mean.age.top3.dom.r <- 
+    # 
+    # # cat('\n-> Identifying top 3 dominant species per site')
+    # top3sp.r
+    # 
+    # start.time <- Sys.time()
+    # top3sp.r <- app(biomass.trees, order, decreasing = T)[[1:3]]
+    # names(top3sp.r) <- c("BiomassRank1", "BiomassRank2", "BiomassRank3")
+    # print(Sys.time() - start.time)
+    # 
+    # start.time <- Sys.time()
+    # age.top.3.dom.r <- app(c(top3sp.r, med.age), get_ages_of_top3_biomass)
+    # print(Sys.time() - start.time)
+    # 
+    # cat('\n-> Calculating mean age of dominant 3 species per site')
+    # mean.age.top3.dom.r <- mean(age.top.3.dom.r, na.rm = T)
+    # mean.age.domSpp.r <- age.top.3.dom.r[[1]]
+    # 
+    # # dominant.spp
+    # cat('\n-> Generating dominant species raster')
+    # dominant.spp <- top3sp.r[[1]]
+    # dominant.spp2 <- top3sp.r[[2]]
     
-    start.time <- Sys.time()
-    cat('\n-> Identifying top 3 dominant species per site')
-    
-    start.time <- Sys.time()
-    top3sp.r <- app(biomass.trees, order, decreasing = T)[[1:3]]
-    names(top3sp.r) <- c("BiomassRank1", "BiomassRank2", "BiomassRank3")
-    print(Sys.time() - start.time)
-    
-    start.time <- Sys.time()
-    age.top.3.dom.r <- app(c(top3sp.r, med.age), get_ages_of_top3_biomass)
-    print(Sys.time() - start.time)
-    
-    cat('\n-> Calculating mean age of dominant 3 species per site')
-    mean.age.top3.dom.r <- mean(age.top.3.dom.r, na.rm = T)
-    mean.age.domSpp.r <- age.top.3.dom.r[[1]]
-    
-    # dominant.spp
-    cat('\n-> Generating dominant species raster')
-    dominant.spp <- top3sp.r[[1]]
-    dominant.spp2 <- top3sp.r[[2]]
+    mean.age.top3.dom.r <- mean.age.top3.dom.stack.r[[yr]]
+    top3sp.r <- c(
+      dominant.spp.stack.r[[yr]],
+      dominant.spp2.stack.r[[yr]],
+      dominant.spp3.stack.r[[yr]]
+    )
     
     #---------------------------------------------#      
     ### Generate Rasters for average FC and Height per cell: ----
@@ -368,37 +379,37 @@ for(yr in unique(yrs)){
 gc()
 
 
-#### Replace loose rasters with stacks: ----
-flip_rasters <- FALSE
-for(folder in c('ageOutput')){
-  cat(paste0('\nCreating stacks...', folder, '...'))
-  
-  ### Remove tif.aux.xml
-  auxxml <- files <- list.files(path = file.path(landisOutputDir,folder), pattern = "\\.aux.xml$", full.names = TRUE)
-  file.remove(auxxml)
-  
-  files<-dir(file.path(landisOutputDir,folder))
-  if(length(files)==0) next
-  
-  ### Get the unique map types: ----
-  mapTypes <- str_replace(files, '(\\d+)', '(\\\\d+)') |>  # replace year numbers with generic number matching string for use later
-    unique()  # get the unique map types
-  
-  for(mapType in mapTypes){
-    outName <- str_replace(mapType, '\\(\\\\d\\+\\)', 'yr') |> str_replace('.img', '.tif')
-    if (file.exists(file.path(landisOutputDir, folder, outName))){next}
-    
-    cat(paste0(mapType, '...'))
-    oldMaps <- dir(file.path(landisOutputDir, folder))[grepl(paste0("^", mapType), dir(file.path(landisOutputDir, folder)))]  # get the names of the maps to delete after loading
-    stack <- get_maps(folder, mapType)
-    
-    writeRaster(stack, file.path(landisOutputDir, folder, outName))
-    file.remove(file.path(landisOutputDir, folder, oldMaps))  # remove the old loose map files
-  }
-  
-}
-
-gc()
+# #### Replace loose rasters with stacks: ----
+# flip_rasters <- FALSE
+# for(folder in c('ageOutput')){
+#   cat(paste0('\nCreating stacks...', folder, '...'))
+#   
+#   ### Remove tif.aux.xml
+#   auxxml <- files <- list.files(path = file.path(landisOutputDir,folder), pattern = "\\.aux.xml$", full.names = TRUE)
+#   file.remove(auxxml)
+#   
+#   files<-dir(file.path(landisOutputDir,folder))
+#   if(length(files)==0) next
+#   
+#   ### Get the unique map types: ----
+#   mapTypes <- str_replace(files, '(\\d+)', '(\\\\d+)') |>  # replace year numbers with generic number matching string for use later
+#     unique()  # get the unique map types
+#   
+#   for(mapType in mapTypes){
+#     outName <- str_replace(mapType, '\\(\\\\d\\+\\)', 'yr') |> str_replace('.img', '.tif')
+#     if (file.exists(file.path(landisOutputDir, folder, outName))){next}
+#     
+#     cat(paste0(mapType, '...'))
+#     oldMaps <- dir(file.path(landisOutputDir, folder))[grepl(paste0("^", mapType), dir(file.path(landisOutputDir, folder)))]  # get the names of the maps to delete after loading
+#     stack <- get_maps(folder, mapType)
+#     
+#     writeRaster(stack, file.path(landisOutputDir, folder, outName))
+#     file.remove(file.path(landisOutputDir, folder, oldMaps))  # remove the old loose map files
+#   }
+#   
+# }
+# 
+# gc()
   
 #### Start generating DHSVM raster: ----
 cat('\n\n----------------------------------------------------------------------------------\n Looping through years for DHSVM...\n----------------------------------------------------------------------------------\n')
