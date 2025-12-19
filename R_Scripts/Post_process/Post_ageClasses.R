@@ -1,3 +1,6 @@
+########################################################################################################################-
+#### Calculate the dominant three species and mean ages thereof from LANDIS biomass & age output. ######################-
+#-----------------------------------------------------------------------------------------------------------------------#
 
 MedAgeAllspp.stack <- rast(file.path(ageOutput, dir(ageOutput)[grepl("yr-MED", dir(ageOutput))]))
 MaxAgeAllspp.stack <- rast(file.path(ageOutput, dir(ageOutput)[grepl("yr-MAX", dir(ageOutput))]))
@@ -14,7 +17,7 @@ if (!file.exists(file.path(ageOutput, 'MeanAge_AllSpp-yr.tif'))){
 }
  
 ### CORE LOOP: -----------------------------------------------------------------
-cat('\n\n----------------------------------------------------------------------------------\nLooping through to calculate dominant species & age...\n----------------------------------------------------------------------------------\n')
+cat('\n\n----------------------------------------------------------------------------------\nLooping through years to calculate dominant species & age...\n----------------------------------------------------------------------------------\n')
 
 n_cores <- detectCores()
 cluster <- makeCluster(min(n_cores-1, 4))

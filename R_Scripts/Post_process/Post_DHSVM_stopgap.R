@@ -6,14 +6,12 @@
 #----------------------------------------------------------------------------------------------------------------------#
 ###   EXTENT: Wenatchee, Entiat, Okanogan, and Methow sub-basins                                                 ######-
 ###   PROJECT: BIOMASS Phase 3 for Pacific Northwest Research Station                                            ######-    
-###   DATE: August 2022                                                                                       ######-   
+###   DATE: December 2025                                                                                       ######-   
 #----------------------------------------------------------------------------------------------------------------------#
 ###   Code developed by Tucker Furniss                                                                           ######-
 ###     Contact: tucker.furniss@usda.gov; tucker.furniss@gmail.com;                                              ######-
+###   Modified by Thomas Estabrook; thomas.estabrook@usda.gov
 #-----------------------------------------------------------------------------------------------------------------------#
-#-----------------------------------------------------------------------------------------------------------------------#
-###   DEPENDENCIES: None. Does not rely on 3_Process_LANDIS_Outputs.R script. The Biomass_Annual_Dynamics.csv file is loaded, but not used.
-###                 However, Section 2 (DST) requires Section 1 (DHSVM) to be run first (generates maps of dominant species).
 #-----------------------------------------------------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------------------------------------------------#
 
@@ -23,13 +21,6 @@ wDir <- file.path('F:', "LANDIS_Input_Data_Prep", LANDIS.EXTENT)
 #----------------------------------------------------------------------------------------------------------------------
 ### Trim output to wenatchee - entiat without 5-km buffer? ----
 MASK = T
-
-# get_ages_of_top3_biomass <- function(pixstack){ # assumes that species are in same order, should be true
-#   indices <- pixstack[1:3]  # first three layers are indicies of 1st place, 2nd place, 3rd place
-#   agepix <- pixstack[4:length(pixstack)]  # remaining layers have age data, select those corresponding to top biomass
-#   
-#   return(agepix[indices])
-# }
 
 ### Run DHSVM! ----
 
@@ -193,27 +184,13 @@ dominant.spp3.stack.r<- rast(file.path(ageOutput, paste0('DominantSpeciesThree-y
 
 cat('\n\n----------------------------------------------------------------------------------\nLooping through years...\n----------------------------------------------------------------------------------\n')
 
-# n_cores <- detectCores()
-# cluster <- makeCluster(min(n_cores-1, 3))
-# 
-# registerDoParallel(cluster)
-# 
-# foreach (yr = unique(yrs),  .packages = c("terra", "tidyverse", "tidyterra")) %dopar% {
 for(yr in unique(yrs)){
   cat(paste0('\n------------\nYear: ',yr,'\n------------\n'))
-  
-  # if (file.exists(file.path(landisOutputDir, 'DHSVM',paste0('Veg_Height-m_yr-',yr,'.tif'))) &
-  #     file.exists(file.path(landisOutputDir, 'DHSVM',paste0('Veg_FracCov_yr-',yr,'.tif'))) &
-  #     file.exists(file.path(landisOutputDir, 'DHSVM',paste0('Veg_LAI_yr-',yr,'.tif')))) {next}
-  
+
   if (
       file.exists(file.path(landisOutputDir, 'DHSVM',paste0('Veg_Height-m_yr-',yr,'.tif'))) &
       file.exists(file.path(landisOutputDir, 'DHSVM',paste0('Veg_FracCov_yr-',yr,'.tif'))) &
-      file.exists(file.path(landisOutputDir, 'DHSVM',paste0('Veg_LAI_yr-',yr,'.tif'))) #&
-      # (file.exists(file.path(landisOutputDir, 'ageOutput','MeanAge_DominantSpecies-yr.tif')) | file.exists(file.path(landisOutputDir, 'ageOutput',paste0('MeanAge_DominantSpecies-', yr, '.tif')))) & 
-      # (file.exists(file.path(landisOutputDir, 'ageOutput','MeanAge_TopThreeSpecies-yr.tif')) | file.exists(file.path(landisOutputDir, 'ageOutput',paste0('MeanAge_TopThreeSpecies-', yr, '.tif')))) & 
-      # (file.exists(file.path(landisOutputDir, 'ageOutput','DominantSpecies-yr.tif')) | file.exists(file.path(landisOutputDir, 'ageOutput',paste0('DominantSpecies-', yr, '.tif')))) & 
-      # (file.exists(file.path(landisOutputDir, 'ageOutput','DominantSpeciesTwo-yr.tif')) | file.exists(file.path(landisOutputDir, 'ageOutput',paste0('DominantSpeciesTwo-', yr, '.tif')))) 
+      file.exists(file.path(landisOutputDir, 'DHSVM',paste0('Veg_LAI_yr-',yr,'.tif'))) 
       ) {
     
   } else {
@@ -229,31 +206,8 @@ for(yr in unique(yrs)){
     
     ### Age: ----
     cat('-> Loading Species Age and Biomass maps')
-    # med.age<-MedAgeAllspp.stack |> select(contains(paste0('-', yr, '-'))) |> select(!starts_with(c("Nfixer_Resprt","NonFxr_Resprt","NonFxr_Seed","Grass_Forb","TotalBiomass")))
-    # max.age<-MaxAgeAllspp.stack |> select(contains(paste0('-', yr, '-'))) |> select(!starts_with(c("Nfixer_Resprt","NonFxr_Resprt","NonFxr_Seed","Grass_Forb","TotalBiomass")))
+    
     biomass.trees<-BiomassTrees.stack |> select(contains(paste0('-', yr, '-')))
-    # mean.age.top3.dom.r <- 
-    # 
-    # # cat('\n-> Identifying top 3 dominant species per site')
-    # top3sp.r
-    # 
-    # start.time <- Sys.time()
-    # top3sp.r <- app(biomass.trees, order, decreasing = T)[[1:3]]
-    # names(top3sp.r) <- c("BiomassRank1", "BiomassRank2", "BiomassRank3")
-    # print(Sys.time() - start.time)
-    # 
-    # start.time <- Sys.time()
-    # age.top.3.dom.r <- app(c(top3sp.r, med.age), get_ages_of_top3_biomass)
-    # print(Sys.time() - start.time)
-    # 
-    # cat('\n-> Calculating mean age of dominant 3 species per site')
-    # mean.age.top3.dom.r <- mean(age.top.3.dom.r, na.rm = T)
-    # mean.age.domSpp.r <- age.top.3.dom.r[[1]]
-    # 
-    # # dominant.spp
-    # cat('\n-> Generating dominant species raster')
-    # dominant.spp <- top3sp.r[[1]]
-    # dominant.spp2 <- top3sp.r[[2]]
     
     mean.age.top3.dom.r <- mean.age.top3.dom.stack.r[[yr]]
     top3sp.r <- c(
@@ -378,46 +332,10 @@ for(yr in unique(yrs)){
 } # END YEAR LOOP
 gc()
 
-
-# #### Replace loose rasters with stacks: ----
-# flip_rasters <- FALSE
-# for(folder in c('ageOutput')){
-#   cat(paste0('\nCreating stacks...', folder, '...'))
-#   
-#   ### Remove tif.aux.xml
-#   auxxml <- files <- list.files(path = file.path(landisOutputDir,folder), pattern = "\\.aux.xml$", full.names = TRUE)
-#   file.remove(auxxml)
-#   
-#   files<-dir(file.path(landisOutputDir,folder))
-#   if(length(files)==0) next
-#   
-#   ### Get the unique map types: ----
-#   mapTypes <- str_replace(files, '(\\d+)', '(\\\\d+)') |>  # replace year numbers with generic number matching string for use later
-#     unique()  # get the unique map types
-#   
-#   for(mapType in mapTypes){
-#     outName <- str_replace(mapType, '\\(\\\\d\\+\\)', 'yr') |> str_replace('.img', '.tif')
-#     if (file.exists(file.path(landisOutputDir, folder, outName))){next}
-#     
-#     cat(paste0(mapType, '...'))
-#     oldMaps <- dir(file.path(landisOutputDir, folder))[grepl(paste0("^", mapType), dir(file.path(landisOutputDir, folder)))]  # get the names of the maps to delete after loading
-#     stack <- get_maps(folder, mapType)
-#     
-#     writeRaster(stack, file.path(landisOutputDir, folder, outName))
-#     file.remove(file.path(landisOutputDir, folder, oldMaps))  # remove the old loose map files
-#   }
-#   
-# }
-# 
-# gc()
   
 #### Start generating DHSVM raster: ----
 cat('\n\n----------------------------------------------------------------------------------\n Looping through years for DHSVM...\n----------------------------------------------------------------------------------\n')
 
-# cluster <- makeCluster(min(n_cores-1, 2))
-# registerDoParallel(cluster)
-
-# foreach (yr = unique(yrs), .packages = c("terra", "tidyverse", "tidyterra")) %dopar% {
 for(yr in unique(yrs)){
   cat(paste0('\n------------\nYear: ',yr,'\n------------\n'))
 
@@ -443,8 +361,7 @@ for(yr in unique(yrs)){
     rast(type = 'xyz', crs = crs(pwg.r), ext = ext(pwg.r))
   
   unique(values(dhsvm.r))
-  # plot(dhsvm.r)
-  
+
   ## Assign non-forest classes using LANDFIRE layers: ----
   for(i in 161:164){
     ## Classify herb and shrub using approximate height
@@ -539,7 +456,6 @@ for(yr in unique(yrs)){
   
   rm(ht.r,fc.r,lai.r, dhsvm.r)
 } # END YEAR LOOP
-# stopImplicitCluster()
 
 cat("DHSVM RASTER GENERATION FINISHED")
 #-----------------------------------------------------------------------------------------------------------------------
