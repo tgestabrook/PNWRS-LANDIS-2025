@@ -37,6 +37,8 @@ bigDataDir<-'F:/LANDIS_Input_Data_Prep/BigData'
 dataDir<-'F:/LANDIS_Input_Data_Prep/Data'
 modelDir<-'F:/V8_Models'
 
+MTBS_dir <- file.path(dataDir,'MTBS_and_FOD_Fires', LANDIS.EXTENT)
+
 #### SET LANDIS-II DIRECTORY TO PROCESS: ----
 dirToProcess <- file.path(Dir)
 #-----------------------------------------------------------------------------------------------------------------------
@@ -49,8 +51,8 @@ simOpts <- list(
   rerunHarvest = T,
   rerunFires = F,
   remakeGifs = F,
-  RUN.DHSVM.MAPS = T,
-  RERUN.DHSVM.MAPS = T,
+  RUN.DHSVM.MAPS = F,
+  RERUN.DHSVM.MAPS = F,
   RERUN.DHSVM.HEIGHT_FC_and_LAI_MAPS = F,
   SUMMARIZE.BY.PWG.and.HUC = T,
   OVERWRITE.ZIP.FILES = T,
@@ -120,6 +122,34 @@ pwg.noBuffer.r<-rast(file.path(dataDir,"PWG",paste0('PWG_noBuffer_',LANDIS.EXTEN
 
 ### Load HUC x PWG ecoregions: ----
 PWGxHUC10.sf<-vect(file.path(dataDir,'PWG',paste0('PWGxHUC_',LANDIS.EXTENT,'.shp')))
+
+### Map of cold vs. warm forests: ----
+PWG_reclass.r <- ifel(pwg.r %in% c(20, 30), 30, ifel(pwg.r %in% c(40, 50), 50, NA)) 
+forest_type_area.df <- as.data.frame(PWG_reclass.r) |> group_by(PWG) |> summarise(forest_area = 0.81*dplyr::n()) |> mutate(PWG = as.factor(PWG))
+
+annual_sev.df <- data.frame('year' = integer(0), 'PWG'=character(0), 'sev_class'=character(0), 'count' = integer(0))
+
+### Compile MTBS record for study area
+for (i in 1984:2019){
+  cat(paste0(i,'...'))
+  fire_sev <- rast(file.path(MTBS_dir, paste0('Observed_fires_', i, '.tif'))) 
+  fire_sev[fire_sev<min(severity.reclass.df$from)]<-NA
+  
+  fire_sev <- fire_sev |> 
+    terra::classify(severity.reclass.df, include.lowest = T) 
+  # plot(fire_sev)
+  
+  stack <- c(PWG_reclass.r, 'dnbr'= fire_sev)
+  
+  yr_df <- as.data.frame(stack) |> 
+    filter(!is.na(PWG)) |> 
+    mutate(sev_class = cut(dnbr, c(0, 1, 2, 3, 4), c('UB', 'Low', 'Moderate', 'High'))) |>
+    group_by(PWG, sev_class) |> summarise(count = dplyr::n()) |>
+    mutate(PWG = as.factor(PWG), year = i, sev_class = as.character(sev_class)) |> filter(!is.na(sev_class))
+  
+  #hist(yr_df$dnbr)
+  annual_sev.df <- dplyr::bind_rows(annual_sev.df, yr_df)
+}
 
 #### Load elevation and hillshade: ----
 dem.r<-rast(file.path(dataDir,paste0("DEM_90m_", LANDIS.EXTENT, ".tif")))
@@ -260,10 +290,11 @@ for(landisOutputDir in sample(landisRuns)){
   necnOutput <- file.path(landisOutputDir, "NECN")
   MHOutput <- file.path(landisOutputDir, 'MagicHarvest')
   
-  simLength <- rast(file.path(biomassOutput, "TotalBiomass-yr-biomass.tif")) |> names() |> str_extract("\\d+") |> as.integer() |> max() 
+  totalBiomass_stack.r <- rast(file.path(biomassOutput, "TotalBiomass-yr-biomass.tif"))
+  simLength <- totalBiomass_stack.r |> names() |> str_extract("\\d+") |> as.integer() |> max() 
   
   ### Interpolate rasters
-  if (!file.exists(file.path(necnOutput, "TotalC-yr.tif"))){
+  if (nlyr(totalBiomass_stack.r)<simLength){
     source("./R_Scripts/Post_process/Post_interpolate_outputs.R")
   }
   
@@ -375,6 +406,7 @@ for(landisOutputDir in sample(landisRuns)){
                           'bigDataDir',
                           'dataDir',
                           'modelDir',
+                          'MTBS_dir',
                           'dirToProcess',
                           'landisRuns',
                           'simOpts',
@@ -407,6 +439,9 @@ for(landisOutputDir in sample(landisRuns)){
                           'landfire.codes',
                           'lf.codes.present',
                           'emp.fire.dnbr',
+                          'PWG_reclass.r',
+                          'forest_type_area.df',
+                          'annual_sev.df',
                           'pngOut',
                           'landfireReclassFUN', 
                           'sizeToDurationFUN',

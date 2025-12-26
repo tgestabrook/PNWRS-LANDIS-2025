@@ -17,68 +17,78 @@ if (!file.exists(file.path(ageOutput, 'MeanAge_AllSpp-yr.tif'))){
 }
  
 ### CORE LOOP: -----------------------------------------------------------------
-cat('\n\n----------------------------------------------------------------------------------\nLooping through years to calculate dominant species & age...\n----------------------------------------------------------------------------------\n')
-
-n_cores <- detectCores()
-cluster <- makeCluster(min(n_cores-1, 4))
-
-registerDoParallel(cluster)
-
-start.time <- Sys.time()
-
-foreach (yr = unique(yrs),  .packages = c("terra", "tidyverse", "tidyterra"), .export = c("get_ages_of_top3_biomass"), .verbose = T, .inorder=F, .final = function(x) NULL) %dopar% {
-  if (
-    (file.exists(file.path(landisOutputDir, 'ageOutput','MeanAge_DominantSpecies-yr.tif')) | file.exists(file.path(landisOutputDir, 'ageOutput',paste0('MeanAge_DominantSpecies-', yr, '.tif')))) & 
-    (file.exists(file.path(landisOutputDir, 'ageOutput','MeanAge_TopThreeSpecies-yr.tif')) | file.exists(file.path(landisOutputDir, 'ageOutput',paste0('MeanAge_TopThreeSpecies-', yr, '.tif')))) & 
-    (file.exists(file.path(landisOutputDir, 'ageOutput','DominantSpecies-yr.tif')) | file.exists(file.path(landisOutputDir, 'ageOutput',paste0('DominantSpecies-', yr, '.tif')))) & 
-    (file.exists(file.path(landisOutputDir, 'ageOutput','DominantSpeciesTwo-yr.tif')) | file.exists(file.path(landisOutputDir, 'ageOutput',paste0('DominantSpeciesTwo-', yr, '.tif')))) &
-    (file.exists(file.path(landisOutputDir, 'ageOutput','DominantSpeciesThree-yr.tif')) | file.exists(file.path(landisOutputDir, 'ageOutput',paste0('DominantSpeciesThree-', yr, '.tif'))))
-  ) {
-    ### DO nothing
-  } else {
-    biomass.trees <- rast(file.path(biomassOutput, dir(biomassOutput)[grepl("yr-biomass", dir(biomassOutput))])) |> 
-      select(!starts_with(c("Nfixer_Resprt","NonFxr_Resprt","NonFxr_Seed","Grass_Forb","TotalBiomass"))) |>
-      select(contains(paste0('-', yr, '-')))
-    
-    med.age<-rast(file.path(ageOutput, dir(ageOutput)[grepl("yr-MED", dir(ageOutput))])) |> 
-      select(contains(paste0('-', yr, '-'))) |> 
-      select(!starts_with(c("Nfixer_Resprt","NonFxr_Resprt","NonFxr_Seed","Grass_Forb","TotalBiomass")))
-    
-    # start.time <- Sys.time()
-    top3sp.r <- app(biomass.trees, order, decreasing = T)[[1:3]]
-    names(top3sp.r) <- c("BiomassRank1", "BiomassRank2", "BiomassRank3")
-    # print(Sys.time() - start.time)
-    
-    # start.time <- Sys.time()
-    age.top.3.dom.r <- app(c(top3sp.r, med.age), get_ages_of_top3_biomass)
-    # print(Sys.time() - start.time)
-    
-    cat('\n-> Calculating mean age of dominant 3 species per site')
-    mean.age.top3.dom.r <- mean(age.top.3.dom.r, na.rm = T) |> round(0)
-    mean.age.domSpp.r <- age.top.3.dom.r[[1]] |> round(0)
-    
-    # dominant.spp
-    cat('\n-> Generating dominant species raster')
-    dominant.spp <- top3sp.r[[1]]
-    dominant.spp2 <- top3sp.r[[2]]
-    dominant.spp3 <- top3sp.r[[3]]
-    
-    if (!file.exists(file.path(ageOutput, 'MeanAge_DominantSpecies-yr.tif'))){
-      writeRaster(mean.age.domSpp.r,file.path(ageOutput, paste0('MeanAge_DominantSpecies-',yr,'.tif')),overwrite=T)
-      writeRaster(mean.age.top3.dom.r,file.path(ageOutput, paste0('MeanAge_TopThreeSpecies-',yr,'.tif')),overwrite=T)
-      writeRaster(dominant.spp,file.path(ageOutput, paste0('DominantSpecies-',yr,'.tif')),overwrite=T)
-      writeRaster(dominant.spp2,file.path(ageOutput, paste0('DominantSpeciesTwo-',yr,'.tif')),overwrite=T)
-      writeRaster(dominant.spp3,file.path(ageOutput, paste0('DominantSpeciesThree-',yr,'.tif')),overwrite=T)
+if (
+  file.exists(file.path(landisOutputDir, 'ageOutput','MeanAge_DominantSpecies-yr.tif')) & 
+  file.exists(file.path(landisOutputDir, 'ageOutput','MeanAge_TopThreeSpecies-yr.tif')) & 
+  file.exists(file.path(landisOutputDir, 'ageOutput','DominantSpecies-yr.tif')) & 
+  file.exists(file.path(landisOutputDir, 'ageOutput','DominantSpeciesTwo-yr.tif')) &
+  file.exists(file.path(landisOutputDir, 'ageOutput','DominantSpeciesThree-yr.tif'))
+) {
+  cat("Ages already processed") ### Do nothing
+} else {
+  cat('\n\n----------------------------------------------------------------------------------\nLooping through years to calculate dominant species & age...\n----------------------------------------------------------------------------------\n')
+  
+  n_cores <- detectCores()
+  cluster <- makeCluster(min(n_cores-1, 4))
+  
+  registerDoParallel(cluster)
+  
+  start.time <- Sys.time()
+  
+  foreach (yr = unique(yrs),  .packages = c("terra", "tidyverse", "tidyterra"), .export = c("get_ages_of_top3_biomass"), .verbose = T, .inorder=F, .final = function(x) NULL) %dopar% {
+    if(
+      file.exists(file.path(landisOutputDir, 'ageOutput',paste0('MeanAge_DominantSpecies-', yr, '.tif'))) &
+      file.exists(file.path(landisOutputDir, 'ageOutput',paste0('MeanAge_TopThreeSpecies-', yr, '.tif'))) &
+      file.exists(file.path(landisOutputDir, 'ageOutput',paste0('DominantSpecies-', yr, '.tif'))) &
+      file.exists(file.path(landisOutputDir, 'ageOutput',paste0('DominantSpeciesTwo-', yr, '.tif'))) &
+      file.exists(file.path(landisOutputDir, 'ageOutput',paste0('DominantSpeciesThree-', yr, '.tif')))
+    ) {
+      cat(paste0("Age rasters for year ", yr, "already processed."))
+    } else {
+      biomass.trees <- rast(file.path(biomassOutput, dir(biomassOutput)[grepl("yr-biomass", dir(biomassOutput))])) |> 
+        select(!starts_with(c("Nfixer_Resprt","NonFxr_Resprt","NonFxr_Seed","Grass_Forb","TotalBiomass"))) |>
+        select(contains(paste0('-', yr, '-')))
+      
+      med.age<-rast(file.path(ageOutput, dir(ageOutput)[grepl("yr-MED", dir(ageOutput))])) |> 
+        select(contains(paste0('-', yr, '-'))) |> 
+        select(!starts_with(c("Nfixer_Resprt","NonFxr_Resprt","NonFxr_Seed","Grass_Forb","TotalBiomass")))
+      
+      # start.time <- Sys.time()
+      top3sp.r <- app(biomass.trees, order, decreasing = T)[[1:3]]
+      names(top3sp.r) <- c("BiomassRank1", "BiomassRank2", "BiomassRank3")
+      # print(Sys.time() - start.time)
+      
+      # start.time <- Sys.time()
+      age.top.3.dom.r <- app(c(top3sp.r, med.age), get_ages_of_top3_biomass)
+      # print(Sys.time() - start.time)
+      
+      cat('\n-> Calculating mean age of dominant 3 species per site')
+      mean.age.top3.dom.r <- mean(age.top.3.dom.r, na.rm = T) |> round(0)
+      mean.age.domSpp.r <- age.top.3.dom.r[[1]] |> round(0)
+      
+      # dominant.spp
+      cat('\n-> Generating dominant species raster')
+      dominant.spp <- top3sp.r[[1]]
+      dominant.spp2 <- top3sp.r[[2]]
+      dominant.spp3 <- top3sp.r[[3]]
+      
+      if (!file.exists(file.path(ageOutput, 'MeanAge_DominantSpecies-yr.tif'))){
+        writeRaster(mean.age.domSpp.r,file.path(ageOutput, paste0('MeanAge_DominantSpecies-',yr,'.tif')),overwrite=T)
+        writeRaster(mean.age.top3.dom.r,file.path(ageOutput, paste0('MeanAge_TopThreeSpecies-',yr,'.tif')),overwrite=T)
+        writeRaster(dominant.spp,file.path(ageOutput, paste0('DominantSpecies-',yr,'.tif')),overwrite=T)
+        writeRaster(dominant.spp2,file.path(ageOutput, paste0('DominantSpeciesTwo-',yr,'.tif')),overwrite=T)
+        writeRaster(dominant.spp3,file.path(ageOutput, paste0('DominantSpeciesThree-',yr,'.tif')),overwrite=T)
+      }
+      rm(list = c("mean.age.domSpp.r", "mean.age.top3.dom.r", "dominant.spp", "dominant.spp2", "dominant.spp3", "age.top.3.dom.r", "biomass.trees", "med.age", "top3sp.r"))
+      gc()
     }
-    rm(list = c("mean.age.domSpp.r", "mean.age.top3.dom.r", "dominant.spp", "dominant.spp2", "dominant.spp3", "age.top.3.dom.r", "biomass.trees", "med.age", "top3sp.r"))
-    gc()
   }
+  
+  stopImplicitCluster()
+  print(Sys.time() - start.time)
+  
+  gc()
 }
-
-stopImplicitCluster()
-print(Sys.time() - start.time)
-
-gc()
 
 #### Replace loose rasters with stacks: ----
 flip_rasters <- FALSE

@@ -365,40 +365,7 @@ nFires.df <- c(pwg.r, burned.N.r, burned.N.sev.r) |>  # make a df with
 # #---------------------------------------------------------------------#
 cat('\n Making Povak Fig. 4 style plots for cold vs. dry forests\n')
 
-PWG_reclass <- pwg.r 
-PWG_reclass[PWG_reclass==20] <- 30  # DMC 20 + MMC 30
-PWG_reclass[PWG_reclass==40] <- 50  # CMC 40 + CDC 50
-PWG_reclass[!PWG_reclass%in%c(30,50)] <- NA
-plot(PWG_reclass)
-
-forest_type_area <- as.data.frame(PWG_reclass) |> group_by(PWG) |> summarise(forest_area = 0.81*dplyr::n()) |> mutate(PWG = as.factor(PWG))
-
-MTBS_dir <- file.path(dataDir,'MTBS_and_FOD_Fires', LANDIS.EXTENT)
-
-annual_sev.df <- data.frame('year' = integer(0), 'PWG'=character(0), 'sev_class'=character(0), 'count' = integer(0))
-
-for (i in 1984:2019){
-  cat(paste0(i,'...'))
-  fire_sev <- rast(file.path(MTBS_dir, paste0('Observed_fires_', i, '.tif'))) 
-  fire_sev[fire_sev<min(severity.reclass.df$from)]<-NA
-  
-  fire_sev <- fire_sev |> 
-    terra::classify(severity.reclass.df, include.lowest = T) 
-  # plot(fire_sev)
-  
-  stack <- c(PWG_reclass, 'dnbr'= fire_sev)
-  
-  yr_df <- as.data.frame(stack) |> 
-    filter(!is.na(PWG)) |> 
-    mutate(sev_class = cut(dnbr, c(0, 1, 2, 3, 4), c('UB', 'Low', 'Moderate', 'High'))) |>
-    group_by(PWG, sev_class) |> summarise(count = dplyr::n()) |>
-    mutate(PWG = as.factor(PWG), year = i, sev_class = as.character(sev_class)) |> filter(!is.na(sev_class))
-  
-  #hist(yr_df$dnbr)
-  annual_sev.df <- dplyr::bind_rows(annual_sev.df, yr_df)
-}
-
-landis_sev.df <- c(PWG_reclass, severityStackSmoothedClassified.r) |>
+landis_sev.df <- c(PWG_reclass.r, severityStackSmoothedClassified.r) |>
   as.data.frame() |>
   pivot_longer(starts_with("fire-dnbr"), names_to = c('drop', 'drop2', 'year'), names_sep = '-', values_to = 'sev_class') |>
   filter(!is.na(sev_class), !is.na(PWG)) |>
@@ -411,7 +378,7 @@ annual_sev.df <- annual_sev.df |>
   bind_rows(landis_sev.df) |>
   mutate(sev_class = factor(sev_class, levels = c('UB', 'Low', 'Moderate', 'High')),
          area_ha = count * 0.81) |>
-  left_join(forest_type_area) |> 
+  left_join(forest_type_area.df) |> 
   mutate(pct_forest_type = area_ha/forest_area * 100,
          PWG = ifelse(PWG == 30, "Dry & Moist Mixed Conifer (PWG 20, 30)", "Cold Forest (PWG 40, 50)"))
 

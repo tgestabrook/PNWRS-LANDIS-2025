@@ -29,17 +29,12 @@ Generating DHSVM output maps for',gsub(dirToProcess,"",landisOutputDir),'
 ***************************************************************************************************\n\n')
 if(length(dir(landisOutputDir))==0) stop("LANDIS output folder is empty! Check file path...")
 #-----------------------------------------------------------------------------------------------------------------------
-#-----------------------------------------------------------------------------------------------------------------------
-#####  ---------------    Set initial variables    ------------- #####
 
 names(yrs) <- as.numeric(yrs) + 2020
 
 ## Create output folder: ----
 if(!dir.exists(file.path(landisOutputDir, 'DHSVM'))) dir.create(file.path(landisOutputDir, 'DHSVM'))
 
-
-### Load LANDFIRE raster and definitions: ----
-if(ext(landfire.r)!=ext(pwg.r)) stop('Extent of pwg.r does not match extent of landfire.r. This will cause major issues.')
 
 #-----------------------------------------------------------------------------------------------------------------------
 ### Define LANDFIRE non-forest classes: ----
@@ -139,11 +134,10 @@ for(pwg in unique(rcl.df$pwg)){
   expander.df <- bind_rows(expander.df, to_append)
 }
 expander.df <- expander.df |> filter(pwg.code %in% c(10, 11, 12, 13, 14, 15, 20, 30, 40, 50))
-rcl.expanded.df <- rcl.df |> left_join(expander.df)  # use for joining to raster stack
+rcl.expanded.df <- rcl.df |> left_join(expander.df)  # use for joining to raster stack -- OK if this has a not 1-to-1 warning
 
 
 #-----------------------------------------------------------------------------------------------------------------------
-### Fractional Coverage model: ----
 ### Fractional Coverage model: ----
 load(file.path(LANDIS.EXTENT, 'Ancillary_data', 'Fc_AgeBiomassSppPWG_glm.Rdata'))
 predict(fc.glm,newdata=data.frame('Mean.Age'=100,'Biomass.sum.gm2'=seq(1000,2000,100),'PWG'=40,'Elevation'=1000),type='response')
@@ -161,40 +155,24 @@ if(FALSE %in% c(paste0('Veg_Height-m_yr-',yrs,'.tif') %in% dir(file.path(landisO
    FALSE %in% c(paste0('MeanAge_AllSpp_yr',yrs,'.tif') %in% dir(file.path(landisOutputDir,'ageOutput'))))
   simOpts$RERUN.DHSVM.HEIGHT_FC_and_LAI_MAPS<-T 
 
-LAI.stack <- rast(file.path(necnOutput, "LAI-yr.tif"))
-MedAgeAllspp.stack <- rast(file.path(ageOutput, dir(ageOutput)[grepl("yr-MED", dir(ageOutput))]))
-MaxAgeAllspp.stack <- rast(file.path(ageOutput, dir(ageOutput)[grepl("yr-MAX", dir(ageOutput))]))
-
-if (!file.exists(file.path(ageOutput, 'MeanAge_AllSpp-yr.tif'))){
-  cat("\n\nCalculating annual mean & max age...")
-  grouping_index <- names(MedAgeAllspp.stack) |> str_extract("\\d+") |> as.integer() 
-  MeanAge.stack <- MedAgeAllspp.stack |> tapp(index = grouping_index, fun = "mean", na.rm = T)
-  writeRaster(MeanAge.stack,file.path(ageOutput, 'MeanAge_AllSpp-yr.tif'),overwrite=T)
-  
-  grouping_index <- names(MaxAgeAllspp.stack) |> str_extract("\\d+") |> as.integer() 
-  MaxAge.stack <- MaxAgeAllspp.stack |> tapp(index = grouping_index, fun = "max", na.rm = T)
-  writeRaster(MeanAge.stack,file.path(ageOutput, 'MaxAge_AllSpp-yr.tif'),overwrite=T)
-}
-
 mean.age.domSpp.stack.r <- rast(file.path(ageOutput, paste0('MeanAge_DominantSpecies-yr.tif')))
 mean.age.top3.dom.stack.r <- rast(file.path(ageOutput, paste0('MeanAge_TopThreeSpecies-yr.tif')))
 dominant.spp.stack.r<- rast(file.path(ageOutput, paste0('DominantSpecies-yr.tif')))
 dominant.spp2.stack.r<- rast(file.path(ageOutput, paste0('DominantSpeciesTwo-yr.tif')))
 dominant.spp3.stack.r<- rast(file.path(ageOutput, paste0('DominantSpeciesThree-yr.tif')))
 
-cat('\n\n----------------------------------------------------------------------------------\nLooping through years...\n----------------------------------------------------------------------------------\n')
+cat('\n\n----------------------------------------------------------------------------------\nLooping through years to make ht, fc & lai maps..\n----------------------------------------------------------------------------------\n')
 
 for(yr in unique(yrs)){
-  cat(paste0('\n------------\nYear: ',yr,'\n------------\n'))
-
   if (
       file.exists(file.path(landisOutputDir, 'DHSVM',paste0('Veg_Height-m_yr-',yr,'.tif'))) &
       file.exists(file.path(landisOutputDir, 'DHSVM',paste0('Veg_FracCov_yr-',yr,'.tif'))) &
       file.exists(file.path(landisOutputDir, 'DHSVM',paste0('Veg_LAI_yr-',yr,'.tif'))) 
       ) {
-    
+    # skip year if already done
   } else {
-    cat('-> Loading Total LAI and Biomass maps...\n')
+    cat(paste0('\nYear: ',yr,''))
+    cat('  -> Loading Total LAI and Biomass maps...')
     ### LAI: ----
     lai.r<-LAI.stack |> select(ends_with(paste0('-', yr)))
     
@@ -205,20 +183,18 @@ for(yr in unique(yrs)){
     lai.r <- ifel(lai.r==0&!is.na(total.biomass.r)&total.biomass.r>0, 0.1, lai.r)
     
     ### Age: ----
-    cat('-> Loading Species Age and Biomass maps')
+    cat('  -> Loading Species Age and Biomass maps')
     
     biomass.trees<-BiomassTrees.stack |> select(contains(paste0('-', yr, '-')))
     
-    mean.age.top3.dom.r <- mean.age.top3.dom.stack.r[[yr]]
-    top3sp.r <- c(
-      dominant.spp.stack.r[[yr]],
-      dominant.spp2.stack.r[[yr]],
-      dominant.spp3.stack.r[[yr]]
-    )
+    mean.age.top3.dom.r <- mean.age.top3.dom.stack.r |> select(contains(paste0('-', yr)))
+    topsp.r <- dominant.spp.stack.r |> select(ends_with(paste0('-', yr)))
+    
+    names(topsp.r) <- "BiomassRank1"
     
     #---------------------------------------------#      
     ### Generate Rasters for average FC and Height per cell: ----
-    cat('\n-> Generating rasters for FC and Height...\n')
+    cat('  -> Generating rasters for FC and Height...\n')
     start.time <- Sys.time()
     fc.r <- c(pwg.r, dem.r, total.biomass.r, mean.age.top3.dom.r) |>
       as.data.frame(xy=T) |>
@@ -234,7 +210,7 @@ for(yr in unique(yrs)){
       select(x, y, fc) |>
       rast(type = 'xyz', crs = crs(pwg.r), ext = ext(pwg.r))
     
-    ht.r <- c(pwg.r, total.biomass.r, mean.age.top3.dom.r, top3sp.r) |>
+    ht.r <- c(pwg.r, total.biomass.r, mean.age.top3.dom.r, topsp.r) |>
       as.data.frame(xy=T) |>
       filter(!is.na(PWG)) |>
       mutate(
@@ -248,12 +224,12 @@ for(yr in unique(yrs)){
       select(x, y, ht) |>
       rast(type = 'xyz', crs = crs(pwg.r), ext = ext(pwg.r))
     # plot(ht.r)
-    print(Sys.time() - start.time)
+    cat(Sys.time() - start.time)
     
     
     ### Trim rasters to study area: ----
     if(MASK == T){
-      cat('\n-> Trimming rasters to study area')
+      cat('  -> Trimming rasters to study area')
       for(r.name in c('ht.r','fc.r','lai.r','total.biomass.r')){
         r<-eval(parse(text=r.name))
         r <- ifel(is.na(pwg.noBuffer.r), NA, r)
@@ -309,24 +285,7 @@ for(yr in unique(yrs)){
     writeRaster(fc.r,file.path(landisOutputDir, 'DHSVM',paste0('Veg_FracCov_yr-',yr,'.tif')),overwrite=T)
     writeRaster(lai.r,file.path(landisOutputDir, 'DHSVM',paste0('Veg_LAI_yr-',yr,'.tif')),overwrite=T)
     
-    ## Save Age Rasters:
-    for(r.name in c(#'mean.age.r','max.age.r',
-      'mean.age.domSpp.r',
-      'mean.age.top3.dom.r','dominant.spp','dominant.spp2')){
-      r<-eval(parse(text=r.name))
-      r<-round(r,0)
-      assign(r.name,r)
-    }
-    
-    if (!file.exists(file.path(ageOutput, 'MeanAge_DominantSpecies-yr.tif'))){
-      writeRaster(mean.age.domSpp.r,file.path(ageOutput, paste0('MeanAge_DominantSpecies-',yr,'.tif')),overwrite=T)
-      writeRaster(mean.age.top3.dom.r,file.path(ageOutput, paste0('MeanAge_TopThreeSpecies-',yr,'.tif')),overwrite=T)
-      writeRaster(dominant.spp,file.path(ageOutput, paste0('DominantSpecies-',yr,'.tif')),overwrite=T)
-      writeRaster(dominant.spp2,file.path(ageOutput, paste0('DominantSpeciesTwo-',yr,'.tif')),overwrite=T)
-    }
-    
-    
-    cat('----> Complete! <----\n')
+    cat('  ----> Complete! <----\n')
   }
   
 } # END YEAR LOOP
@@ -337,7 +296,7 @@ gc()
 cat('\n\n----------------------------------------------------------------------------------\n Looping through years for DHSVM...\n----------------------------------------------------------------------------------\n')
 
 for(yr in unique(yrs)){
-  cat(paste0('\n------------\nYear: ',yr,'\n------------\n'))
+  cat(paste0('Year: ',yr,'... '))
 
   ht.r <- rast(file.path(landisOutputDir, 'DHSVM',paste0('Veg_Height-m_yr-',yr,'.tif')))
   fc.r <- rast(file.path(landisOutputDir, 'DHSVM',paste0('Veg_FracCov_yr-',yr,'.tif')))
@@ -452,7 +411,6 @@ for(yr in unique(yrs)){
   ### Output DHSVM map: ----
   dhsvm.r <- ifel(is.na(dhsvm.r), 0, dhsvm.r)
   writeRaster(dhsvm.r,file.path(landisOutputDir, 'DHSVM',paste0('DHSVM_yr-',yr,'.tif')),overwrite=T)
-  
   
   rm(ht.r,fc.r,lai.r, dhsvm.r)
 } # END YEAR LOOP
