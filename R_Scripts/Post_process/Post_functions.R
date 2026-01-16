@@ -15,7 +15,8 @@ get_maps <- function(subdir, name_prefix){
   maprs <- rast(map_paths)
   
   names(maprs) <- str_replace(maps, '.tif', '') |>
-    str_replace('.img', '')
+    str_replace('.img', '') |>
+    str_replace('.asc', '')
   
   if(flip_rasters){maprs <- flip(maprs)}  # flip if upside-down
   
@@ -23,6 +24,34 @@ get_maps <- function(subdir, name_prefix){
   ext(maprs) <- ext(ecos.r)
   
   return(maprs)
+}
+
+### Function to determine post-processing order: ----
+.check_for_filetype <- Vectorize(function(dir_path, extension){
+  if (substr(extension, 1, 1) != ".") {
+    extension <- paste0(".", extension)
+  }
+  
+  files <- list.files(path = dir_path, pattern = paste0("\\", extension, "$"), ignore.case = TRUE, recursive = T)
+  
+  return(length(files) > 0)
+})
+
+
+prioritize_uncompressed_runs <- function(runlist, shuffle = T){
+  uncompressed_runs <- runlist[.check_for_filetype(runlist, ".img")]
+  
+  compressed_runs <- runlist[!(runlist%in%uncompressed_runs)]
+  
+  if (shuffle) {
+    return(
+      c(sample(uncompressed_runs), sample(compressed_runs))
+    )
+  } else {
+    return(
+      c(uncompressed_runs, compressed_runs)
+    )
+  }
 }
 
 ### Function to create landfire mask for name of veg group or list of codes: ----
@@ -66,20 +95,25 @@ sizeToDurationFUN=function(x) {
 }
 
 ### Function to summarize metrics by area unit
-raster2csv<-function(r, agg.r = pwg.r, na.value = NA){
-  if(is.na(na.value)){
-    r[is.na(pwg.r) | is.na(r)] <- NA 
-  } else {
-    r[is.na(pwg.r) | r==na.value] <- NA
-  }
+raster2csv<-function(r, agg.r = pwg.r){
+  # if(is.na(na.value)){
+  #   r[is.na(pwg.r) | is.na(r)] <- NA 
+  # } else {
+  #   r[is.na(pwg.r) | r==na.value] <- NA
+  # }
   
-  sum.df <- zonal(r, agg.r, fun = "sum", wide = F) |> mutate(metric = "sum")
+  names(r) <- as.character(1:nlyr(r))
   
-  mean.df <- zonal(r, agg.r, fun = "mean", wide = F) |> mutate(metric = "mean")
+  sum.df <- zonal(r, agg.r, fun = "sum", wide = F, na.rm = T) |> mutate(metric = "sum")
   
-  sd.df <- zonal(r, agg.r, fun = "sd", wide = F) |> mutate(metric = "sd")
+  mean.df <- zonal(r, agg.r, fun = "mean", wide = F, na.rm = T) |> mutate(metric = "mean")
   
-  df <- bind_rows(sum.df, mean.df, sd.df)
+  # sd.df <- zonal(r, agg.r, fun = sd, wide = T, na.rm = T) |> pivot_longer(names(r), names_to = "layer", values_to = "value") |> mutate(metric = "sd", layer = as.numeric(layer))
+  
+  df <- bind_rows(sum.df, mean.df
+                  # , sd.df
+                  ) |> mutate(Year = layer-1) |> pivot_wider(names_from = 'metric', values_from = 'value') |>
+    select(!layer)
   
   return(df)
 }
@@ -103,6 +137,53 @@ read_and_label <- function(file){
   }
   return(df)
 }
+
+# function to trip maps to active sites in study area: ----
+trim_to_study_area <- function(r, MASK = T){
+  
+  if (MASK){
+    r <- ifel(is.na(r), 0, ifel(is.na(pwg.noBuffer.r)|pwg.r<12, NA, r)) # Zeros for active cells with NAs, NAs for inactive cells
+  } else {
+    r <- ifel(is.na(r), 0, ifel(is.na(pwg.r)|pwg.r<12, NA, r))
+  }
+  
+  return(r)
+}
+
+### Function to write a batch of output rasters for DST maps: -----
+writeOutputRasts <- function(outputs, destDir){
+  cat('\n-> Writing output rasters...\n')
+  for(r.name in outputs){
+    cat(paste0("Writing ", r.name, " "))
+    r<-eval(parse(text=r.name)) |> trim_to_study_area() # Load layer
+    
+    # r <- ifel(is.na(r), 0, ifel(is.na(pwg.noBuffer.r)|pwg.r<12, NA, r)) 
+    # 
+    # if(MASK == T)
+    #   r <- ifel(is.na(pwg.noBuffer.r), NA, r) # NAs for the 5-km study area buffer
+    # 
+    out.name<-names(outputs[outputs==r.name]) # Load out name
+    
+    if (nlyr(r) == length(yrs)) {
+      names(r)<-paste0(r.name, "-", yrs)
+    } else if (nlyr(r) == length(yrs) - 1) {  # add a zero raster for year zero
+      r <- c(zero.r[[1]], r)
+      names(r)<-paste0(r.name, "-", yrs)
+    } else {
+      stop(paste0("PROBLEM, TOO FEW LAYERS IN ", r.name))
+    }
+    
+    ## Write raster...
+    writeRaster(r,file.path(landisOutputDir,destDir,paste0(out.name,'.tif')),overwrite=T)
+    gc()
+  }
+  rm(list = outputs)
+  # tmpFiles(current = T, orphan = T, remove = T)
+  gc()
+  cat('\n')
+}
+
+
 
 compute_deviation <- function(df, Sc = "BAU wildfire", Sc2 = "Base climate"){
   baseline_vals <- df |>  # create a dataframe with the Max, Min, Mean values of whatever variable was summarized for the baseline scenario

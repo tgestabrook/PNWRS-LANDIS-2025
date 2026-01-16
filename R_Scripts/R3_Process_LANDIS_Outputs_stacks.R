@@ -29,6 +29,10 @@ library(foreach)
 library(doParallel)
 source("./R_Scripts/Post_process/Post_functions.R") # load custom functions
 
+# set tmpdir to prevent running out of space
+Sys.setenv(TMPDIR = "F:/R_TEMP")
+terraOptions(tempdir = "F:/R_TEMP")
+
 LANDIS.EXTENT<-'WenEnt'
 # Dir <- file.path('F:/2025_Q4_Scenarios', "FEMC")
 Dir <- file.path('F:/2025_Q4_Scenarios', LANDIS.EXTENT)
@@ -38,6 +42,7 @@ dataDir<-'F:/LANDIS_Input_Data_Prep/Data'
 modelDir<-'F:/V8_Models'
 
 MTBS_dir <- file.path(dataDir,'MTBS_and_FOD_Fires', LANDIS.EXTENT)
+DHSVM_dir <- if (dir.exists(file.path(Dir, '..', "DHSVM_Outputs"))) {file.path(Dir, '..', "DHSVM_Outputs")} else {NULL}
 
 #### SET LANDIS-II DIRECTORY TO PROCESS: ----
 dirToProcess <- file.path(Dir)
@@ -55,14 +60,14 @@ simOpts <- list(
   RERUN.DHSVM.MAPS = F,
   RERUN.DHSVM.HEIGHT_FC_and_LAI_MAPS = F,
   SUMMARIZE.BY.PWG.and.HUC = T,
-  OVERWRITE.ZIP.FILES = T,
+  OVERWRITE.ZIP.FILES = F,
   increment = 1, # Define Desired Interval to interpolate DHSVM maps to
   RUN.DST.MAPS = F,
   RERUN.DST.MAPS = F,
-  RERUN.DST.INTERPOLATION = F,
   base.year = 2020,
   max.fine.fuels = 2000,  # max fine fuels for gif -- should be same as SCF parameter
-  DST.comparison.yr = 50  # year to compare treatments in spatial DST
+  DST.comparison.yr = 50,  # year to compare treatments in spatial DST
+  compare.version = F
 )
 
 #-----------------------------------------------------------------------------------------------------------------------
@@ -232,16 +237,14 @@ theme_set(theme_classic()+theme(panel.background = element_rect(color='black',fi
                                 legend.key.size=unit(0.4,'cm')))
 
 #### If testing on single run, run this line and then the code inside the for loop below.
-landisOutputDir <- landisRuns[1]
+landisOutputDir <- landisRuns[34]
 
 #-----------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------
 ### Core post-processing loop: ----
-for(landisOutputDir in sample(landisRuns)){
+for(landisOutputDir in prioritize_uncompressed_runs(landisRuns)){
   if(length(dir(landisOutputDir))==0) stop("LANDIS output folder is empty! Check file path...")
-  
-  
   
   #----------------------------------------------------------------------#
   cat('\n\n\n***********************************************************************************************\n-----------------------------------------------------------------------------------------------
@@ -380,12 +383,13 @@ for(landisOutputDir in sample(landisRuns)){
     zipr(paste0(dirToProcess,'/',scenarioName,'.zip'),files = file.path(landisOutputDir,'DHSVM',dir(file.path(landisOutputDir,'DHSVM'))))
   }
   
+  # stop()
   # 
-  # if(file.exists(file.path(landisOutputDir,'DST','DST_Metrics_by_HUC12.csv')) & simOpts$RERUN.DST.MAPS == F){
-  #   cat('\nDST outputs already exist for',gsub(dirToProcess,"",landisOutputDir),'. Skipping to next sim...')
-  # } else {
-  #   source('./R_Scripts/Post_process/Generate_DST_Maps.R')
-  # }
+  if(file.exists(file.path(landisOutputDir,'DST','DST_Metrics_by_HUC12.csv')) & simOpts$RERUN.DST.MAPS == F){
+    cat('\nDST outputs already exist for',gsub(dirToProcess,"",landisOutputDir),'. Skipping to next sim...')
+  } else {
+    source('./R_Scripts/Post_process/Generate_DST_Maps.R')
+  }
   
   if(!file.exists(file.path(landisOutputDir, "Diagnostics.html"))){
     rmarkdown::render(input = "./R_Scripts/Post_process/Sim_diagnostics.Rmd", 
@@ -407,6 +411,7 @@ for(landisOutputDir in sample(landisRuns)){
                           'dataDir',
                           'modelDir',
                           'MTBS_dir',
+                          'DHSVM_dir',
                           'dirToProcess',
                           'landisRuns',
                           'simOpts',
@@ -421,9 +426,13 @@ for(landisOutputDir in sample(landisRuns)){
                           'lua.r',
                           'pwg.noBuffer.r',
                           'PWGxHUC10.sf',
+                          'road.no.wild.dist.r',
                           'dem.r',
                           'hillshade.r',
+                          'slope.percent.r',
                           'HUC12.sf',
+                          'HUC12.r',
+                          'HUC10.r',
                           'HUC10.sf',
                           'fvsSimToPlot',
                           'species.codes',
@@ -449,6 +458,9 @@ for(landisOutputDir in sample(landisRuns)){
                           'get_ages_of_top3_biomass',
                           'read_and_label',
                           'compute_deviation',
+                          'writeOutputRasts',
+                          'raster2csv',
+                          'trim_to_study_area',
                           'interpolateRaster')])  # clear out everything not on this list
   gc()
   
@@ -486,7 +498,7 @@ sims.df <- data.frame('Run'=basename(landisRuns)) |>  # each folder gets a row
   mutate(Post_processed = ifelse(file.exists(file.path(landisRuns, 'Biomass_Annual_Dynamics.csv')), T, F))  # this is the last essential file generated in the post-processing script, so if it exists, the run has been fully processed
 
 # if there are different model versions present, merge version into scenario so that we can compare versions
-if(length(unique(sims.df$model_version))>1){
+if(length(unique(sims.df$model_version))>1 & simOpts$compare.version == T){
   sims.df <- sims.df |>
     mutate(Mgt_scenario = paste(Mgt_scenario, model_version))
 }
