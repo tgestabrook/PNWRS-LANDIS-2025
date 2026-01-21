@@ -29,6 +29,18 @@ library(foreach)
 library(doParallel)
 source("./R_Scripts/Post_process/Post_functions.R") # load custom functions
 
+# Source - https://stackoverflow.com/a
+# Posted by rbtj
+# Retrieved 2026-01-20, License - CC BY-SA 3.0
+
+# for (i in 1:1000)
+# {
+#   print(i)
+#   date_time<-Sys.time()
+#   while((as.numeric(Sys.time()) - as.numeric(date_time))<5){} #dummy while loop
+# }
+
+
 # set tmpdir to prevent running out of space
 Sys.setenv(TMPDIR = "F:/R_TEMP")
 terraOptions(tempdir = "F:/R_TEMP")
@@ -135,26 +147,34 @@ forest_type_area.df <- as.data.frame(PWG_reclass.r) |> group_by(PWG) |> summaris
 annual_sev.df <- data.frame('year' = integer(0), 'PWG'=character(0), 'sev_class'=character(0), 'count' = integer(0))
 
 ### Compile MTBS record for study area
-for (i in 1984:2019){
-  cat(paste0(i,'...'))
-  fire_sev <- rast(file.path(MTBS_dir, paste0('Observed_fires_', i, '.tif'))) 
-  fire_sev[fire_sev<min(severity.reclass.df$from)]<-NA
-  
-  fire_sev <- fire_sev |> 
-    terra::classify(severity.reclass.df, include.lowest = T) 
-  # plot(fire_sev)
-  
-  stack <- c(PWG_reclass.r, 'dnbr'= fire_sev)
-  
-  yr_df <- as.data.frame(stack) |> 
-    filter(!is.na(PWG)) |> 
-    mutate(sev_class = cut(dnbr, c(0, 1, 2, 3, 4), c('UB', 'Low', 'Moderate', 'High'))) |>
-    group_by(PWG, sev_class) |> summarise(count = dplyr::n()) |>
-    mutate(PWG = as.factor(PWG), year = i, sev_class = as.character(sev_class)) |> filter(!is.na(sev_class))
-  
-  #hist(yr_df$dnbr)
-  annual_sev.df <- dplyr::bind_rows(annual_sev.df, yr_df)
-}
+if(!file.exists(file.path(dataDir, "MTBS_and_FOD_Fires", LANDIS.EXTENT, "Annual_severity_df.csv"))){
+  for (i in 1984:2019){
+    cat(paste0(i,'...'))
+    fire_sev <- rast(file.path(MTBS_dir, paste0('Observed_fires_', i, '.tif'))) 
+    fire_sev[fire_sev<min(severity.reclass.df$from)]<-NA
+    
+    fire_sev <- fire_sev |> 
+      terra::classify(severity.reclass.df, include.lowest = T) 
+    # plot(fire_sev)
+    
+    stack <- c(PWG_reclass.r, 'dnbr'= fire_sev)
+    
+    yr_df <- as.data.frame(stack) |> 
+      filter(!is.na(PWG)) |> 
+      mutate(sev_class = cut(dnbr, c(0, 1, 2, 3, 4), c('UB', 'Low', 'Moderate', 'High'))) |>
+      group_by(PWG, sev_class) |> summarise(count = dplyr::n()) |>
+      mutate(PWG = as.factor(PWG), year = i, sev_class = as.character(sev_class)) |> filter(!is.na(sev_class))
+    
+    #hist(yr_df$dnbr)
+    annual_sev.df <- dplyr::bind_rows(annual_sev.df, yr_df)
+  }
+  write.csv(annual_sev.df, file.path(dataDir, "MTBS_and_FOD_Fires", LANDIS.EXTENT, "Annual_severity_df.csv"))
+} 
+
+annual_sev.df <- read.csv(file.path(dataDir, "MTBS_and_FOD_Fires", LANDIS.EXTENT, "Annual_severity_df.csv")) |> mutate(PWG = as.factor(PWG))
+
+
+
 
 #### Load elevation and hillshade: ----
 dem.r<-rast(file.path(dataDir,paste0("DEM_90m_", LANDIS.EXTENT, ".tif")))
@@ -513,3 +533,30 @@ rmarkdown::render(input = "./R_Scripts/Post_process/Scenario_comparison.Rmd",
                     reference_scenario2 = "Base climate"
                     )
                   )
+
+#### Generate separate figures for DST: -----
+
+if(!dir.exists(file.path(dirToProcess, 'DST_figures'))) {
+  dir.create(file.path(dirToProcess, 'DST_figures'))
+} 
+
+dst.structure.df<-read.csv(file.path(modelDir, 'Shared_inputs', 'DST_Structure.csv')) |>
+  filter(!is.na(Premise)) |>
+  mutate(Topic = str_replace_all(Topic, ' ', '.'),
+         Direction = ifelse(grepl('Less',Premise), -1, 1))  # if premise includes the word "less" direction is -1
+
+for (DST_metric in unique(dst.huc12.all.df$Metric)){
+  
+}
+
+
+
+
+
+
+
+
+
+
+
+

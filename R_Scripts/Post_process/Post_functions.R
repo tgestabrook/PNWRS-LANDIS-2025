@@ -132,10 +132,12 @@ read_and_label <- function(file){
     
     df <- read.csv(file.path(dirToProcess, file)) |>
       mutate(Run = run)
+    
+    return(df)
   } else{
-    next
+    warning(paste("Missing file!", file))
+    return(data.frame())
   }
-  return(df)
 }
 
 # function to trip maps to active sites in study area: ----
@@ -204,3 +206,68 @@ compute_deviation <- function(df, Sc = "BAU wildfire", Sc2 = "Base climate"){
     )
   return(outdf)
 }
+
+# calculate summary, average across repeat sims, make plot
+# dst_output_time_series <- function(metric_name, area_summary){
+#   df <- dst.huc12.all.df |>
+#     filter(Metric == metric_name) |>
+#     group_by(Year, HUC12.num, Scenario, Scenario2) |>
+#     summarise(
+#       Mean = mean(get(area_summary), na.rm = T),
+#       Max = max(get(area_summary), na.rm = T),
+#       Min = min(get(area_summary), na.rm = T)
+#     ) |>
+#     group_by(Year, Scenario, Scenario2) |>  # summarise mean of all HUC12
+#     summarise(
+#       Mean = sum(Mean),
+#       Max = sum(Max),
+#       Min = sum(Min)
+#     )
+#   
+#   structure_info <- dst.structure.df |> filter(Field_name = metric_name)
+#   
+#   metric_label <- paste0(structure_info$Metric, "(", structure_info$Units, ")")
+#   
+#   p<-ggplot(data = df, aes(x = Year, fill = Scenario, color = Scenario, fill = Scenario)) + 
+#     geom_line(aes(y = Mean)) +
+#     geom_ribbon(aes(ymin=Min,ymax=Max),colour=NA,alpha=0.2,size=0.25) +
+#     scale_fill_manual(values = scenario_colors) + scale_color_manual(values = scenario_colors) +
+#     facet_grid(Scenario2~.) +
+#     xlab("Simulation Year") + ylab(metric_label)
+#   
+#   pngOut(p, file.path(dirToProcess, 'DST_figures', paste0(metric_name, "_scenariocomp.png")), width = 6, height = 4) 
+# }
+# 
+# dst_plot_huc12 <- function(metric_name, summary_fun, year){
+#   df <- dst.huc12.all.df |>
+#     filter(Year <= 50, "Fire_High_Sev_Area_Ha") |>
+#     group_by(Year, HUC12.num, Run, Scenario, Scenario2) |>
+#     summarize(Cumulative_Fire_High_Sev_Area_Ha = sum(Fire_High_Sev_Area_Ha)) |>
+#     
+#     
+#     
+#   shp <- HUC12.shp |> left_join(df)
+#   
+# }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

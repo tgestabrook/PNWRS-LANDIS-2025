@@ -14,10 +14,17 @@ if(length(eco_files)==1) {
 ecos.r[ecos.r==0]<-NA
 
 ### Check if LANDIS outputs are flipped: ----
-test_r <- rast(file.path(landisOutputDir, 'biomassOutput', 'TotalBiomass-0-biomass.tif')); crs(test_r) <- crs(ecos.r); ext(test_r) <- ext(ecos.r)
-overlay_normal <- ifel(is.na(ecos.r)&test_r!=0, 1, 0)
-overlay_flip <- ifel(is.na(ecos.r)&flip(test_r)!=0, 1, 0)
-if(sum(values(overlay_normal, na.rm=T))>sum(values(overlay_flip, na.rm=T))){flip_rasters<-T}else{flip_rasters<-F}
+if(file.exists(file.path(landisOutputDir, 'biomassOutput', 'TotalBiomass-0-biomass.tif'))){
+  test_r <- rast(file.path(landisOutputDir, 'biomassOutput', 'TotalBiomass-0-biomass.tif')); crs(test_r) <- crs(ecos.r); ext(test_r) <- ext(ecos.r)
+  overlay_normal <- ifel(is.na(ecos.r)&test_r!=0, 1, 0)
+  overlay_flip <- ifel(is.na(ecos.r)&flip(test_r)!=0, 1, 0)
+  if(sum(values(overlay_normal, na.rm=T))>sum(values(overlay_flip, na.rm=T))){flip_rasters<-T}else{flip_rasters<-F}
+} else {
+  flip_rasters <- T
+  warning("SETTING FLIP RASTERS TO TRUE, DOUBLE-CHECK OUTPUT!")
+}
+
+
 
 cat('###################################################################################################################################
  Post-processing LANDIS-II outputs. Assigning CRS, applying LZW compression to .tiff files, and converting .img files to GeoTiff.

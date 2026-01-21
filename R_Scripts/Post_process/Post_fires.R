@@ -25,6 +25,7 @@ fireIdStack.r <- rast(file.path(fireOutput, 'event-ID-yr.tif'))
 fineFuelStack.r <- rast(file.path(fireOutput, 'fine-fuels-yr.tif'))
 ignitionTypeStack.r <- rast(file.path(fireOutput, 'ignition-type-yr.tif'))
 burned.N.empirical <- rast(file.path(dataDir, 'MTBS_and_FOD_Fires', LANDIS.EXTENT, '_Fires_N.tif'))
+RxFireHa.r <- ifel(ignitionTypeStack.r == 4, 0.81, 0)  # RX = 4 on ignition type maps
 
 severityStackClassified.r <- classify(severityStack.r,rcl=severity.reclass.df,include.lowest=T)
 set.cats(severityStackClassified.r, layer=0, data.frame(id = c(1,2,3,4), severity=c('Unburned','Low','Moderate','High')))

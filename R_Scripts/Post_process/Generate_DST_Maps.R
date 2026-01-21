@@ -249,34 +249,34 @@ if(F %in% file.exists(file.path(landisOutputDir, "DST", paste0(names(new.outputs
 # outputs<-c(outputs,new.outputs)
 
 ### WATER: ---------------------------------------------------------------------
-cat('\n-> Incorporating DHSVM...\n')
-scenario_pieces <- landisOutputDir |> basename() |> str_split_1("_") 
+# cat('\n-> Incorporating DHSVM...\n')
+scenario_pieces <- landisOutputDir |> basename() |> str_split_1("_")
 dhsvm_scenario <- paste0(scenario_pieces[3], scenario_pieces[4]) |> str_to_lower()
-
-new.outputs <- c("MaxSweDate.r", "MaxSwe.r", "MeltOutDate.r")
-names(new.outputs) <- c("MaxSweDate", "MaxSwe", "MeltOutDate")
-outputs <- c(outputs, new.outputs)
-
-if(F %in% file.exists(file.path(landisOutputDir, "DST", paste0(names(new.outputs), ".tif")))){
-  ### MaxSweDate
-  MaxSweDate.r <- rast(file.path(DHSVM_dir, LANDIS.EXTENT, paste0("MaxSweDate_", dhsvm_scenario, ".tif"))) |> extend(ext(pwg.r))
-  
-  ### MaxSwe
-  MaxSwe.r <- rast(file.path(DHSVM_dir, LANDIS.EXTENT, paste0("MaxSwe_", dhsvm_scenario, ".tif"))) |> extend(ext(pwg.r))
-  
-  ### MeltOutDate
-  MeltOutDate.r <- rast(file.path(DHSVM_dir, LANDIS.EXTENT, paste0("MeltOutDate_", dhsvm_scenario, ".tif"))) |> extend(ext(pwg.r))
-  
-  
-  
-  writeOutputRasts(new.outputs, "DST")
-  gc()
-}
+# 
+# new.outputs <- c("MaxSweDate.r", "MaxSwe.r", "MeltOutDate.r")
+# names(new.outputs) <- c("MaxSweDate", "MaxSwe", "MeltOutDate")
+# outputs <- c(outputs, new.outputs)
+# 
+# if(F %in% file.exists(file.path(landisOutputDir, "DST", paste0(names(new.outputs), ".tif")))){
+#   ### MaxSweDate
+#   MaxSweDate.r <- rast(file.path(DHSVM_dir, LANDIS.EXTENT, paste0("MaxSweDate_", dhsvm_scenario, ".tif"))) |> extend(ext(pwg.r))
+#   
+#   ### MaxSwe
+#   MaxSwe.r <- rast(file.path(DHSVM_dir, LANDIS.EXTENT, paste0("MaxSwe_", dhsvm_scenario, ".tif"))) |> extend(ext(pwg.r))
+#   
+#   ### MeltOutDate
+#   MeltOutDate.r <- rast(file.path(DHSVM_dir, LANDIS.EXTENT, paste0("MeltOutDate_", dhsvm_scenario, ".tif"))) |> extend(ext(pwg.r))
+#   
+#   
+#   
+#   writeOutputRasts(new.outputs, "DST")
+#   gc()
+# }
 
 ### MeanAnnualFlow -- added at end!
-MeanAnnualFlow.df <- read.csv(file.path(DHSVM_dir, LANDIS.EXTENT, paste0("MeanAnnualFlow_", dhsvm_scenario, ".csv"))) |> 
-  pivot_longer(starts_with("X"), names_to = "HUC12.num", names_prefix = "X", values_to = "mean") |>
-  mutate(HUC12.num = as.numeric(HUC12.num), Metric = "MeanAnnualFlow")
+# MeanAnnualFlow.df <- read.csv(file.path(DHSVM_dir, LANDIS.EXTENT, paste0("MeanAnnualFlow_", dhsvm_scenario, ".csv"))) |> 
+#   pivot_longer(starts_with("X"), names_to = "HUC12.num", names_prefix = "X", values_to = "mean") |>
+#   mutate(HUC12.num = as.numeric(HUC12.num), Metric = "MeanAnnualFlow")
 ### FIRE: ----------------------------------------------------------------------
 cat('\n-> Calculating Fire dynamics...\n')
 new.outputs<-c('fireDNBR.r','highSevFire.Ha.r','lowSevFire.Ha.r','RxFireHa.r','mort.Mg.r','mort.percent.r',
@@ -627,10 +627,13 @@ if(
   
   cat(paste0('\nFinalizing...'))
   
-  summary_huc12.df <- summary_huc12.df |> bind_rows(MeanAnnualFlow.df)
+  # summary_huc12.df <- summary_huc12.df |> bind_rows(MeanAnnualFlow.df)
 
   write.csv(summary_pwg.df, file.path(landisOutputDir, "DST", "DST_Metrics_by_PWG.csv"))
   write.csv(summary_huc12.df, file.path(landisOutputDir, "DST", "DST_Metrics_by_HUC12.csv"))
+  
+  rm(summary_pwg.df)
+  rm(summary_huc12.df)
 }
 
 

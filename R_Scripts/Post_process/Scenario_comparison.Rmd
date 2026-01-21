@@ -49,7 +49,7 @@ dst.pwg.all.df <- lapply(file.path(sims.df$Run,'DST', 'DST_Metrics_by_PWG.csv'),
   left_join(sims.plot.df)
 
 dst.huc12.all.df <- lapply(file.path(sims.df$Run,'DST', 'DST_Metrics_by_HUC12.csv'), read_and_label) |> bind_rows() |>
-  left_join(sims.plot.df)
+  left_join(sims.plot.df) |> filter(HUC12.num > 0)
 
 fires.all.df <- lapply(file.path(sims.df$Run,'Fire_severity_df.csv'), read_and_label) |> bind_rows() |>
   left_join(sims.plot.df) |>
@@ -403,11 +403,14 @@ df <- dst.huc12.all.df |>
   mutate(sum = replace_na(sum, 0)) |>
   pivot_wider(names_from = "Metric", values_from = "sum") |>
   mutate(NetRevenue = Revenue_Merch_USD + Revenue_Chip_USD - Harvest_Cost_USD - Rx_Fire_Cost_USD - Fire_Suppression_Cost_USD) |>
+  group_by(HUC12.num, Run) |>
+  arrange(Year) |> mutate(NetRevenue = cumsum(NetRevenue)) |>
+  ungroup() |>
   group_by(Year, HUC12.num, Scenario, Scenario2) |>
   summarise(
-    Mean = mean(NetRevenue, na.rm = T),
-    Max = max(NetRevenue, na.rm = T),
-    Min = min(NetRevenue, na.rm = T)
+    Mean = mean(NetRevenue, na.rm = T)/1000000,
+    Max = max(NetRevenue, na.rm = T)/1000000,
+    Min = min(NetRevenue, na.rm = T)/1000000
   ) |> ungroup() |># summarise mean of all HUC12
   group_by(Year, Scenario, Scenario2) |>
   summarise(
@@ -436,7 +439,7 @@ ggplot(data = df, aes(x = Year, fill = Scenario, color = Scenario, fill = Scenar
     geom_ribbon(aes(ymin=Min,ymax=Max),colour=NA,alpha=0.2,size=0.25) +
     scale_fill_manual(values = scenario_colors) + scale_color_manual(values = scenario_colors) +
     facet_grid(Scenario2~.) +
-    xlab("Simulation Year") + ylab(expression(paste('Net Revenue (USD)')))
+    xlab("Simulation Year") + ylab(expression(paste('Cumulative Net Revenue (Millions USD)')))
 ```
 
 ```{r, fig.cap="Area burned in WUI"}
@@ -495,6 +498,35 @@ ggplot(data = df, aes(x = Year, fill = Scenario, color = Scenario, fill = Scenar
     xlab("Simulation Year") + ylab(expression(paste('Area of Mature Forest (Ha)')))
 ```
 
+
+```{r}
+df <- dst.huc12.all.df |>
+  filter(Metric == "Old_Forest") |>
+  mutate(sum = replace_na(sum, 0)) |>
+  group_by(Year, HUC12.num, Scenario, Scenario2) |>
+  summarise(
+    Mean = mean(sum, na.rm = T),
+    Max = max(sum, na.rm = T),
+    Min = min(sum, na.rm = T)
+  ) |>
+  group_by(Year, Scenario, Scenario2) |>  # summarise mean of all HUC12
+  summarise(
+    Mean = sum(Mean, na.rm = T),
+    Max = sum(Max, na.rm = T),
+    Min = sum(Min, na.rm = T)
+  )
+
+ggplot(data = df, aes(x = Year, fill = Scenario, color = Scenario, fill = Scenario)) + 
+    geom_line(aes(y = Mean)) +
+    geom_ribbon(aes(ymin=Min,ymax=Max),colour=NA,alpha=0.2,size=0.25) +
+    scale_fill_manual(values = scenario_colors) + scale_color_manual(values = scenario_colors) +
+    facet_grid(Scenario2~.) +
+    xlab("Simulation Year") + ylab(expression(paste('Area of Mature Forest (Ha)')))
+```
+
+
+
+
 ```{r, fig.cap="Smoke emissions"}
 df <- dst.huc12.all.df |>
   filter(Metric == "Smoke_Emissions_Kg_pm25") |>
@@ -543,6 +575,37 @@ ggplot(data = df, aes(x = Year, fill = Scenario, color = Scenario, fill = Scenar
     facet_grid(Scenario2~.) +
     xlab("Simulation Year") + ylab(expression(paste('Drought susceptible biomass (Mg)')))
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

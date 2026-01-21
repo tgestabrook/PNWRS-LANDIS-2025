@@ -1,47 +1,47 @@
-Topic,Metric,Field name,Units,Definition,Premise,Quantile cutoff low,Quantile cutoff high
-Economics,Merchantable timber revenue,Revenue_Merch_USD,USD,Timber revenue per cell,Greater is better,,
-Economics,Chip revenue,Revenue_Chip_USD,USD,Chip and pulp revenue per cell,Greater is better,,
-Economics,Timber operations cost,Harvest_Cost_USD,USD,Cost for mechanical harvest operations,Less is better,,
-Economics,Rx fire operations cost,Rx_Fire_Cost_USD,USD,Cost for Rx fire operations,Less is better,,
-Economics,Fire suppression cost,Fire_Suppression_Cost_USD,USD,Cost for suppression based on mean suppression effort per fire,Less is better,,
-Sustainable biomass,Merchantable timber biomass,Harvested_Merch_Mg,Mg,Biomass of timber removed,Greater is better,,
-Sustainable biomass,Chip biomass,Harvested_Chip_Mg,Mg,"Biomass removed for chip, pulp, and biofuel",Greater is better,,
-Sustainable biomass,Area treated,Treated_Ha,ha,Area treated per year,NA,,
-Sustainable biomass,Delta biomass since start year,Delta_Biomass_Mg,Mg,Diffence in biomass between focal year and 2020,Greater is better,,
-Carbon,Aboveground live C,AG_LiveC_MgC,Mc C,Aboveground C,Greater is better,,
-Carbon,Aboveground dead C,AG_DeadC_MgC,Mg C,Aboveground C,Greater is better,,
-Carbon,Soil Carbon,SoilC_Mg,Mg C,Belowground C,Greater is better,,
-Carbon,Belowground live C,BG_LiveRootC_MgC,Mc C,Belowground C,Greater is better,,
-Carbon,Belowground dead C,BG_DeadRootC_MgC,Mg C,Belowground C,Greater is better,,
-Carbon,Net ecosystem exchange,NEE_MgC_per_yr,Mc C,Carbon flux,Greater is better,,
-Carbon,Net primary productivity,NPP_MgC_per_yr,Mg C,Carbon sequestration,Greater is better,,
-Carbon,Aboveground live biomass,AG_LiveBiomass_Mg,Mg C,Aboveground live biomass,Greater is better,,
-Water,Peak SWE Date,MaxSweDate,date,Date of peak SWE,NA,,
-Water,Peak SWE Amount,MaxSwe,m,Peak SWE amount,Greater is better,,
-Water,Spring Melt-out Date,MeltOutDate,date,Spring melt out date,Greater is better,,
-Water,Mean Annual Flow,MeanAnnualFlow,m,Mean annual flow per HUC12,Greater is better,,
-Wildfire,Fire severity,Fire_dNBR,dNBR,Fire severity,Less is better,,
-Wildfire,High severity burn area,Fire_High_Sev_Area_Ha,ha,High severity cells = 0.81,Less is better,,
-Wildfire,Low severity burn area,Fire_Low_Sev_Area_Ha,ha,Low severity cells = 0.81,NA,,
-Wildfire,Rx fire burn area,Fire_Rx_Area_Ha,ha,Rx fire cells = 0.81,NA,,
-Wildfire,Fire-induced tree mortality,Fire_Mortality_Mg,%,Average percent mortality per fire,Less is better,,
-Wildfire,Area burned in WUI,Fire_Area_Burned_nonWilderness_Ha,ha,Area burned in non-wilderness areas,NA,,
-Wildfire,Pm 2.5 smoke emissions,Smoke_Emissions_Kg_pm25,kg,Smoke emissions,Less is better,,
-Wildfire,Pm 10 smoke emissions,Smoke_Emissions_Kg_pm10,kg,Smoke emissions,Less is better,,
-Wildfire,Timing of smoke emissions,Smoke_Timing_quantile,quantile,Timing of smoke emissions relative to the worst smoke days in each year,Less is better,,
-Wildfire,Fire severity class,Fire_Severity_Class,severity class,Fire severity,Less is better,,
-Wildfire,Fire mortality percent,Fire_Mortality_Percent,%,Fire mortality,Less is better,,
-Wildfire,Surface Fuels,Surface_Fuel_Mg,Mg,Surface fuel loading,Less is better,,
-Wildfire,Distance_from_high_severity_m,Distance_from_high_severity_m,m,Distance to high severity from pixels that burned at lower severity,NA,,
-Forest health and resilience,Percent mature forest area per HUC12,Percent_Forest_gt50yr,%,Area covered by forest greater than 50 years old,Greater is better,,
-Forest health and resilience,Area of old forest patches >10 ha,Area_of_mature_forest_patches_120yo_over_10_ha,ha,Area covered by large patches (>10 ha) of old forest (>120 yrs old),Greater is better,,
-Forest health and resilience,Presence of old trees,Old_Forest,binary,Binary presence of old trees in each cell,Greater is better,,
-Forest health and resilience,Drought susceptible biomass,Delta_Offsite_Biomass_Mg,Mg,Change in amount of offsite biomass compared to 2020,Less is better,,
-Forest health and resilience,Area of homogeneous forest,Area_of_Homogeneous_Forest_ha,ha,Patch area of homogeneous cover type and age class,Less is better,,
-Forest health and resilience,Seed Source,Seed_Source,binary,Is a seed source,Greater is better,,
-Landscape integrity,Distance to nearest seed source,Seed_Source_Distance_m,m,Distance to nearest trees >20 yrs old,Less is better,,
-Landscape integrity,Structural diversity,N_age_classes_gt5percentArea_in_HUC12,age classes,Number of age classes (40 yr bins) that occupy at least 5% area within each HUC12,Greater is better,,
-Landscape integrity,Compositional diversity,N_spp_gt5percentArea_in_HUC12,species,Number of cover types that occupy at least 5% area within each HUC12,Greater is better,,
-Landscape integrity,Distance to old forest,Distance_to_old_forest_m,m,Distance to forest >120 yrs old,Less is better,,
-Landscape integrity,Persistence as initial cover type,Cover_Type_Change,binary,"0 = same cover type as 2020, 1 = different cover type",Less is better,,
-Landscape integrity,Forest to non-forest type conversion,Type_Conversion,binary,"0 = no change, forest. NA = no change, non-forest. -1 = forest to non-forest. 1 = non-forest to forest.",Greater is better,,
+Topic,Metric,Field_name,Units,Definition,Premise,Quantile cutoff low,Quantile cutoff high,SummaryFun
+Economics,Merchantable timber revenue,Revenue_Merch_USD,USD,Timber revenue per cell,Greater is better,,,sum
+Economics,Chip revenue,Revenue_Chip_USD,USD,Chip and pulp revenue per cell,Greater is better,,,sum
+Economics,Timber operations cost,Harvest_Cost_USD,USD,Cost for mechanical harvest operations,Less is better,,,sum
+Economics,Rx fire operations cost,Rx_Fire_Cost_USD,USD,Cost for Rx fire operations,Less is better,,,sum
+Economics,Fire suppression cost,Fire_Suppression_Cost_USD,USD,Cost for suppression based on mean suppression effort per fire,Less is better,,,sum
+Sustainable biomass,Merchantable timber biomass,Harvested_Merch_Mg,Mg,Biomass of timber removed,Greater is better,,,sum
+Sustainable biomass,Chip biomass,Harvested_Chip_Mg,Mg,"Biomass removed for chip, pulp, and biofuel",Greater is better,,,sum
+Sustainable biomass,Area treated,Treated_Ha,ha,Area treated per year,NA,,,sum
+Sustainable biomass,Delta biomass since start year,Delta_Biomass_Mg,Mg,Diffence in biomass between focal year and 2020,Greater is better,,,sum
+Carbon,Aboveground live C,AG_LiveC_MgC,Mc C,Aboveground C,Greater is better,,,sum
+Carbon,Aboveground dead C,AG_DeadC_MgC,Mg C,Aboveground C,Greater is better,,,sum
+Carbon,Soil Carbon,SoilC_Mg,Mg C,Belowground C,Greater is better,,,sum
+Carbon,Belowground live C,BG_LiveRootC_MgC,Mc C,Belowground C,Greater is better,,,sum
+Carbon,Belowground dead C,BG_DeadRootC_MgC,Mg C,Belowground C,Greater is better,,,sum
+Carbon,Net ecosystem exchange,NEE_MgC_per_yr,Mc C,Carbon flux,Greater is better,,,sum
+Carbon,Net primary productivity,NPP_MgC_per_yr,Mg C,Carbon sequestration,Greater is better,,,sum
+Carbon,Aboveground live biomass,AG_LiveBiomass_Mg,Mg C,Aboveground live biomass,Greater is better,,,sum
+Water,Peak SWE Date,MaxSweDate,date,Date of peak SWE,NA,,,sum
+Water,Peak SWE Amount,MaxSwe,m,Peak SWE amount,Greater is better,,,sum
+Water,Spring Melt-out Date,MeltOutDate,date,Spring melt out date,Greater is better,,,sum
+Water,Mean Annual Flow,MeanAnnualFlow,m,Mean annual flow per HUC12,Greater is better,,,sum
+Wildfire,Fire severity,Fire_dNBR,dNBR,Fire severity,Less is better,,,sum
+Wildfire,High severity burn area,Fire_High_Sev_Area_Ha,ha,High severity cells = 0.81,Less is better,,,sum
+Wildfire,Low severity burn area,Fire_Low_Sev_Area_Ha,ha,Low severity cells = 0.81,NA,,,sum
+Wildfire,Rx fire burn area,Fire_Rx_Area_Ha,ha,Rx fire cells = 0.81,NA,,,sum
+Wildfire,Fire-induced tree mortality,Fire_Mortality_Mg,%,Average percent mortality per fire,Less is better,,,sum
+Wildfire,Area burned in WUI,Fire_Area_Burned_nonWilderness_Ha,ha,Area burned in non-wilderness areas,NA,,,sum
+Wildfire,Pm 2.5 smoke emissions,Smoke_Emissions_Kg_pm25,kg,Smoke emissions,Less is better,,,sum
+Wildfire,Pm 10 smoke emissions,Smoke_Emissions_Kg_pm10,kg,Smoke emissions,Less is better,,,sum
+Wildfire,Timing of smoke emissions,Smoke_Timing_quantile,quantile,Timing of smoke emissions relative to the worst smoke days in each year,Less is better,,,sum
+Wildfire,Fire severity class,Fire_Severity_Class,severity class,Fire severity,Less is better,,,sum
+Wildfire,Fire mortality percent,Fire_Mortality_Percent,%,Fire mortality,Less is better,,,sum
+Wildfire,Surface Fuels,Surface_Fuel_Mg,Mg,Surface fuel loading,Less is better,,,sum
+Wildfire,Distance_from_high_severity_m,Distance_from_high_severity_m,m,Distance to high severity from pixels that burned at lower severity,NA,,,sum
+Forest health and resilience,Percent mature forest area per HUC12,Percent_Forest_gt50yr,%,Area covered by forest greater than 50 years old,Greater is better,,,sum
+Forest health and resilience,Area of old forest patches >10 ha,Area_of_mature_forest_patches_120yo_over_10_ha,ha,Area covered by large patches (>10 ha) of old forest (>120 yrs old),Greater is better,,,sum
+Forest health and resilience,Presence of old trees,Old_Forest,binary,Binary presence of old trees in each cell,Greater is better,,,sum
+Forest health and resilience,Drought susceptible biomass,Delta_Offsite_Biomass_Mg,Mg,Change in amount of offsite biomass compared to 2020,Less is better,,,sum
+Forest health and resilience,Area of homogeneous forest,Area_of_Homogeneous_Forest_ha,ha,Patch area of homogeneous cover type and age class,Less is better,,,sum
+Forest health and resilience,Seed Source,Seed_Source,binary,Is a seed source,Greater is better,,,sum
+Landscape integrity,Distance to nearest seed source,Seed_Source_Distance_m,m,Distance to nearest trees >20 yrs old,Less is better,,,sum
+Landscape integrity,Structural diversity,N_age_classes_gt5percentArea_in_HUC12,age classes,Number of age classes (40 yr bins) that occupy at least 5% area within each HUC12,Greater is better,,,sum
+Landscape integrity,Compositional diversity,N_spp_gt5percentArea_in_HUC12,species,Number of cover types that occupy at least 5% area within each HUC12,Greater is better,,,sum
+Landscape integrity,Distance to old forest,Distance_to_old_forest_m,m,Distance to forest >120 yrs old,Less is better,,,sum
+Landscape integrity,Persistence as initial cover type,Cover_Type_Change,binary,"0 = same cover type as 2020, 1 = different cover type",Less is better,,,sum
+Landscape integrity,Forest to non-forest type conversion,Type_Conversion,binary,"0 = no change, forest. NA = no change, non-forest. -1 = forest to non-forest. 1 = non-forest to forest.",Greater is better,,,sum

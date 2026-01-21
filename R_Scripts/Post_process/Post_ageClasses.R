@@ -74,11 +74,20 @@ if (
       
       if (!file.exists(file.path(ageOutput, 'MeanAge_DominantSpecies-yr.tif'))){
         writeRaster(mean.age.domSpp.r,file.path(ageOutput, paste0('MeanAge_DominantSpecies-',yr,'.tif')),overwrite=T)
+      } 
+      if (!file.exists(file.path(ageOutput, 'MeanAge_TopThreeSpecies-yr.tif'))) {
         writeRaster(mean.age.top3.dom.r,file.path(ageOutput, paste0('MeanAge_TopThreeSpecies-',yr,'.tif')),overwrite=T)
+      } 
+      if (!file.exists(file.path(ageOutput, 'DominantSpecies-yr.tif'))) {
         writeRaster(dominant.spp,file.path(ageOutput, paste0('DominantSpecies-',yr,'.tif')),overwrite=T)
+      } 
+      if (!file.exists(file.path(ageOutput, 'DominantSpeciesTwo-yr.tif'))) {
         writeRaster(dominant.spp2,file.path(ageOutput, paste0('DominantSpeciesTwo-',yr,'.tif')),overwrite=T)
+      } 
+      if (!file.exists(file.path(ageOutput, 'DominantSpeciesThree-yr.tif'))) {
         writeRaster(dominant.spp3,file.path(ageOutput, paste0('DominantSpeciesThree-',yr,'.tif')),overwrite=T)
       }
+  
       rm(list = c("mean.age.domSpp.r", "mean.age.top3.dom.r", "dominant.spp", "dominant.spp2", "dominant.spp3", "age.top.3.dom.r", "biomass.trees", "med.age", "top3sp.r"))
       gc()
     }
