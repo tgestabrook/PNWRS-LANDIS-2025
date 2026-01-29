@@ -130,8 +130,8 @@ if(F %in% file.exists(file.path(landisOutputDir, "DST", paste0(names(new.outputs
 
 ### ECONOMICS: -----------------------------------------------------------------
 cat('\n-> Calculating Economics\n')
-new.outputs<-c('merchRevenue.r','chipRevenue.r','harvestCost.r','rxCost.r','suppressionCost.r')
-names(new.outputs)<-c('Revenue_Merch_USD','Revenue_Chip_USD','Harvest_Cost_USD','Rx_Fire_Cost_USD','Fire_Suppression_Cost_USD')
+new.outputs<-c('merchRevenue.r','chipRevenue.r','harvestCost.r','rxCost.r','suppressionCost.r', 'netRevenue.r')
+names(new.outputs)<-c('Revenue_Merch_USD','Revenue_Chip_USD','Harvest_Cost_USD','Rx_Fire_Cost_USD','Fire_Suppression_Cost_USD', 'Net_Revenue_USD')
 outputs <- c(outputs, new.outputs)
 
 
@@ -184,6 +184,8 @@ if(F %in% file.exists(file.path(landisOutputDir, "DST", paste0(names(new.outputs
   
   suppressionEffort.r <- ifel(!is.na(fireIdStack.r) & is.na(suppressionEffort.r), 0, suppressionEffort.r)  # if there's a pixel where there was fire but no assigned suppressioneffort, set to zero
   suppressionCost.r <- suppressionEffort.r * 19
+  
+  netRevenue.r <- merchRevenue.r + chipRevenue.r - harvestCost.r - rxCost.r - suppressionCost.r
   
   writeOutputRasts(new.outputs, "DST")
   gc()

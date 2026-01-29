@@ -546,7 +546,10 @@ dst.structure.df<-read.csv(file.path(modelDir, 'Shared_inputs', 'DST_Structure.c
          Direction = ifelse(grepl('Less',Premise), -1, 1))  # if premise includes the word "less" direction is -1
 
 for (DST_metric in unique(dst.huc12.all.df$Metric)){
+  structure_info <- dst.structure.df |> filter(Field_name == DST_metric)
+  cat(paste0('\n', DST_metric))
   
+  dst_output_time_series(DST_metric, structure_info$AreaSummary, metricLabel = structure_info$Units, cumulative = structure_info$Cumulative)
 }
 
 

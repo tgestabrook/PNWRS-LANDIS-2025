@@ -15,6 +15,8 @@ for (folder in c("ageOutput", "biomassOutput", "NECN")){
 
   files <- dir(file.path(landisOutputDir,folder))
   files <- files[grepl(".tif", files)]
+  
+  gc()
 
   foreach (stack = files, .packages = c("terra", "stringr"), .inorder = F) %dopar% {
     s <- rast(file.path(landisOutputDir, folder, stack))

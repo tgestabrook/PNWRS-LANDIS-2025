@@ -208,35 +208,77 @@ compute_deviation <- function(df, Sc = "BAU wildfire", Sc2 = "Base climate"){
 }
 
 # calculate summary, average across repeat sims, make plot
-# dst_output_time_series <- function(metric_name, area_summary){
-#   df <- dst.huc12.all.df |>
-#     filter(Metric == metric_name) |>
-#     group_by(Year, HUC12.num, Scenario, Scenario2) |>
-#     summarise(
-#       Mean = mean(get(area_summary), na.rm = T),
-#       Max = max(get(area_summary), na.rm = T),
-#       Min = min(get(area_summary), na.rm = T)
-#     ) |>
-#     group_by(Year, Scenario, Scenario2) |>  # summarise mean of all HUC12
-#     summarise(
-#       Mean = sum(Mean),
-#       Max = sum(Max),
-#       Min = sum(Min)
-#     )
-#   
-#   structure_info <- dst.structure.df |> filter(Field_name = metric_name)
-#   
-#   metric_label <- paste0(structure_info$Metric, "(", structure_info$Units, ")")
-#   
-#   p<-ggplot(data = df, aes(x = Year, fill = Scenario, color = Scenario, fill = Scenario)) + 
-#     geom_line(aes(y = Mean)) +
-#     geom_ribbon(aes(ymin=Min,ymax=Max),colour=NA,alpha=0.2,size=0.25) +
-#     scale_fill_manual(values = scenario_colors) + scale_color_manual(values = scenario_colors) +
-#     facet_grid(Scenario2~.) +
-#     xlab("Simulation Year") + ylab(metric_label)
-#   
-#   pngOut(p, file.path(dirToProcess, 'DST_figures', paste0(metric_name, "_scenariocomp.png")), width = 6, height = 4) 
-# }
+dst_output_time_series <- function(metricName, areaSummary, metricLabel = metricname, cumulative = F, plotScale = 1, mapYear = 50){  # area summary is sum or mean or sd
+  
+  df <- dst.huc12.all.df |>
+    filter(Metric == metricName) |>
+    mutate(areaSummary = replace_na(get(areaSummary), 0))
+
+  
+  df <- df |> 
+    group_by(Year, HUC12.num, Scenario, Scenario2) |>  # first summarize mean, max, min values for all HUC12 units across scenario type
+    summarise(
+      Mean = mean(areaSummary, na.rm = T),
+      Max = max(areaSummary, na.rm = T),
+      Min = min(areaSummary, na.rm = T)
+    ) |> ungroup()
+  
+  if(areaSummary == "sum"){
+    full.df <- df |>
+      group_by(Year, Scenario, Scenario2) |>  # summarise mean of all HUC12
+      summarise(
+        Mean = sum(Mean),
+        Max = sum(Max),
+        Min = sum(Min)
+      )
+  } else if (areaSummary == "mean"){
+    full.df <- df |>
+      group_by(Year, Scenario, Scenario2) |>  # summarise mean of all HUC12
+      summarise(
+        Mean = mean(Mean),
+        Max = mean(Max),
+        Min = mean(Min)
+      )
+  }
+  
+  
+  
+  if (cumulative) {
+    full.df <- full.df |>
+      group_by(Scenario, Scenario2)
+  }
+  
+  if (plotScale != 1){
+    metricLabel = paste0(plotScale, "s ", metricLabel)
+  }
+  
+  p<-ggplot(data = full.df, aes(x = Year, fill = Scenario, color = Scenario, fill = Scenario)) +
+    geom_line(aes(y = Mean/plotScale)) +
+    geom_ribbon(aes(ymin=Min/plotScale,ymax=Max/plotScale),colour=NA,alpha=0.2,size=0.25) +
+    scale_fill_manual(values = scenario_colors) + scale_color_manual(values = scenario_colors) +
+    facet_grid(Scenario2~.) +
+    xlab("Simulation Year") + ylab(metricLabel) 
+  
+  
+  pngOut(p, file.path(dirToProcess, 'DST_figures', paste0(metricName, "_scenariocomp.png")), width = 6, height = 4)
+  
+  ### Now for the map component
+  if (cumulative){  # if we already did cumsum, just grab year 50
+    map.df <- df |>
+      filter(Year == mapYear) 
+  } else {  # otherwise, take mean or sum of 1-50
+    map.df <- df |> 
+      filter(Year <= mapYear) |>
+      group_by(HUC12.num, Scenario, Scenario2) |>
+      summarise(Mean = mean(Mean))  # average the mean scenario value per HUC12 across the first 50 years
+  }
+  
+  shp <- HUC12.sf |> left_join(df)
+  
+  p2 <- ggplot(data = shp, aes(fill = Mean)) + geom_spatvector(color = NA) + scale_fill_viridis_c() + facet_grid(Scenario2~Scenario)
+  
+  pngOut(p2, file.path(dirToProcess, 'DST_figures', paste0(metricName, "_mapcomp.png")), width = 6, height = 4)
+}
 # 
 # dst_plot_huc12 <- function(metric_name, summary_fun, year){
 #   df <- dst.huc12.all.df |>
