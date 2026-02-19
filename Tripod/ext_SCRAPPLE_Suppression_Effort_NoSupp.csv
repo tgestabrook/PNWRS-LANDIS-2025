@@ -3,10 +3,10 @@ Accidental,0,0,20,0,40,0
 Accidental,1,0,20,0,40,0
 Accidental,2,0,20,0,40,0
 Accidental,3,0,20,0,40,0
-Lightning,0,40,20,20,40,10
-Lightning,1,40,20,20,40,10
-Lightning,2,40,20,20,40,10
-Lightning,3,40,20,20,40,10
+Lightning,0,70,20,20,40,15
+Lightning,1,70,20,20,40,15
+Lightning,2,70,20,20,40,15
+Lightning,3,70,20,20,40,15
 Rx,0,50,20,50,40,50
 Rx,1,50,20,50,40,50
 Rx,2,50,20,50,40,50

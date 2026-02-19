@@ -4,7 +4,7 @@ set extent=%2
 set climate=%3
 
 REM Set the directory name
-set dirName=LANDIS_Sim_%2_%3_Sc%1
+set dirName=Sim_%2_%3_Sc%1
 
 set date_time=%date:~-4%%date:~4,-8%%date:~7,-5%_%time:~0,-9%%time:~3,-6%
 set date_time=%date_time: =0%
