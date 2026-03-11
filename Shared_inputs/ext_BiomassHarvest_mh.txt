@@ -56,7 +56,7 @@ Stands     		./MagicHarvest/MH_stands.tif
 >>-----------------------------------------------------------
 Prescription 			Industrial
 StandRanking 			Random
-MinimumAge 			35		
+MinimumAge 			45		
 SiteSelection 			Complete
 CohortsRemoved			ClearCut	
 Plant	PseuMenz
@@ -100,7 +100,7 @@ CohortsRemoved			SpeciesList
 >>-----------------------------------------------------------
 Prescription 			WA_DNR
 StandRanking 			Random
-MinimumAge 			35		<< Optional
+MinimumAge 			45		<< Optional
 MaximumAge 			600		<< Optional
 SiteSelection 			Complete 	
 CohortsRemoved			SpeciesList
@@ -379,9 +379,9 @@ HarvestImplementations	<< Harvest Area is the target percentage of the cells in 
 	3		PCT_cold		100%	
 	3		CC_cold			100%
 	8		WC_cold			100%
-	4		Industrial		5%
+	4		Industrial		1.25%
 	6		SalvageLogging		100%
-	7		WA_DNR			5%
+	7		WA_DNR			1.25%
 
 
 >>-----------------------------------------------------------	
