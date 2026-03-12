@@ -29,7 +29,7 @@ InitialSOM2CMapName			../OkaMet/NECN_input_maps/SOM2Csoil.tif
 InitialSOM2NMapName			../OkaMet/NECN_input_maps/SOM2Nsoil.tif
 InitialSOM3CMapName			../OkaMet/NECN_input_maps/SOM3Csoil.tif
 InitialSOM3NMapName			../OkaMet/NECN_input_maps/SOM3Nsoil.tif
-InitialDeadWoodSurfaceMapName		../OkaMet/NECN_input_maps/SurfaceLitterBiomass-10.tif
+InitialDeadWoodSurfaceMapName		../OkaMet/NECN_input_maps/SurfaceLitterBiomass-30.tif
 InitialDeadCoarseRootsMapName		../OkaMet/NECN_input_maps/DeadWoodSoil.tif
 
 
