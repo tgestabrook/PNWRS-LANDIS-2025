@@ -14,6 +14,11 @@ if(!dir.exists(file.path(landisOutputDir, 'DST'))) {
 zero.r <- rast(pwg.r, vals = 0, nlyrs = simLength + 1)
 
 outputs <- c()
+
+terra::tmpFiles(remove = TRUE)  # clear temp files
+
+dt <- as.data.table(fireIdStack.r, xy = T, na.rm = NA)  # used in several steps below
+ 
 #-----------------------------------------------------#
 ### Define biomass harvest costs and value: ----
 
@@ -174,13 +179,34 @@ if(F %in% file.exists(file.path(landisOutputDir, "DST", paste0(names(new.outputs
   join.df <- fire.df |>
     select(SimulationYear, EventID, MeanSuppressionEffectiveness)
   
-  suppressionEffort.r <- as.data.frame(fireIdStack.r, xy = T) |> 
-    pivot_longer(starts_with("Event-ID-"), names_to = "Year", values_to = "EventID", values_drop_na = T) |>
-    mutate(SimulationYear = as.numeric(str_extract(Year, "(\\d+)"))) |>
-    left_join(join.df, by = c("SimulationYear", "EventID")) |>
-    select(x, y, SimulationYear, MeanSuppressionEffectiveness) |>
-    mutate(SimulationYear = paste0("suppressionEffort-", SimulationYear)) |>
+  setDT(join.df)
+  
+  # suppressionEffort.r <- as.data.frame(fireIdStack.r, xy = T) |> 
+  #   pivot_longer(starts_with("Event-ID-"), names_to = "Year", values_to = "EventID", values_drop_na = T) |>
+  #   mutate(SimulationYear = as.numeric(str_extract(Year, "(\\d+)"))) |>
+  #   left_join(join.df, by = c("SimulationYear", "EventID")) |>
+  #   select(x, y, SimulationYear, MeanSuppressionEffectiveness) |>
+  #   mutate(SimulationYear = paste0("suppressionEffort-", SimulationYear)) |>
+  #   rast(type = 'xylz', crs = crs(pwg.r), ext = ext(pwg.r))
+  
+  suppressionEffort.r <- melt(dt,
+                              id.vars = c("x", "y"),
+                              variable.name = "Year",
+                              value.name = "EventID") [
+                                # Extract year and join in one step
+                                , SimulationYear := as.numeric(gsub("\\D", "", Year))  # TODO double check!!!
+                              ][
+                                # Left join using data.table syntax
+                                join.df, on = .(SimulationYear, EventID), nomatch = NULL
+                              ][
+                                # Format the layer name for the raster conversion
+                                , SimulationYear := paste0("suppressionEffort-", SimulationYear)
+                              ][
+                                # Select columns and convert back to SpatRaster
+                                , .(x, y, SimulationYear, MeanSuppressionEffectiveness)
+                              ] |>
     rast(type = 'xylz', crs = crs(pwg.r), ext = ext(pwg.r))
+  
   
   suppressionEffort.r <- ifel(!is.na(fireIdStack.r) & is.na(suppressionEffort.r), 0, suppressionEffort.r)  # if there's a pixel where there was fire but no assigned suppressioneffort, set to zero
   suppressionCost.r <- suppressionEffort.r * 19
@@ -254,33 +280,48 @@ if(F %in% file.exists(file.path(landisOutputDir, "DST", paste0(names(new.outputs
 # cat('\n-> Incorporating DHSVM...\n')
 scenario_pieces <- landisOutputDir |> basename() |> str_split_1("_")
 dhsvm_scenario <- paste0(scenario_pieces[3], scenario_pieces[4]) |> str_to_lower()
-# 
-# new.outputs <- c("MaxSweDate.r", "MaxSwe.r", "MeltOutDate.r")
-# names(new.outputs) <- c("MaxSweDate", "MaxSwe", "MeltOutDate")
-# outputs <- c(outputs, new.outputs)
-# 
-# if(F %in% file.exists(file.path(landisOutputDir, "DST", paste0(names(new.outputs), ".tif")))){
-#   ### MaxSweDate
-#   MaxSweDate.r <- rast(file.path(DHSVM_dir, LANDIS.EXTENT, paste0("MaxSweDate_", dhsvm_scenario, ".tif"))) |> extend(ext(pwg.r))
-#   
-#   ### MaxSwe
-#   MaxSwe.r <- rast(file.path(DHSVM_dir, LANDIS.EXTENT, paste0("MaxSwe_", dhsvm_scenario, ".tif"))) |> extend(ext(pwg.r))
-#   
-#   ### MeltOutDate
-#   MeltOutDate.r <- rast(file.path(DHSVM_dir, LANDIS.EXTENT, paste0("MeltOutDate_", dhsvm_scenario, ".tif"))) |> extend(ext(pwg.r))
-#   
-#   
-#   
-#   writeOutputRasts(new.outputs, "DST")
-#   gc()
-# }
+#
+new.outputs <- c("MaxSweDate.r", "MaxSwe.r", "MeltOutDate.r")
+names(new.outputs) <- c("MaxSweDate", "MaxSwe", "MeltOutDate")
+outputs <- c(outputs, new.outputs)
 
-### MeanAnnualFlow -- added at end!
-# MeanAnnualFlow.df <- read.csv(file.path(DHSVM_dir, LANDIS.EXTENT, paste0("MeanAnnualFlow_", dhsvm_scenario, ".csv"))) |> 
-#   pivot_longer(starts_with("X"), names_to = "HUC12.num", names_prefix = "X", values_to = "mean") |>
-#   mutate(HUC12.num = as.numeric(HUC12.num), Metric = "MeanAnnualFlow")
+if (file.exists(file.path(DHSVM_dir, LANDIS.EXTENT, paste0("MaxSweDate_", dhsvm_scenario, ".tif")))){  # if we have DHSVM outputs
+
+  ### MaxSweDate
+  MaxSweDate.r <- rast(file.path(DHSVM_dir, LANDIS.EXTENT, paste0("MaxSweDate_", dhsvm_scenario, ".tif"))) |> extend(ext(pwg.r))
+  
+  ### MaxSwe
+  MaxSwe.r <- rast(file.path(DHSVM_dir, LANDIS.EXTENT, paste0("MaxSwe_", dhsvm_scenario, ".tif"))) |> extend(ext(pwg.r))
+  
+  ### MeltOutDate
+  MeltOutDate.r <- rast(file.path(DHSVM_dir, LANDIS.EXTENT, paste0("MeltOutDate_", dhsvm_scenario, ".tif"))) |> extend(ext(pwg.r))
+  
+  
+  
+  writeOutputRasts(new.outputs, "DST")
+  gc()
+  
+  
+
+  
+  ### MeanAnnualFlow -- added at end!
+  MeanAnnualFlow.df <- read.csv(file.path(DHSVM_dir, LANDIS.EXTENT, paste0("MeanAnnualFlow_", dhsvm_scenario, ".csv"))) |>
+    pivot_longer(starts_with("X"), names_to = "HUC12.num", names_prefix = "X", values_to = "mean") |>
+    mutate(HUC12.num = as.numeric(HUC12.num), Metric = "MeanAnnualFlow")
+} else {
+  MaxSweDate.r <- zero.r
+  MaxSwe.r <- zero.r
+  MeltOutDate.r <- zero.r
+  MeanAnnualFlow.df <- data.frame()
+  
+  writeOutputRasts(new.outputs, "DST")
+  gc()
+}
+
+
 ### FIRE: ----------------------------------------------------------------------
 cat('\n-> Calculating Fire dynamics...\n')
+gc()
 new.outputs<-c('fireDNBR.r','highSevFire.Ha.r','lowSevFire.Ha.r','RxFireHa.r','mort.Mg.r','mort.percent.r',
                'areaBurnedNonWilderness.Ha.r','severityStackSmoothedClassified.r',
                'high.sev.dist.r', 'surfaceFuels.r')
@@ -306,16 +347,32 @@ if(F %in% file.exists(file.path(landisOutputDir, "DST", paste0(names(new.outputs
     mutate(MortMgPerPix = (TotalBiomassMortality * 0.01 * 0.81) / TotalSitesBurned) |>
     select(SimulationYear, EventID, MortMgPerPix)
   
-  mort.Mg.r <- fireIdStack.r |> 
-    as.data.frame(xy = T) |> 
-    pivot_longer(starts_with("Event-ID-"), names_to = "Year", values_to = "EventID") |>
-    filter(!is.na(EventID)) |>
-    mutate(SimulationYear = as.numeric(str_extract(Year, "(\\d+)"))) |>
-    left_join(join.df, by = c("SimulationYear", "EventID")) |>
-    select(x, y, SimulationYear, MortMgPerPix) |>
-    mutate(SimulationYear = paste0("Fire_Mortality_Mg-", SimulationYear)) |>
-    rast(type = 'xylz', crs = crs(pwg.r), ext = ext(pwg.r))
   
+  start.time <- Sys.time()
+  # dt <- as.data.table(fireIdStack.r, xy = TRUE, na.rm = NA)
+  
+  # Set keys for faster joining
+  setDT(join.df)
+  
+  mort.Mg.r <- melt(dt, 
+                    id.vars = c("x", "y"), 
+                    variable.name = "Year", 
+                    value.name = "EventID") [
+                      # Extract year and join in one step
+                      , SimulationYear := as.numeric(gsub("\\D", "", Year))  # TODO double check!!!
+                    ][
+                      # Left join using data.table syntax
+                      join.df, on = .(SimulationYear, EventID), nomatch = NULL
+                    ][
+                      # Format the layer name for the raster conversion
+                      , SimulationYear := paste0("Fire_Mortality_Mg-", SimulationYear)
+                    ][
+                      # Select columns and convert back to SpatRaster
+                      , .(x, y, SimulationYear, MortMgPerPix)
+                    ] |> 
+    rast(type = 'xylz', crs = crs(pwg.r), ext = ext(pwg.r))
+  print(start.time - Sys.time())
+  rm(dt)
   
   ### mort.percent.r
   mort.percent.r <- ifel(totalBiomass_stack.r[[2:nlyr(totalBiomass_stack.r)]] > 0, mort.Mg.r / totalBiomass_stack.r[[2:nlyr(totalBiomass_stack.r)]], 0)  # look at available biomass from the year before the fire
@@ -327,7 +384,7 @@ if(F %in% file.exists(file.path(landisOutputDir, "DST", paste0(names(new.outputs
   ### high.sev.dist.r -- distance to high severity patch edge -- penalizes very large high severity patches
   high.sev.dist.r <- distance(ifel(severityStackSmoothedClassified.r == 4, 1, 0), target = 0)
   high.sev.dist.r <- ifel(pwg.r %in% c(10, 11) | is.na(pwg.r), 0, high.sev.dist.r)
-  high.sev.dist.r <- ifel(severityStackSmoothedClassified.r == 0, 0, high.sev.dist.r)
+  # high.sev.dist.r <- ifel(is.na(severityStackSmoothedClassified.r), 0, high.sev.dist.r)
   
   
   ###surfaceFuels.r
@@ -509,7 +566,7 @@ if(F %in% file.exists(file.path(landisOutputDir, "DST", paste0(names(new.outputs
   cover.type.r <- ifel(is.na(totalBiomass_stack.r) | totalBiomass_stack.r==0 | is.na(cover.type.r), 0, cover.type.r)
   
   # View result:
-  plot(cover.type.r,col=hcl.colors(100,'Temps'))
+  # plot(cover.type.r,col=hcl.colors(100,'Temps'))
   
   # if(length(unique(values(cover.type.r)))>length(unique(values(pwg.r)))) 
   #   stop('Erronious cover types found. Check the focal.yr.dominant.spp raster. Interpolation may have messed it up.')
@@ -578,7 +635,7 @@ if(F %in% file.exists(file.path(landisOutputDir, "DST", paste0(names(new.outputs
   mature.patch.dist.r <- ifel((mature.patch.dist.r == 0 | is.na(mature.patch.dist.r)) | pwg.r %in% c(10:15), 0, 1) |>
     distance(target=0)
   mature.patch.dist.r <- ifel(pwg.r %in% c(10:12) | is.na(pwg.r), NA, mature.patch.dist.r)
-  plot(mature.patch.dist.r,col=hcl.colors(100,'Temps'))
+  # plot(mature.patch.dist.r,col=hcl.colors(100,'Temps'))
   
   
   ### type.change.r -- Percent area that converts from forest PWG to non-forest PWG:
@@ -607,12 +664,14 @@ if(F %in% file.exists(file.path(landisOutputDir, "DST", paste0(names(new.outputs
 if(
   !file.exists(file.path(landisOutputDir, "DST", "DST_Metrics_by_PWG.csv")) |
   !file.exists(file.path(landisOutputDir, "DST", "DST_Metrics_by_HUC12.csv")) |
+  !file.exists(file.path(landisOutputDir, "DST", "DST_Metrics_by_Landscape.csv")) |
   simOpts$RERUN.DST.MAPS
 ) {
   cat("\n\n -> Summarizing DST Maps by PWG & HUC12...\n")
 
   summary_huc12.df <- data.frame()
   summary_pwg.df <- data.frame()
+  summary_landscape.df <- data.frame()
 
   for (i in 1:length(outputs)){
     cat(outputs[i])
@@ -622,20 +681,31 @@ if(
 
     pwg.df <- raster2csv(r, agg = pwg.r) |> mutate(Metric = out.name)
     huc12.df <- raster2csv(r, agg = HUC12.r) |> mutate(Metric = out.name)
-
+    landscape.df <- raster2csv(r, agg = active.r) |> mutate(Metric = out.name)
+    
+    
     summary_huc12.df <- bind_rows(summary_huc12.df, huc12.df)
     summary_pwg.df <- bind_rows(summary_pwg.df, pwg.df)
+    summary_landscape.df <- bind_rows(summary_landscape.df, landscape.df)
   }
   
   cat(paste0('\nFinalizing...'))
   
-  # summary_huc12.df <- summary_huc12.df |> bind_rows(MeanAnnualFlow.df)
+  summary_huc12.df <- summary_huc12.df |> bind_rows(MeanAnnualFlow.df)
 
   write.csv(summary_pwg.df, file.path(landisOutputDir, "DST", "DST_Metrics_by_PWG.csv"))
   write.csv(summary_huc12.df, file.path(landisOutputDir, "DST", "DST_Metrics_by_HUC12.csv"))
+  write.csv(summary_landscape.df, file.path(landisOutputDir, "DST", "DST_Metrics_by_Landscape.csv"))
   
   rm(summary_pwg.df)
   rm(summary_huc12.df)
+} else {
+  summary_huc12.df <- read.csv(file.path(landisOutputDir, "DST", "DST_Metrics_by_HUC12.csv"))
+  summary_pwg.df <- read.csv(file.path(landisOutputDir, "DST", "DST_Metrics_by_PWG.csv"))
+  
+  if (F %in% (names(outputs) %in% summary_huc12.df$Metric)){
+    print("RERUN with RERUN DST MAPS = T!")
+  }
 }
 
 

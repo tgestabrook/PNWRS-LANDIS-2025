@@ -1,5 +1,5 @@
-cat(paste('Compressing', landisOutputDir, '.............'), file = outFile, append = T)
-print(paste('Compressing', landisOutputDir, '.............'))  # print in R console as well
+# cat(paste('Compressing', landisOutputDir, '.............'), file = outFile, append = T)
+# print(paste('Compressing', landisOutputDir, '.............'))  # print in R console as well
 
 if (file.exists(file.path(landisOutputDir, 'Climate-spinup-input-log.csv'))){
   file.remove(file.path(landisOutputDir, 'Climate-spinup-input-log.csv'))  # remove unused climate spinup log to save disk space
@@ -28,10 +28,19 @@ if(file.exists(file.path(landisOutputDir, 'biomassOutput', 'TotalBiomass-0-bioma
 
 cat('###################################################################################################################################
  Post-processing LANDIS-II outputs. Assigning CRS, applying LZW compression to .tiff files, and converting .img files to GeoTiff.
-###################################################################################################################################\n\n', file = outFile, append = T)
+###################################################################################################################################\n\n')
 
+# n_cores <- detectCores()
+# cluster <- makeCluster(min(n_cores-1, 2))
+aoi.crs <- crs(ecos.r)
+aoi.ext <- ext(ecos.r)
+
+# registerDoParallel(cluster)
+# registerDoSEQ()
+
+# foreach(folder = c('biomassOutput','ageOutput','Harvest', 'NECN','social-climate-fire', 'MagicHarvest'), .packages = c("terra", "stringr"), .inorder = F, outfile = "") %dopar% {
 for(folder in c('biomassOutput','ageOutput','Harvest', 'NECN','social-climate-fire', 'MagicHarvest')){
-  cat(paste0('\n', folder, '...'))
+  cat(paste0('\n', folder, '...\n'))
   
   ### Remove tif.aux.xml
   auxxml <- files <- list.files(path = file.path(landisOutputDir,folder), pattern = "\\.aux.xml$", full.names = TRUE)
@@ -47,25 +56,39 @@ for(folder in c('biomassOutput','ageOutput','Harvest', 'NECN','social-climate-fi
   
   if(folder == "MagicHarvest"){mapTypes <- c("MH_mgmt_areas_(\\d+).tif", "MH_stands_(\\d+).tif")}
   
+  if (folder == "ageOutput"){
+    dtype = "INT2S"
+  } else if (folder == "biomassOutput"){
+    dtype = "INT4S"
+  } else {
+    dtype = NULL
+  }
+  
   for(mapType in mapTypes){
     outName <- str_replace(mapType, '\\(\\\\d\\+\\)', 'yr') |> str_replace('.img', '.tif')
     if (file.exists(file.path(landisOutputDir, folder, outName))){next}
     
     cat(paste0(mapType, '...'))
     oldMaps <- dir(file.path(landisOutputDir, folder))[grepl(paste0("^", mapType), dir(file.path(landisOutputDir, folder)))]  # get the names of the maps to delete after loading
-    stack <- get_maps(folder, mapType)
+    stack <- get_maps(folder, mapType, aoi.crs, aoi.ext)
     
-    writeRaster(stack, file.path(landisOutputDir, folder, outName))
+    if (is.null(dtype)){
+      dtype = datatype(stack)
+    }
+    
+    writeRaster(stack, file.path(landisOutputDir, folder, outName), overwrite = T)
     file.remove(file.path(landisOutputDir, folder, oldMaps))  # remove the old loose map files
   }
   
 }
 
+# stopImplicitCluster()
 gc()
 
-cat(paste('\n\nCompression routine complete.', Sys.time(), '\n'), file = outFile, append = T)
+# cat(paste('\n\nCompression routine complete.', Sys.time(), '\n'), file = outFile, append = T)
 
 flip_rasters <- F  # set to false for future uses of get_maps
+
 
 
 

@@ -34,6 +34,12 @@ dst.structure<-read.csv(file.path(dataDir,'DST_Structure.csv')) |>
 
 
 ### Load PWG & HUC12 summary csvs
+dst.huc12.all.df <- lapply(file.path(sims.df$Run,'DST', 'DST_Metrics_by_HUC12.csv'), read_and_label) |> bind_rows() |>
+  left_join(sims.plot.df)
+
+dst.pwg.all.df <- lapply(file.path(sims.df$Run,'DST', 'DST_Metrics_by_PWG.csv'), read_and_label) |> bind_rows() |>
+  left_join(sims.plot.df)
+
 
 ### Also integrate water outputs
 

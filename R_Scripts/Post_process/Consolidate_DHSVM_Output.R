@@ -39,15 +39,17 @@ dhsvm_output_scenarios <- dir(file.path(DHSVM_dir, subbasin_folders[[1]]))
 
 maptype <- "MaxSwe_"
 scenario <- dhsvm_output_scenarios[1]
-yr <- 2021
+yr <- 2022
 
 for (maptype in c("MaxSwe_", "MaxSweDate_", "MeltOutDate_")){
   for (scenario in dhsvm_output_scenarios){
     scenario_shortened <- str_remove(scenario, dhsvm_sim.prefix)  # get scenarioname without subbasin name
+    cat(maptype)
     
     s <- list()
     
-    for (yr in 2021:2100){ 
+    for (yr in 2021:2120){ 
+      cat(yr)
       r1 <- rast(file.path(DHSVM_dir, subbasin_folders[1], scenario, paste0(maptype, yr, '_withheader.asc'))) 
       crs(r1) <- crs(subbasin_masks[[subbasin_folders[1]]])
       r1 <- ifel(subbasin_masks[[subbasin_folders[1]]] == 0, NA, r1)
@@ -58,19 +60,21 @@ for (maptype in c("MaxSwe_", "MaxSweDate_", "MeltOutDate_")){
       
       r <- terra::merge(r1, r2)
       
-      s[yr] <- r
+      s[paste0(maptype, yr)] <- r
       
     }
     
-    s <- do.call(c, s)
+    cat('..')
+    s2 <- rast(s)
+
+    writeRaster(s2, file.path(DHSVM_dir, LANDIS.EXTENT, paste0(maptype, scenario_shortened, '.tif')), overwrite = T)
     
-    writeRaster(s, file.path(DHSVM_dir, LANDIS.EXTENT, paste0(maptype, scenario_shortened, '.tif')))
-    
-    ### merge mean annual flow dataframes
-    # merged_annual_mean.df <- foreach(subbasin_folder = subbasin_folders, .combine = dplyr::left_join, .maxcombine = 2) %do% {
-    #   df <- read_csv(file.path(DHSVM_dir, subbasin_folder, scenario, paste0(scenario, ".meter.annual_mean.csv"))) |> rename("Year" = "...1")
-    # }
-    # write_csv(merged_annual_mean.df, file.path(DHSVM_dir, LANDIS.EXTENT, paste0("MeanAnnualFlow_", scenario_shortened, ".csv")))
+    cat("/n")
+    ## merge mean annual flow dataframes
+    merged_annual_mean.df <- foreach(subbasin_folder = subbasin_folders, .combine = dplyr::left_join, .maxcombine = 2) %do% {
+      df <- read_csv(file.path(DHSVM_dir, subbasin_folder, scenario, paste0(scenario, ".meter.annual_mean.csv"))) |> rename("Year" = "...1")
+    }
+    write_csv(merged_annual_mean.df, file.path(DHSVM_dir, LANDIS.EXTENT, paste0("MeanAnnualFlow_", scenario_shortened, ".csv")))
     #   
     # if(!file.exists(file.path(DHSVM_dir, LANDIS.EXTENT, paste0(maptype, scenario_shortened, '.tif')))){
     #   loose_files1 <- dir(file.path(DHSVM_dir, "Okanogan", scenario)) |> 

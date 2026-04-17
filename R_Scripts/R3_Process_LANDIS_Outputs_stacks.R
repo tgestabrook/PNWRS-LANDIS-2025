@@ -27,6 +27,7 @@ library(zip)
 library(hues)
 library(foreach)
 library(doParallel)
+library(data.table)
 source("./R_Scripts/Post_process/Post_functions.R") # load custom functions
 
 # Source - https://stackoverflow.com/a
@@ -46,8 +47,10 @@ Sys.setenv(TMPDIR = "F:/R_TEMP")
 terraOptions(tempdir = "F:/R_TEMP")
 
 LANDIS.EXTENT<-'WenEnt'
-# Dir <- file.path('F:/2025_Q4_Scenarios', "FEMC")
 Dir <- file.path('F:/2025_Q4_Scenarios', LANDIS.EXTENT)
+
+# LANDIS.EXTENT <- 'Tripod'
+# Dir <- file.path("F:", "LANDIS Runs", "Tripod_LANDIS_model")
 
 bigDataDir<-'F:/LANDIS_Input_Data_Prep/BigData'
 dataDir<-'F:/LANDIS_Input_Data_Prep/Data'
@@ -68,14 +71,14 @@ simOpts <- list(
   rerunHarvest = T,
   rerunFires = F,
   remakeGifs = F,
-  RUN.DHSVM.MAPS = F,
+  RUN.DHSVM.MAPS = T,
   RERUN.DHSVM.MAPS = F,
   RERUN.DHSVM.HEIGHT_FC_and_LAI_MAPS = F,
   SUMMARIZE.BY.PWG.and.HUC = T,
   OVERWRITE.ZIP.FILES = F,
+  DHSVM_SIM_COUNT = 1,
   increment = 1, # Define Desired Interval to interpolate DHSVM maps to
-  RUN.DST.MAPS = F,
-  RERUN.DST.MAPS = F,
+  RERUN.DST.MAPS = T,
   base.year = 2020,
   max.fine.fuels = 2000,  # max fine fuels for gif -- should be same as SCF parameter
   DST.comparison.yr = 50,  # year to compare treatments in spatial DST
@@ -185,6 +188,7 @@ slope.percent.r<-tan(terrain(dem.r,'slope',unit='radians'))*100
 ### Load HUC rasters: ----
 ## Shapefile:
 HUC12.sf<-vect(file.path(dataDir,'PWG',paste0('HUC12_',LANDIS.EXTENT,'.shp'))) |> mutate(HUC12.num = as.numeric(HUC12))
+HUC12_nobuffer.sf<-vect(file.path(dataDir,'PWG',paste0('HUC12_nobuffer_',LANDIS.EXTENT,'.gpkg'))) |> mutate(HUC12.num = as.numeric(HUC12))
 HUC10.sf<-vect(file.path(dataDir,'PWG',paste0('HUC10_',LANDIS.EXTENT,'.shp'))) |> mutate(HUC10.num = as.numeric(HUC10))
 
 ## Raster: 
@@ -257,11 +261,38 @@ theme_set(theme_classic()+theme(panel.background = element_rect(color='black',fi
                                 legend.key.size=unit(0.4,'cm')))
 
 #### If testing on single run, run this line and then the code inside the for loop below.
-landisOutputDir <- landisRuns[34]
+landisOutputDir <- landisRuns[35]
+
+#### Compress runs in paralell
+# n_cores <- detectCores()
+# cluster <- makeCluster(min(n_cores-1, 4), outfile = "")
+# registerDoParallel(cluster)
+
+# foreach(landisOutputDir = landisRuns, .packages = c("terra", "stringr"), .export = c("get_maps"), .inorder = F, .verbose = T) %do% {
+#   if(length(list.files(landisOutputDir, pattern = '\\.img$', ignore.case = T, recursive = T))>0){
+#     cat(landisOutputDir)
+#     source("./R_Scripts/Post_process/Compress_LANDIS_outputs.R", local = T)  # Compress and make stacks if raw LANDIS outputs
+#   } else {cat("Skipping\n")}
+# }
+# # stopImplicitCluster()
+# gc()
 
 #-----------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------
+### Check for upside-down rasters: ---
+for(landisOutputDir in landisRuns){
+  if (file.exists(file.path(landisOutputDir, "social-climate-fire", "_Fires_N.tif"))){
+    r <- rast(file.path(landisOutputDir, "social-climate-fire", "_Fires_N.tif"))
+    test <- ifel(is.na(pwg.r) & r > 0, 1, 0)
+    test_flip <- ifel(is.na(pwg.r) & flip(r) > 0, 1, 0)
+    if (sum(values(test) > sum(values(test_flip)), na.rm = T) > 0){
+      print(paste("FLIPPED RASTER DETECTED IN", landisOutputDir))
+    }
+  }
+}
+
+
 ### Core post-processing loop: ----
 for(landisOutputDir in prioritize_uncompressed_runs(landisRuns)){
   if(length(dir(landisOutputDir))==0) stop("LANDIS output folder is empty! Check file path...")
@@ -317,7 +348,7 @@ for(landisOutputDir in prioritize_uncompressed_runs(landisRuns)){
   simLength <- totalBiomass_stack.r |> names() |> str_extract("\\d+") |> as.integer() |> max() 
   
   ### Interpolate rasters
-  if (nlyr(totalBiomass_stack.r)<simLength){
+  if (nlyr(totalBiomass_stack.r)<simLength|T){
     source("./R_Scripts/Post_process/Post_interpolate_outputs.R")
   }
   
@@ -387,21 +418,29 @@ for(landisOutputDir in prioritize_uncompressed_runs(landisRuns)){
   # }
   
   #### DHSVM #### ----
-  if((simOpts$RUN.DHSVM.MAPS&(!file.exists(file.path(landisOutputDir,'DHSVM','DHSVM_yr-100.tif'))))|simOpts$RERUN.DHSVM.MAPS){
-    source('./R_Scripts/Post_process/Post_DHSVM_stopgap.R')
-  }
-  
-  #### Zip results: ----
+  existing_scenarios <- dir(Dir)[grepl("DHSVM_", dir(Dir))]
   scenarioName <- landisOutputDir |> 
     str_replace(dirToProcess, "") |>
     str_replace_all("/", "") |>
     str_replace("Sim.{6}", "DHSVM")
+
+  scenarioName_general <- paste(str_split_1(scenarioName, "_")[1:4], collapse = "_")  #limit to one instance since DHSVM is slow to run
   
-  if(simOpts$OVERWRITE.ZIP.FILES==T |
-     !file.exists(paste0(dirToProcess,'/',scenarioName,'.zip'))){
-    cat('\n***  ZIPPING DHSVM output maps for',landisOutputDir,'  ***\n')
-    zipr(paste0(dirToProcess,'/',scenarioName,'.zip'),files = file.path(landisOutputDir,'DHSVM',dir(file.path(landisOutputDir,'DHSVM'))))
+  if((simOpts$RUN.DHSVM.MAPS&  # if we have said to run DHSVM AND the maps aren't generated AND there isn't output for this scenario already, run DHSVM, otherwise dont
+      (!file.exists(file.path(landisOutputDir,'DHSVM','DHSVM_yr-100.tif')))&
+      sum(grepl(scenarioName_general, existing_scenarios)) < simOpts$DHSVM_SIM_COUNT)|
+     simOpts$RERUN.DHSVM.MAPS){
+    source('./R_Scripts/Post_process/Post_DHSVM_stopgap.R')
+    
+    #### Zip results: ----
+    
+    if(simOpts$OVERWRITE.ZIP.FILES==T |
+       !file.exists(paste0(dirToProcess,'/',scenarioName,'.zip'))){
+      cat('\n***  ZIPPING DHSVM output maps for',landisOutputDir,'  ***\n')
+      zipr(paste0(dirToProcess,'/',scenarioName,'.zip'),files = file.path(landisOutputDir,'DHSVM',dir(file.path(landisOutputDir,'DHSVM'))))
+    }
   }
+
   
   # stop()
   # 
@@ -411,11 +450,11 @@ for(landisOutputDir in prioritize_uncompressed_runs(landisRuns)){
     source('./R_Scripts/Post_process/Generate_DST_Maps.R')
   }
   
-  if(!file.exists(file.path(landisOutputDir, "Diagnostics.html"))){
-    rmarkdown::render(input = "./R_Scripts/Post_process/Sim_diagnostics.Rmd", 
-                    output_format = "html_document",
-                    output_file = file.path(landisOutputDir, "Diagnostics.html"), )
-  }
+  # if(!file.exists(file.path(landisOutputDir, "Diagnostics.html"))){
+  #   rmarkdown::render(input = "./R_Scripts/Post_process/Sim_diagnostics.Rmd", 
+  #                   output_format = "html_document",
+  #                   output_file = file.path(landisOutputDir, "Diagnostics.html"), )
+  # }
   
   
   cat('\n\n###################################################################################################################################
@@ -444,6 +483,7 @@ for(landisOutputDir in prioritize_uncompressed_runs(landisRuns)){
                           'ecos2',
                           'pwg.r',
                           'lua.r',
+                          'active.r',
                           'pwg.noBuffer.r',
                           'PWGxHUC10.sf',
                           'road.no.wild.dist.r',
@@ -481,7 +521,10 @@ for(landisOutputDir in prioritize_uncompressed_runs(landisRuns)){
                           'writeOutputRasts',
                           'raster2csv',
                           'trim_to_study_area',
-                          'interpolateRaster')])  # clear out everything not on this list
+                          'interpolateRaster',
+                          'HUC12_nobuffer.sf',
+                          'departureFUN',
+                          'dst_output_time_series')])  # clear out everything not on this list
   gc()
   
 }
@@ -498,6 +541,8 @@ cat('\n\n#######################################################################
 if(!file.exists(file.path(dirToProcess, 'Scenario_name_map.csv'))){
   cat('\n\nScenario csv not found, Aborting...')
   stop()}  # stop post-processing if a scenario map csv hasn't been placed in the directory
+
+source("./R_Scripts/Post_process/Post_functions.R") # load custom functions
 
 climate_colors <- c('palegreen', 'skyblue', 'goldenrod', 'darkorange', 'darkred')
 names(climate_colors) <- c("Historical", "Base climate", 'RCP 4.5', 'RCP 6.5', 'RCP 8.5')
@@ -523,6 +568,20 @@ if(length(unique(sims.df$model_version))>1 & simOpts$compare.version == T){
     mutate(Mgt_scenario = paste(Mgt_scenario, model_version))
 }
 
+# params = list(
+#   scenario_column = "Mgt_scenario",
+#   scenario_column2 = "Climate",
+#   reference_scenario1 = "BAU wildfire",
+#   reference_scenario2 = "Base climate"
+# )
+# 
+# sims.plot.df <- sims.df |>  # add the information from scenario_map
+#   mutate(Scenario = get(params$scenario_column),
+#          Scenario2 = get(params$scenario_column2)) |>  
+#   mutate(Scenario = factor(Scenario, levels=unique(Scenario)),
+#          Scenario2 = factor(Scenario2, levels=unique(Scenario2)))
+
+
 rmarkdown::render(input = "./R_Scripts/Post_process/Scenario_comparison.Rmd", 
                   output_format = "html_document",
                   output_file = file.path(dirToProcess, "Scenario_comparisons.html"), 
@@ -541,17 +600,17 @@ if(!dir.exists(file.path(dirToProcess, 'DST_figures'))) {
 } 
 
 dst.structure.df<-read.csv(file.path(modelDir, 'Shared_inputs', 'DST_Structure.csv')) |>
-  filter(!is.na(Premise)) |>
+  # filter(!is.na(Premise)) |>
   mutate(Topic = str_replace_all(Topic, ' ', '.'),
          Direction = ifelse(grepl('Less',Premise), -1, 1))  # if premise includes the word "less" direction is -1
 
 for (DST_metric in unique(dst.huc12.all.df$Metric)){
+  gc()
   structure_info <- dst.structure.df |> filter(Field_name == DST_metric)
   cat(paste0('\n', DST_metric))
   
-  dst_output_time_series(DST_metric, structure_info$AreaSummary, metricLabel = structure_info$Units, cumulative = structure_info$Cumulative)
+  dst_output_time_series(metricName = DST_metric, areaSummary = structure_info$AreaSummary, metricLabel = structure_info$Units, cumulative = structure_info$Cumulative, Direction = structure_info$Direction)
 }
-
 
 
 

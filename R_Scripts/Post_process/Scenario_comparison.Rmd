@@ -20,11 +20,6 @@ knitr::opts_chunk$set(echo = FALSE,
 ```
 
 ```{r}
-sims.plot.df <- sims.df |>  # add the information from scenario_map
-  mutate(Scenario = get(params$scenario_column),
-         Scenario2 = get(params$scenario_column2)) |>  
-  mutate(Scenario = factor(Scenario, levels=unique(Scenario)),
-         Scenario2 = factor(Scenario2, levels=unique(Scenario2)))
 
 scenario_colors <- iwanthue(length(unique(sims.plot.df$Scenario)), 0, 360, 36, 180, 13, 73)
 names(scenario_colors) <- unique(sims.plot.df$Scenario)

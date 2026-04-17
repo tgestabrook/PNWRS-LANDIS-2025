@@ -25,7 +25,11 @@ fireIdStack.r <- rast(file.path(fireOutput, 'event-ID-yr.tif'))
 fineFuelStack.r <- rast(file.path(fireOutput, 'fine-fuels-yr.tif'))
 ignitionTypeStack.r <- rast(file.path(fireOutput, 'ignition-type-yr.tif'))
 burned.N.empirical <- rast(file.path(dataDir, 'MTBS_and_FOD_Fires', LANDIS.EXTENT, '_Fires_N.tif'))
-RxFireHa.r <- ifel(ignitionTypeStack.r == 4, 0.81, 0)  # RX = 4 on ignition type maps
+if(!file.exists(file.path(landisOutputDir, "DST", "Fire_Rx_Area_Ha.tif"))){
+  RxFireHa.r <- ifel(ignitionTypeStack.r == 4, 0.81, 0)  # RX = 4 on ignition type maps
+} else {
+  RxFireHa.r <- rast(file.path(landisOutputDir, "DST", "Fire_Rx_Area_Ha.tif"))
+}
 
 severityStackClassified.r <- classify(severityStack.r,rcl=severity.reclass.df,include.lowest=T)
 set.cats(severityStackClassified.r, layer=0, data.frame(id = c(1,2,3,4), severity=c('Unburned','Low','Moderate','High')))
@@ -366,44 +370,52 @@ nFires.df <- c(pwg.r, burned.N.r, burned.N.sev.r) |>  # make a df with
 # #---------------------------------------------------------------------#
 cat('\n Making Povak Fig. 4 style plots for cold vs. dry forests\n')
 
-landis_sev.df <- c(PWG_reclass.r, severityStackSmoothedClassified.r) |>
-  as.data.frame() |>
-  pivot_longer(starts_with("fire-dnbr"), names_to = c('drop', 'drop2', 'year'), names_sep = '-', values_to = 'sev_class') |>
-  filter(!is.na(sev_class), !is.na(PWG)) |>
-  select(!c('drop', 'drop2')) |>
-  mutate(year = as.numeric(year) + 2019, PWG = as.factor(PWG)) |>
-  group_by(year, PWG, sev_class) |>
-  summarise(count = n())
-
-annual_sev.df <- annual_sev.df |>
-  bind_rows(landis_sev.df) |>
-  mutate(sev_class = factor(sev_class, levels = c('UB', 'Low', 'Moderate', 'High')),
-         area_ha = count * 0.81) |>
-  left_join(forest_type_area.df) |> 
-  mutate(pct_forest_type = area_ha/forest_area * 100,
-         PWG = ifelse(PWG == 30, "Dry & Moist Mixed Conifer (PWG 20, 30)", "Cold Forest (PWG 40, 50)"))
-
+if (!file.exists(file.path(landisOutputDir, "Annual_severity_total_df.csv"))){
+  landis_sev.df <- c(PWG_reclass.r, severityStackSmoothedClassified.r) |>
+    as.data.frame() |>
+    pivot_longer(starts_with("fire-dnbr"), names_to = c('drop', 'drop2', 'year'), names_sep = '-', values_to = 'sev_class') |>
+    filter(!is.na(sev_class), !is.na(PWG)) |>
+    select(!c('drop', 'drop2')) |>
+    mutate(year = as.numeric(year) + 2019, PWG = as.factor(PWG)) |>
+    group_by(year, PWG, sev_class) |>
+    summarise(count = n())
+  
+  annual_sev.df <- annual_sev.df |>
+    bind_rows(landis_sev.df) |>
+    mutate(sev_class = factor(sev_class, levels = c('UB', 'Low', 'Moderate', 'High')),
+           area_ha = count * 0.81) |>
+    left_join(forest_type_area.df) |> 
+    mutate(pct_forest_type = area_ha/forest_area * 100,
+           PWG = ifelse(PWG == 30, "Dry & Moist Mixed Conifer (PWG 20, 30)", "Cold Forest (PWG 40, 50)"))
+  
+  write.csv(annual_sev.df, file.path(landisOutputDir, "Annual_severity_total_df.csv"))
+} else{
+  annial_sev.df <- read.csv(file.path(landisOutputDir, "Annual_severity_total_df.csv"))
+}
 #-----------------------------------------------------------------------------------------------------------------------
 ## Attach PWG to fire events log: ----
 # #---------------------------------------------------------------------#
 cat('\n Linking PWG to fire events log\n')
 
-event_pwgs.df <- c(pwg.r, fireIdStack.r) |>
-  as.data.frame() |> 
-  pivot_longer(starts_with("event-ID"), names_to = "SimulationYear", names_prefix = "event-ID-", values_to = "EventID") |> 
-  filter(EventID != 0) |>
-  mutate(SimulationYear = as.integer(SimulationYear)) |>
-  group_by(EventID, SimulationYear) |> mutate(event_px_count = dplyr::n()) |> ungroup() |>
-  group_by(PWG, EventID, SimulationYear) |>
-  summarise(pct = n() / median(event_px_count) * 100, event_px_count = median(event_px_count)) |> ungroup() |>
-  pivot_wider(id_cols = c(EventID, SimulationYear), names_from = PWG, values_from = pct, names_prefix = 'pct_', values_fill = 0) 
-
-
-
-event_pwg.df <- severity.df |> select(EventID, SimulationYear, FIRE_SIZE) |> 
-  left_join(event_pwgs.df)
-
-write.csv(event_pwg.df,file.path(landisOutputDir,'Fire_pwg_df.csv'),row.names=F)
+if (!file.exists(file.path(landisOutputDir,'Fire_pwg_df.csv'))){
+  event_pwgs.df <- c(pwg.r, fireIdStack.r) |>
+    as.data.frame() |> 
+    pivot_longer(starts_with("event-ID"), names_to = "SimulationYear", names_prefix = "event-ID-", values_to = "EventID") |> 
+    filter(EventID != 0) |>
+    mutate(SimulationYear = as.integer(SimulationYear)) |>
+    group_by(EventID, SimulationYear) |> mutate(event_px_count = dplyr::n()) |> ungroup() |>
+    group_by(PWG, EventID, SimulationYear) |>
+    summarise(pct = n() / median(event_px_count) * 100, event_px_count = median(event_px_count)) |> ungroup() |>
+    pivot_wider(id_cols = c(EventID, SimulationYear), names_from = PWG, values_from = pct, names_prefix = 'pct_', values_fill = 0) 
+  
+  event_pwg.df <- severity.df |> select(EventID, SimulationYear, FIRE_SIZE) |> 
+    left_join(event_pwgs.df)
+  
+  write.csv(event_pwg.df,file.path(landisOutputDir,'Fire_pwg_df.csv'),row.names=F)
+  
+} else {
+  event_pwg.df <- read.csv(file.path(landisOutputDir,'Fire_pwg_df.csv'))
+}
 
 #-----------------------------------------------------------------------------------------------------------------------
 ## Done with fire: ----
@@ -412,5 +424,4 @@ cat('\n      -----------------------------------------------
     ===============================================\n')
 cat(paste('\n\nFire routine complete.', Sys.time(), '\n'), file = outFile, append = T)
 #-----------------------------------------------------------------------------------------------------------------------
-
 

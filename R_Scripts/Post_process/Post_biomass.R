@@ -15,28 +15,48 @@ if (!file.exists(file.path(landisOutputDir,'Biomass_Annual_Dynamics.csv'))){
   gc()
   
   biomass.df <- data.frame(PWG = NULL, Species = NULL, Year = NULL, ActiveSites = NULL, Biomass_sum_Mg = NULL)
-  
+
   for (spp in c("AbieAmab","AbieGran","AbieLasi","LariOcci","PiceEnge","PinuCont",
                 "PinuMont","PinuPond","PseuMenz","ThujPlic","TsugHete","TsugMert","TotalBiomass")){
     cat(paste0('\n...', spp))
+    # start.time = Sys.time()
     biomassStack.selected.r <- biomassStack.r |> select(starts_with(spp))
+
+    # df <- c(pwg.r, biomassStack.selected.r) |> as.data.frame(na.rm = NA) |>
+    #   filter(!is.na(PWG)&PWG>=12) |>
+    #   pivot_longer(contains("biomass"), names_to = c('Species', 'Year', 'Drop'), names_sep = '-', values_to = 'Biomass_gm2') |>
+    #   mutate(Biomass_Mg = Biomass_gm2*0.01*0.81, # convert from g/m^2 to Mg/Ha to Mg
+    #          active = ifelse(Biomass_gm2 > 0, 1, 0),
+    #          PWG = as.factor(PWG),
+    #          Year = as.numeric(Year)) |>  # mark year-species-pixel observations as active if biomass is nonzero
+    #   group_by(PWG, Species, Year) |>
+    #   summarise(
+    #     ActiveSites = sum(active),
+    #     Biomass_sum_Mg = sum(Biomass_Mg)
+    #   )
     
-    df <- c(pwg.r, biomassStack.selected.r) |> as.data.frame() |> 
-      filter(!is.na(PWG)&PWG>=12) |>
-      pivot_longer(contains("biomass"), names_to = c('Species', 'Year', 'Drop'), names_sep = '-', values_to = 'Biomass_gm2') |>
-      mutate(Biomass_Mg = Biomass_gm2*0.01*0.81, # convert from g/m^2 to Mg/Ha to Mg
-             active = ifelse(Biomass_gm2 > 0, 1, 0),
-             PWG = as.factor(PWG), 
-             Year = as.numeric(Year)) |>  # mark year-species-pixel observations as active if biomass is nonzero
-      group_by(PWG, Species, Year) |>
-      summarise(
-        ActiveSites = sum(active),
-        Biomass_sum_Mg = sum(Biomass_Mg)
-      )
+    df1 <- zonal(biomassStack.selected.r, pwg.r, fun = 'sum', na.rm = T) |>
+      filter(!PWG%in%c(10,11,99)) |>
+      pivot_longer(starts_with(spp), names_to = c('Species', 'Year', 'Drop'), names_sep = "-", values_to = 'Biomass_gm2') |>
+      mutate(Biomass_sum_Mg = Biomass_gm2*0.01*0.81, # convert from g/m^2 to Mg/Ha to Mg
+             PWG = as.factor(PWG),
+             Year = as.numeric(Year)) |>
+      select(PWG, Year, Species, Biomass_sum_Mg)
     
-    biomass.df <- bind_rows(biomass.df, df)
+    active.r <- ifel(biomassStack.selected.r > 0, 1, 0)
+    
+    df2 <- zonal(active.r, pwg.r, fun = 'sum', na.rm = T) |>
+      filter(!PWG%in%c(10,11,99)) |>
+      pivot_longer(starts_with(spp), names_to = c('Species', 'Year', 'Drop'), names_sep = "-", values_to = 'ActiveSites') |>
+      mutate(PWG = as.factor(PWG),
+             Year = as.numeric(Year)) |>
+      select(PWG, Year, Species, ActiveSites) |>
+      left_join(df1)
+    
+    biomass.df <- bind_rows(biomass.df, df2)
   }
-  
+  rm(active.r, df1, df2)
+
   deadwood.df <- rast(file.path(necnOutput, "DeadWoodBiomass-yr.tif")) |>
     zonal(pwg.r, fun = 'sum', na.rm=T) |>
     filter(!is.na(PWG), !PWG%in%c(10,11,99)) |> 

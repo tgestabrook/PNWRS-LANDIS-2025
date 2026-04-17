@@ -31,20 +31,23 @@ for (folder in c("ageOutput", "biomassOutput", "NECN")){
       
     } else {
 
-      if (folder == 'NECN'){  # grab year zero NECN from single-year simulation
+      if ((folder == 'NECN') & (names(s)[1] != str_replace(stack, 'yr', '0') |> str_replace(".tif", ''))){  # grab year zero NECN from single-year simulation
         y0 <- rast(file.path(dataDir,'NECN_Outputs_Yr_0', LANDIS.EXTENT, str_replace(stack, 'yr', '1')))
         names(y0) <- str_replace(stack, 'yr', '0') |> str_replace(".tif", '')
         s <- c(y0, s)
       }
-
+      
+      gc()
       s <- interpolateRaster(s)
       
-      if (folder%in%c('biomassOutput', 'ageOutput')){
+      if (folder == 'biomassOutput'){
         dtype = "INT4S"  # turn biomass and age rasters into integers to make some processing faster
+      } else if (folder == "ageOutput") {
+        dtype = "INT2S"
       } else {dtype = "FLT4S"}
       
       writeRaster(s, file.path(landisOutputDir, folder, stack), overwrite=T, datatype = dtype)
-      cat("...done!")
+      # cat("...done!")
     }
   }
 }
