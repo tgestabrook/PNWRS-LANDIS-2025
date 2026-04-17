@@ -1,8 +1,8 @@
 LandisData    "Scenario"
 
-Duration     100
+Duration     20
 
-Species    ../SPECIES_v7.txt
+Species    ../Shared_inputs/SPECIES.txt
 
 Ecoregions      ../WenEnt/ECOREGIONS_WenEnt.txt
 
@@ -14,14 +14,14 @@ CellLength     90 << meters
 
 >>  Succession Extension    Initialization File
 >> ----------------------   -------------------
-"NECN Succession"     ../WenEnt/ext_NECN68_WenEnt10_baseclim.txt
+"NECN Succession"     ../WenEnt/ext_NECN_WenEnt10_baseclim.txt
 
 
 >> Disturbance Extensions   Initialization File
 >> ----------------------   -------------------
-"Magic Harvest"	     ../ext_magic_harvest_thin_high.txt
-"SCRAPPLE"     ../WenEnt/ext_SCRAPPLE32_Rx_WenEnt.txt
-"Biomass Harvest"	     ../ext_BiomassHarvest_mh.txt
+"Magic Harvest"	     ../Shared_inputs/ext_magic_harvest_thin_high.txt
+"SCRAPPLE"     ../WenEnt/ext_SCRAPPLE_Rx_WenEnt.txt
+"Biomass Harvest"	     ../Shared_inputs/ext_BiomassHarvest_mh.txt
 
 
 DisturbancesRandomOrder  no
