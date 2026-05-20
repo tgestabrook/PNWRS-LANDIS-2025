@@ -36,7 +36,8 @@ do
     ## SET DIRECTORY
     echo Creating directory: ${dirName}_$date_time
     mkdir ${dirName}_$date_time
-    Rscript ./Build_Scenario.R $scenarioFile ${dirName}_$date_time
+    python ./Build_Scenario.py $scenarioFile ${dirName}_$date_time
+    # Rscript ./Build_Scenario.R $scenarioFile ${dirName}_$date_time
     cd ./${dirName}_$date_time
 
     ## CREATE SCENARIO FILE WITH CORRECT EXTENT
@@ -68,8 +69,8 @@ do
     ## RUN LANDIS-II SCENARIO
     echo Running LANDIS-II scenario...
 
-    docker run --cpus=4 --memory=64g --mount type=bind,src=".",dst="/LANDIS" --name Container$scenarioFile_$date_time \
-  landis-ii-docker /bin/sh -c "system('dotnet $LANDIS_CONSOLE scenario.txt')"
+    docker run --cpus=4 --memory=64g --mount type=bind,src=".",dst="/scenarioFolder" --name Container$scenarioFile_$date_time \
+  landis-ii-8-uclv2-release:release /bin/sh -c "cd /scenarioFolder && dotnet \$LANDIS_CONSOLE scenario.txt"
 
     #dotnet $LANDIS_CONSOLE ./scenario.txt
     # dotnet $HOME/Core-Model-v7-LINUX/build/Release/Landis.Console ./Input_file_archive/$scenarioFile

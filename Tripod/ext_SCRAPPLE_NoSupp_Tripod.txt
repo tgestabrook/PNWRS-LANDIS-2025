@@ -79,7 +79,7 @@ TargetRxSize              1000	<< in hectares
 >>>>>>     Spread parameters                    <<<<<<<<<<<<<
 >> Code to estimate these parameters found on GitHub: https://github.com/LANDIS-II-Foundation/Extension-SCRPPLE/tree/master/Supporting%20R%20Code/Spread_Commit
 >> If MaxSpreadArea betas are too high, fires burn too quickly. If too low, fires are too small or square.
->>BurningSitesThreshold   6
+BurningSitesThreshold   6
 
 MaximumSpreadAreaB0	 20000	<< 500, -1000, -300, 10
 MaximumSpreadAreaB1	 -125	<< 100,    40,   12, -2.5 	<< FWI
