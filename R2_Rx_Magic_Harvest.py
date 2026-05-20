@@ -10,7 +10,9 @@ from scipy.ndimage import generic_filter
 
 '''Directories'''
 fire_dir = './social-climate-fire'
+os.makedirs(fire_dir, exist_ok=True)
 harvest_dir = "./Harvest"
+os.makedirs(harvest_dir, exist_ok=True)
 magic_harvest_dir = "./MagicHarvest"
 input_file_archive = "./Input_file_archive"
 
@@ -96,6 +98,9 @@ with rasterio.open("./Input_file_archive/ext_BiomassHarvestStands_" + LANDIS_EXT
 with rasterio.open("./Input_file_archive/ext_BiomassHarvestMgmt_" + LANDIS_EXTENT + ".tif") as src:
     base_mgmt_rast = src.read()
 
+with rasterio.open(os.path.join('..', LANDIS_EXTENT, 'TopoAsp_' + LANDIS_EXTENT + '.tif')) as src:
+    topo_asp_rast = src.read()  # topo-aspect layer for picking larger patches to treat
+
 # Calculate maximum treatable area
 max_annual_thin = (1 / thin_cooldown) * np.isin(base_mgmt_rast, [1, 2, 3]).sum()
 max_annual_ind = 0.05 * (base_mgmt_rast == 4).sum()
@@ -128,24 +133,35 @@ if timestep == 1:
     with rasterio.open("./MagicHarvest/thinning_cooldown.tif", "w", **kwargs) as dst:
         dst.write(thinning_cooldown_rast)
 
+    year_zero_fire_rast = make_zero_raster(ecos_rast, dtype=np.int16)
+    with rasterio.open(fire_dir + "/fire-dnbr-0.tif", "w", **kwargs) as dst:
+        dst.write(year_zero_fire_rast)
+
+    year_zero_harvest_rast = make_zero_raster(ecos_rast, dtype=np.int16)
+    year_zero_harvest_rast[year_zero_harvest_rast == 0] = 1  #1 denotes no harvest happened.
+    with rasterio.open(harvest_dir + "/biomass-harvest-prescripts-0.tif", "w", **kwargs) as dst:
+        dst.write(year_zero_harvest_rast)
+
 '''Load this year's rasters'''
-# Load last year's disturbances
+# Load fires from two years ago, needed to prioritize post-fire restoration
 if timestep == 1:
     print("Initializing rasters for timestep 1.")
-    last_year_fire_severity_rast = make_zero_raster(ecos_rast, dtype=np.int16)
-    last_year_harvest_prescrip_rast = make_zero_raster(ecos_rast, dtype=np.int16)
+    last_last_year_fire_severity_rast = make_zero_raster(ecos_rast, dtype=np.int16)
 else:
-    print("Loading last year's fires and prescriptions.")
-    with rasterio.open(fire_dir + "/fire-dnbr-" + str(last_year) + ".tif") as src:
-        last_year_fire_severity_rast = src.read()
+    with rasterio.open(fire_dir + "/fire-dnbr-" + str(last_year-1) + ".tif") as src:
+        last_last_year_fire_severity_rast = src.read()
 
-    # smooth and classify fire severity to prevent over-divided patches
-    last_year_fire_severity_rast = smooth_fires(last_year_fire_severity_rast)
-    with rasterio.open(fire_dir + "/fire-dnbr-classified-" + str(last_year) + ".tif", "w", **kwargs) as dst:
-        dst.write(last_year_fire_severity_rast)
+print("Loading last year's fires and prescriptions.")
+with rasterio.open(fire_dir + "/fire-dnbr-" + str(last_year) + ".tif") as src:
+    last_year_fire_severity_rast = src.read()
 
-    with rasterio.open(harvest_dir + "/biomass-harvest-prescripts-" + str(last_year) + ".tif") as src:
-        last_year_harvest_prescrip_rast = src.read()
+# smooth and classify fire severity to prevent over-divided patches
+last_year_fire_severity_rast = smooth_fires(last_year_fire_severity_rast)
+with rasterio.open(fire_dir + "/fire-dnbr-classified-" + str(last_year) + ".tif", "w", **kwargs) as dst:
+    dst.write(last_year_fire_severity_rast)
+
+with rasterio.open(harvest_dir + "/biomass-harvest-prescripts-" + str(last_year) + ".tif") as src:
+    last_year_harvest_prescrip_rast = src.read()
 
 # Load cooldown rasters
 with rasterio.open(magic_harvest_dir + "/fire_cooldown.tif") as src:
@@ -211,11 +227,25 @@ eligible_thin_rast[(stand_age_rast >= 20) &
                    ((base_mgmt_rast == 1) | (base_mgmt_rast == 2) | (base_mgmt_rast == 3)) & 
                    (thinning_cooldown_rast == 0)] = 1  # thin if age 20+ and cooldown is 0 and in managed forest
 
+'''Map low/mod fires from last two years to prioritize thinning'''
+recent_fire_rast = make_zero_raster(ecos_rast)
+recent_fire_rast[last_year_fire_severity_rast == 1] = 1  # UB/Low/Mod get set to 1
+recent_fire_rast[last_year_fire_severity_rast == 2] = 1
+recent_fire_rast[last_year_fire_severity_rast == 3] = 1
+recent_fire_rast[last_last_year_fire_severity_rast == 1] = 1
+recent_fire_rast[last_last_year_fire_severity_rast == 2] = 1
+recent_fire_rast[last_last_year_fire_severity_rast == 3] = 1
+recent_fire_rast[eligible_thin_rast == 0] = 0  # weights can't sum to zero, see check below. Thus, we need to filter out areas that can't be treated to ensure a positive value in the dataframe
+
+
+# if np.sum(recent_fire_rast) == 0: recent_fire_rast[recent_fire_rast == 0] = 1  # if all weights are zero
+
 # Create a new stand map by grouping patches
 print("Generating new patches...")
 # Generate new patch IDs from unique combinations of stand age and management zone
-new_patches_rast = np.char.add(stand_age_rast.astype(str), base_mgmt_rast.astype(str)).astype(int)
+new_patches_rast = np.char.add(stand_age_rast.astype(str), base_mgmt_rast.astype(str), ecos_rast.astype(str)).astype(int)
 new_patches_rast = make_contiguous_patches(new_patches_rast)
+new_patches_rast = np.expand_dims(new_patches_rast, axis = 0)
 
 # Save new patches
 # kwargs.update(dtype='int32', count=1, nodata=-999)
@@ -246,7 +276,8 @@ elig_df = {
     "Patch": new_patches_rast.flatten(),
     "Salvage_elig": eligible_salvage_rast.flatten(),
     "Thin_elig": eligible_thin_rast.flatten(),
-    "Mgmt_zone": base_mgmt_rast.flatten()
+    "Mgmt_zone": base_mgmt_rast.flatten(),
+    "Recent_fire": recent_fire_rast.flatten()
 }
 
 # aggregate by patch ID and calculate mean eligibility
@@ -257,6 +288,7 @@ elig_df = (pd.DataFrame(elig_df)
                Salvage_elig=('Salvage_elig', 'mean'),
                Thin_elig=('Thin_elig', 'mean'),
                Mgmt_zone=('Mgmt_zone', 'mean'),
+               Recent_fire=('Recent_fire', 'mean'),
                Pixels=('Patch', 'count')
            )
            .reset_index())
@@ -272,9 +304,12 @@ salvageable_stands_df = (elig_df
 
 thinnable_stands_df = (elig_df
                          .query('Thin_elig > 0.75')
-                         .sample(frac=1)  # Shuffle the dataframe (n=nrow in R)
+                         .sort_values(by = ['Recent_fire', 'Patch'], ascending = False)
+                        #  .sample(frac=1, weights="Recent_fire")  # Shuffle the dataframe (n=nrow in R)
                          .assign(Area_cumsum = lambda x: x['Pixels'].cumsum())
                          .query('Area_cumsum <= @max_annual_thin'))
+
+print(thinnable_stands_df)
 
 # template raster for new management zones. 9 denotes no management.
 new_zones_r = np.full(ecos_rast.shape, 9, dtype=np.int32)
@@ -287,12 +322,12 @@ new_zones_r[base_mgmt_rast == 7] = 7
 
 if not thinnable_stands_df.empty:  # in Rx only scenarios, the thinnable stands list will be null
     thin_mask = np.isin(new_patches_rast, thinnable_stands_df['Patch'])
-    thin_mask = np.expand_dims(thin_mask, 0)  # dims of ecos template are (1, nrow, ncol)
+    # thin_mask = np.expand_dims(thin_mask, 0)  # dims of ecos template are (1, nrow, ncol)
     new_zones_r[thin_mask] = base_mgmt_rast[thin_mask]  # thinnable stands get a value corresponding to thinning type (DMC, MMC, or cold)
 
 if not salvageable_stands_df.empty:  
     salv_mask = np.isin(new_patches_rast, salvageable_stands_df['Patch'])
-    salv_mask = np.expand_dims(salv_mask, 0)
+    # salv_mask = np.expand_dims(salv_mask, 0)
     print(salv_mask.shape)
     print(new_zones_r.shape)
     new_zones_r[salv_mask] = 6
@@ -311,9 +346,6 @@ with rasterio.open(magic_harvest_dir + "/Rx_base.tif") as src:
 # This is because we want to keep them divided by topoasp
 with rasterio.open(os.path.join('..', LANDIS_EXTENT, 'ext_BiomassHarvestStands_' + LANDIS_EXTENT + '.tif')) as src:
     rx_stands_rast = src.read()  # original map of forest stands
-
-with rasterio.open(os.path.join('..', LANDIS_EXTENT, 'TopoAsp_' + LANDIS_EXTENT + '.tif')) as src:
-    topo_asp_rast = src.read()  # topo-aspect layer for picking larger patches to treat
 
 # get a maximum burnable area value that keeps a steady cycle of burning
 max_annual_Rx = np.sum(rx_zone_rast > 0) / rx_fire_cooldown

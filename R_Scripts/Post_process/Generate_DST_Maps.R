@@ -11,8 +11,6 @@ if(!dir.exists(file.path(landisOutputDir, 'DST'))) {
   dir.create(file.path(landisOutputDir, 'DST'))
 } 
 
-zero.r <- rast(pwg.r, vals = 0, nlyrs = simLength + 1)
-
 outputs <- c()
 
 terra::tmpFiles(remove = TRUE)  # clear temp files
@@ -99,8 +97,8 @@ prescriptId.df<-data.frame('Prescription'=c('MBValley', 'MBMesic', 'MBXeric', 'I
 
 ### SUSTAINABLE BIOMASS: -------------------------------------------------------
 cat('\n-> Calculating Sustainable Biomass...\n')
-new.outputs <- c('merchMg.r','chipMg.r','area.treated.r','delta.biomass.r')
-names(new.outputs)<-c('Harvested_Merch_Mg','Harvested_Chip_Mg','Treated_Ha','Delta_Biomass_Mg')
+new.outputs <- c('merchMg.r','chipMg.r','area.treated.r','delta.biomass.r', 'merch.salvage.r', 'chip.salvage.r')
+names(new.outputs)<-c('Harvested_Merch_Mg','Harvested_Chip_Mg','Treated_Ha','Delta_Biomass_Mg', "Salvage_Merch_Mg", 'Salvage_Chip_Mg')
 outputs <- c(outputs, new.outputs)
 
 if(F %in% file.exists(file.path(landisOutputDir, "DST", paste0(names(new.outputs), ".tif")))){
@@ -116,6 +114,10 @@ if(F %in% file.exists(file.path(landisOutputDir, "DST", paste0(names(new.outputs
     ### chipMG.r
     chipMg.r <- (1-harvestMerchProp.r) * harvestedMG.r
     
+    ### merch.salvage.r
+    merch.salvage.r <- salvage_harvest_yield.r * harvestMerchProp.r
+    chip.salvage.r <- salvage_harvest_yield.r * (1-harvestMerchProp.r)
+    
     ### area.treated.r
     area.treated.r <- ifel(harvestPrescripts.r > 1, 0.81, 0)  # if there is a prescription, assign cell area, otherwise zero
     
@@ -124,10 +126,14 @@ if(F %in% file.exists(file.path(landisOutputDir, "DST", paste0(names(new.outputs
     merchMg.r <- zero.r
     chipMg.r <- zero.r
     area.treated.r <- zero.r
+    merch.salvage.r <- zero.r
+    chip.salvage.r <- zero.r
   }
   
   ### delta.biomass.r
   delta.biomass.r <- totalBiomass_stack.r - totalBiomass_stack.r[[1]]  # subtract year zero biomass from stack
+  
+
   
   writeOutputRasts(new.outputs, "DST")
   gc()
@@ -141,14 +147,20 @@ outputs <- c(outputs, new.outputs)
 
 
 if(F %in% file.exists(file.path(landisOutputDir, "DST", paste0(names(new.outputs), ".tif")))){
-  if(exists("harvestPrescripts.r")){
-    harvestedMG.r <- biomassRemoved.r * 0.01 * 0.81  # Convert g/m2 to mg/ha to Mg.
-  } else{
-    harvestedMG.r <- zero.r
-  }
+  # if(exists("harvestPrescripts.r")){
+  #   harvestedMG.r <- biomassRemoved.r * 0.01 * 0.81  # Convert g/m2 to mg/ha to Mg.
+  #   salvage_harvest_yield.r <- 
+  # } else{
+  #   harvestedMG.r <- zero.r
+  # }
   
   merchMg.r <- rast(file.path(landisOutputDir, "DST", "Harvested_Merch_Mg.tif"))
   chipMg.r <- rast(file.path(landisOutputDir, "DST", "Harvested_Chip_Mg.tif"))
+  merch.salvage.r <- rast(file.path(landisOutputDir, "DST", "Salvage_Merch_Mg.tif"))
+  chip.salvage.r <- rast(file.path(landisOutputDir, "DST", "Salvage_Chip_Mg.tif"))
+  
+  harvestedMG.r <- merchMg.r + merch.salvage.r + chipMg.r + chip.salvage.r
+  
   area.treated.r <- rast(file.path(landisOutputDir, "DST", "Treated_Ha.tif"))
   
   ### merchRevenue.r

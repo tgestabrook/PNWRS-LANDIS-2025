@@ -79,15 +79,17 @@ TargetRxSize              1000	<< in hectares
 >>>>>>     Spread parameters                    <<<<<<<<<<<<<
 >> Code to estimate these parameters found on GitHub: https://github.com/LANDIS-II-Foundation/Extension-SCRPPLE/tree/master/Supporting%20R%20Code/Spread_Commit
 >> If MaxSpreadArea betas are too high, fires burn too quickly. If too low, fires are too small or square.
+>>BurningSitesThreshold   6
+
 MaximumSpreadAreaB0	 20000	<< 500, -1000, -300, 10
 MaximumSpreadAreaB1	 -125	<< 100,    40,   12, -2.5 	<< FWI
 MaximumSpreadAreaB2	 -125	<< 100,    60,   10, -2.5  	<< Effective wind speed
 
 >> If SpreadProbability is too high, the whole landscape burns up in 1-2 days. If too low, fires don't spread.
 SpreadProbabilityB0      -0.5       <<        -3.5, -3.5,  -8, -10,  -11, -0.79    Intercept
-SpreadProbabilityB1      0.01      << 0.04, 0.055, 0.06, 0.12, 0.2, 0.25,  0.06    FWI
-SpreadProbabilityB2      1.4       <<        0.85, 0.06, 0.13, 0.3, 0.20,-0.915    Relativized fine fuels. 
-SpreadProbabilityB3      0.002      << 0.02, 0.045, 0.05, 0.11, 0.1, 0.01, 0.013    Effective wind speed. 
+SpreadProbabilityB1      0.005      << 0.04, 0.055, 0.06, 0.12, 0.2, 0.25,  0.06    FWI
+SpreadProbabilityB2      0.7       <<        0.85, 0.06, 0.13, 0.3, 0.20,-0.915    Relativized fine fuels. 
+SpreadProbabilityB3      0.0002      << 0.02, 0.045, 0.05, 0.11, 0.1, 0.01, 0.013    Effective wind speed. 
 
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

@@ -1,27 +1,25 @@
 LandisData    "Scenario"
+>>  Scenario: Tripod no suppression test
 
-Duration     20
+Duration     400
 
 Species    ../Shared_inputs/SPECIES.txt
 
-Ecoregions      ../WenEnt/ECOREGIONS_WenEnt.txt
+Ecoregions      ../Tripod/ECOREGIONS_Tripod.txt
 
-EcoregionsMap   ../WenEnt/ECOREGIONS_WenEnt.tif
-
-
+EcoregionsMap   ../Tripod/ECOREGIONS_Tripod.tif
 
 CellLength     90 << meters
 
 >>  Succession Extension    Initialization File
 >> ----------------------   -------------------
-"NECN Succession"     ../WenEnt/ext_NECN_WenEnt10_baseclim.txt
+"NECN Succession"     ../Tripod/ext_NECN_Tripod10_baseclim.txt
 
 
 >> Disturbance Extensions   Initialization File
 >> ----------------------   -------------------
-"Magic Harvest"	     ../Shared_inputs/ext_magic_harvest_thin_high.txt
-"Social Climate Fire"     ../WenEnt/ext_SCRAPPLE_Rx_WenEnt.txt
-"Biomass Harvest"	     ../Shared_inputs/ext_BiomassHarvest_mh.txt
+"Social Climate Fire"     ../Tripod/ext_SCRAPPLE_NoSupp_Tripod.txt
+
 
 
 DisturbancesRandomOrder  no
@@ -29,4 +27,4 @@ DisturbancesRandomOrder  no
 >> Other Extensions   Initialization File
 >> ----------------------   -------------------
 >>"Output Biomass" ../Shared_inputs/ext_Output_Biomass10.txt
->> "Output Cohort Statistics" ../Shared_inputs/ext_Output_CohortStats10.txt
+>>"Output Cohort Statistics" ../Shared_inputs/ext_Output_CohortStats10.txt

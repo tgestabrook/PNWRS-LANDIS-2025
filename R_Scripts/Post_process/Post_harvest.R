@@ -59,6 +59,32 @@ if(file.exists(file.path(LANDIS.EXTENT, "Ancillary_data", paste0("BiomassCollect
   write.csv(as.data.frame(merch.hexes.df), file.path(landisOutputDir, paste0('Merch_biomass_hexes', basename(landisOutputDir), '.csv')))
 }
 
+### Estimate salvage yield: -----
+# Biomass available from HS fire, HS
+
+# areas that burned a year or two prior
+sev_prev.r <- c(zero.r[[1]], severityStackSmoothedClassified.r[[1:(simLength-1)]])
+sev_prev2.r <- c(zero.r[[1]], zero.r[[1]], severityStackSmoothedClassified.r[[1:(simLength-2)]])
+harvest_zones.r <- rast(file.path(modelDir, LANDIS.EXTENT, paste0("ext_BiomassHarvestMgmt_", LANDIS.EXTENT, ".tif")))
+
+available_burned.r <- ifel((sev_prev.r >= 2 | sev_prev2.r >= 2) & is.na(severityStackSmoothedClassified.r) & (harvest_zones.r %in% c(1, 2, 3)), 1, 0)
+plot(available_burned.r)
+
+# Calculate pre-fire biomass
+# to get potential yield, for each pixel, we want to get mean harvest yield from stands of the same pwg and stand age????
+
+# thinning_removals.r <- ifel(harvestPrescripts.r %in% c(12,13,14), biomassRemoved.r, 0)  # get removals only from regular thinning operations
+# names(thinning_removals.r) <- paste0("yield-", 1:100)
+
+# mean_yield.df <- c(pwg.r, thinning_removals.r, )
+
+
+# get average yield by PWG and stand age?
+
+# the apply to pixels marked as salvage logged
+
+# and write a csv?
+
 
 
 cat('\n      -----------------------------------------------

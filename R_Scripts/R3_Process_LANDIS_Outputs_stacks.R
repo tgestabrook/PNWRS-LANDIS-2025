@@ -261,7 +261,7 @@ theme_set(theme_classic()+theme(panel.background = element_rect(color='black',fi
                                 legend.key.size=unit(0.4,'cm')))
 
 #### If testing on single run, run this line and then the code inside the for loop below.
-landisOutputDir <- landisRuns[35]
+landisOutputDir <- landisRuns[43]
 
 #### Compress runs in paralell
 # n_cores <- detectCores()
@@ -347,6 +347,8 @@ for(landisOutputDir in prioritize_uncompressed_runs(landisRuns)){
   totalBiomass_stack.r <- rast(file.path(biomassOutput, "TotalBiomass-yr-biomass.tif"))
   simLength <- totalBiomass_stack.r |> names() |> str_extract("\\d+") |> as.integer() |> max() 
   
+  zero.r <- rast(pwg.r, vals = 0, nlyrs = simLength + 1)
+  
   ### Interpolate rasters
   if (nlyr(totalBiomass_stack.r)<simLength|T){
     source("./R_Scripts/Post_process/Post_interpolate_outputs.R")
@@ -399,6 +401,18 @@ for(landisOutputDir in prioritize_uncompressed_runs(landisRuns)){
     harvestSum.df<-read.csv(file.path(landisOutputDir,'biomass-harvest-summary-log.csv')) |>
       rename('Year' = 'Time')
     
+    # Calculate available standing dead wood as dead wood from the previous two years!
+    # for a salvage in year n, the available wood is mass(year n-1) + mass(year n-2)
+    # thus the map represents total biomass that could be harvested that year.
+    standing_dead.r <- rast(file.path(fireOutput, "special-dead-wood-yr.tif"))
+    available_standing_dead.r <- c(zero.r[[1:2]], standing_dead.r[[1:(simLength - 2)]]) + c(zero.r[[1]], standing_dead.r[[1:(simLength - 1)]])  # the year one map is burned year 0 and year -1, the year 100 map is year 99 + year 98
+    names(available_standing_dead.r) <- paste0("harvestable_snag-", 1:100)
+    
+    salvage_harvest_yield.r <- ifel(harvestPrescripts.r %in% c(2, 3, 4, 5, 7, 8, 12, 13, 14, 15),  # three old protocols, industrial, salvage, WA DNR, new forest restoration thins. NOT PCT
+                                    available_standing_dead.r  * 0.01 * 0.81,  # Convert g/m2 to mg/ha to Mg.  
+                                    0
+    ) 
+    
     if(nrow(harvestEvents.df>0)){
       source('./R_Scripts/Post_process/Post_harvest.R')
     } else {
@@ -449,12 +463,12 @@ for(landisOutputDir in prioritize_uncompressed_runs(landisRuns)){
   } else {
     source('./R_Scripts/Post_process/Generate_DST_Maps.R')
   }
-  
-  # if(!file.exists(file.path(landisOutputDir, "Diagnostics.html"))){
-  #   rmarkdown::render(input = "./R_Scripts/Post_process/Sim_diagnostics.Rmd", 
-  #                   output_format = "html_document",
-  #                   output_file = file.path(landisOutputDir, "Diagnostics.html"), )
-  # }
+
+  if(!file.exists(file.path(landisOutputDir, "Diagnostics.html"))){
+    rmarkdown::render(input = "./R_Scripts/Post_process/Sim_diagnostics.Rmd",
+                    output_format = "html_document",
+                    output_file = file.path(landisOutputDir, "Diagnostics.html"), )
+  }
   
   
   cat('\n\n###################################################################################################################################
@@ -484,6 +498,7 @@ for(landisOutputDir in prioritize_uncompressed_runs(landisRuns)){
                           'pwg.r',
                           'lua.r',
                           'active.r',
+                          'zero.r',
                           'pwg.noBuffer.r',
                           'PWGxHUC10.sf',
                           'road.no.wild.dist.r',

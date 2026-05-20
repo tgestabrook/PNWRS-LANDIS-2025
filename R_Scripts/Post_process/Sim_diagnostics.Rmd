@@ -94,6 +94,17 @@ if(exists('fire.size.classes.log10')){
 }
 ```
 
+```{r, fig.cap = "Another fire size comparison"}
+df <- bind_rows(
+  fire.df |> select(FIRE_SIZE) |> mutate(Source = "LANDIS"),
+  mtbs.df |> select(FIRE_SIZE) |> mutate(Source = "MTBS")
+)
+
+ggplot(data = df, aes(x = log10(FIRE_SIZE), fill = Source, color = Source)) + geom_density(alpha = 0.25) + ggtitle("Event Size Distribution") +
+  xlab("Event Size (log10 transformed)") + ylab("Event count") #+ facet_wrap(~Source)
+
+```
+
 
 ```{r, fig.cap = "Power law fit"}
 if(exists("powerLaw.df")){

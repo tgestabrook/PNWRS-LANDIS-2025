@@ -2,7 +2,7 @@ LandisData "Climate Config"
 		
 >> Future climate data
 ClimateTimeSeries			Daily_SequencedYears
-ClimateFile				../Tripod/zClimate_Library/CLIMATE_2020-2023_baseline_Tripod.csv
+ClimateFile				../Tripod/zClimate_Library/CLIMATE_2020-2120_baseline_Tripod.csv
 
 >> Historical climate data
 SpinUpClimateTimeSeries			Daily_AverageAllYears

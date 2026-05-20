@@ -390,7 +390,7 @@ if (!file.exists(file.path(landisOutputDir, "Annual_severity_total_df.csv"))){
   
   write.csv(annual_sev.df, file.path(landisOutputDir, "Annual_severity_total_df.csv"))
 } else{
-  annial_sev.df <- read.csv(file.path(landisOutputDir, "Annual_severity_total_df.csv"))
+  annual_sev.df <- read.csv(file.path(landisOutputDir, "Annual_severity_total_df.csv"))
 }
 #-----------------------------------------------------------------------------------------------------------------------
 ## Attach PWG to fire events log: ----

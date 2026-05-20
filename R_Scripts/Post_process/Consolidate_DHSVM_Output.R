@@ -46,29 +46,29 @@ for (maptype in c("MaxSwe_", "MaxSweDate_", "MeltOutDate_")){
     scenario_shortened <- str_remove(scenario, dhsvm_sim.prefix)  # get scenarioname without subbasin name
     cat(maptype)
     
-    s <- list()
-    
-    for (yr in 2021:2120){ 
-      cat(yr)
-      r1 <- rast(file.path(DHSVM_dir, subbasin_folders[1], scenario, paste0(maptype, yr, '_withheader.asc'))) 
-      crs(r1) <- crs(subbasin_masks[[subbasin_folders[1]]])
-      r1 <- ifel(subbasin_masks[[subbasin_folders[1]]] == 0, NA, r1)
-      
-      
-      r2 <- rast(file.path(DHSVM_dir, subbasin_folders[2], scenario, paste0(maptype, yr, '_withheader.asc'))) 
-      crs(r2) <- crs(subbasin_masks[[subbasin_folders[2]]])
-      
-      r <- terra::merge(r1, r2)
-      
-      s[paste0(maptype, yr)] <- r
-      
-    }
-    
-    cat('..')
-    s2 <- rast(s)
-
-    writeRaster(s2, file.path(DHSVM_dir, LANDIS.EXTENT, paste0(maptype, scenario_shortened, '.tif')), overwrite = T)
-    
+    # s <- list()
+    # 
+    # for (yr in 2021:2120){ 
+    #   cat(yr)
+    #   r1 <- rast(file.path(DHSVM_dir, subbasin_folders[1], scenario, paste0(maptype, yr, '_withheader.asc'))) 
+    #   crs(r1) <- crs(subbasin_masks[[subbasin_folders[1]]])
+    #   r1 <- ifel(subbasin_masks[[subbasin_folders[1]]] == 0, NA, r1)
+    #   
+    #   
+    #   r2 <- rast(file.path(DHSVM_dir, subbasin_folders[2], scenario, paste0(maptype, yr, '_withheader.asc'))) 
+    #   crs(r2) <- crs(subbasin_masks[[subbasin_folders[2]]])
+    #   
+    #   r <- terra::merge(r1, r2)
+    #   
+    #   s[paste0(maptype, yr)] <- r
+    #   
+    # }
+    # 
+    # cat('..')
+    # s2 <- rast(s)
+    # 
+    # writeRaster(s2, file.path(DHSVM_dir, LANDIS.EXTENT, paste0(maptype, scenario_shortened, '.tif')), overwrite = T)
+    # 
     cat("/n")
     ## merge mean annual flow dataframes
     merged_annual_mean.df <- foreach(subbasin_folder = subbasin_folders, .combine = dplyr::left_join, .maxcombine = 2) %do% {

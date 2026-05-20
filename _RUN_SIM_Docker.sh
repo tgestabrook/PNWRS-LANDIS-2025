@@ -68,8 +68,8 @@ do
     ## RUN LANDIS-II SCENARIO
     echo Running LANDIS-II scenario...
 
-    docker run --cpus=4 --memory=64g --mount type=bind, src=. dst=/LANDIS --name Container{$scenarioFile}_$date_time \
-  landis-ii-docker /bin/sh -c "dotnet $LANDIS_CONSOLE scenario.txt"
+    docker run --cpus=4 --memory=64g --mount type=bind,src=".",dst="/LANDIS" --name Container$scenarioFile_$date_time \
+  landis-ii-docker /bin/sh -c "system('dotnet $LANDIS_CONSOLE scenario.txt')"
 
     #dotnet $LANDIS_CONSOLE ./scenario.txt
     # dotnet $HOME/Core-Model-v7-LINUX/build/Release/Landis.Console ./Input_file_archive/$scenarioFile
