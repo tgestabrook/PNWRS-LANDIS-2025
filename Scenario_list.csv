@@ -24,4 +24,4 @@
 22,100,Thin_Rx_WFU_5pct7,../EXTENT/ext_NECN68_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE32_WFU_EXTENT.txt,../Shared_inputs/ext_BiomassHarvest_mh.txt,../Shared_inputs/ext_magic_harvest_thin_high.txt,../Shared_inputs/SPECIES_v7.txt
 23,100,Thin_5pct7_noslash,../EXTENT/ext_NECN68_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE32_EXTENT.txt,../Shared_inputs/ext_BiomassHarvest_mh.txt,../Shared_inputs/ext_magic_harvest_thin_high.txt,../Shared_inputs/SPECIES_v7.txt
 50,50,Lanzatech7,../EXTENT/ext_NECN68_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE32_Rx_EXTENT.txt,../Shared_inputs/ext_BiomassHarvest_LZ.txt,../Shared_inputs/ext_magic_harvest_LZ.txt,../Shared_inputs/SPECIES_v7.txt
-99,100,Longterm,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_NoSupp_EXTENT.txt,NA,NA,../Shared_inputs/SPECIES.txt
+99,500,Longterm,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_NoSupp_EXTENT.txt,NA,NA,../Shared_inputs/SPECIES.txt
