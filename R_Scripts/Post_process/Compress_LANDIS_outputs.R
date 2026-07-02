@@ -14,8 +14,8 @@ if(length(eco_files)==1) {
 ecos.r[ecos.r==0]<-NA
 
 ### Check if LANDIS outputs are flipped: ----
-if(file.exists(file.path(landisOutputDir, 'biomassOutput', 'TotalBiomass-0-biomass.tif'))){
-  test_r <- rast(file.path(landisOutputDir, 'biomassOutput', 'TotalBiomass-0-biomass.tif')); crs(test_r) <- crs(ecos.r); ext(test_r) <- ext(ecos.r)
+if(file.exists(file.path(landisOutputDir, 'NECN', 'LAI-2.tif'))){
+  test_r <- rast(file.path(landisOutputDir, 'NECN', 'LAI-2.tif')); crs(test_r) <- crs(ecos.r); ext(test_r) <- ext(ecos.r)
   overlay_normal <- ifel(is.na(ecos.r)&test_r!=0, 1, 0)
   overlay_flip <- ifel(is.na(ecos.r)&flip(test_r)!=0, 1, 0)
   if(sum(values(overlay_normal, na.rm=T))>sum(values(overlay_flip, na.rm=T))){flip_rasters<-T}else{flip_rasters<-F}
@@ -39,8 +39,9 @@ aoi.ext <- ext(ecos.r)
 # registerDoSEQ()
 
 # foreach(folder = c('biomassOutput','ageOutput','Harvest', 'NECN','social-climate-fire', 'MagicHarvest'), .packages = c("terra", "stringr"), .inorder = F, outfile = "") %dopar% {
-for(folder in c('biomassOutput','ageOutput','Harvest', 'NECN','social-climate-fire', 'MagicHarvest')){
+for(folder in c('biomassOutput','ageOutput', 'ageBiomassOutput', 'Harvest', 'NECN','social-climate-fire', 'MagicHarvest')){
   cat(paste0('\n', folder, '...\n'))
+  if (!file.exists(file.path(landisOutputDir, folder))) {next}
   
   ### Remove tif.aux.xml
   auxxml <- files <- list.files(path = file.path(landisOutputDir,folder), pattern = "\\.aux.xml$", full.names = TRUE)
@@ -51,7 +52,7 @@ for(folder in c('biomassOutput','ageOutput','Harvest', 'NECN','social-climate-fi
   if(folder == "MagicHarvest" & !"R_log_MH.txt"%in%files){next}
   
   ### Get the unique map types: ----
-  mapTypes <- str_replace(files, '(\\d+)', '(\\\\d+)') |>  # replace year numbers with generic number matching string for use later
+  mapTypes <- str_replace(files, '-(\\d+)', '-(\\\\d+)') |>  # replace year numbers with generic number matching string for use later
     unique()  # get the unique map types
   
   if(folder == "MagicHarvest"){mapTypes <- c("MH_mgmt_areas_(\\d+).tif", "MH_stands_(\\d+).tif")}

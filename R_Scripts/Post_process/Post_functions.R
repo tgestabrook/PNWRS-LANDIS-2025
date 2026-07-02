@@ -10,7 +10,7 @@ get_maps <- function(subdir, name_prefix, target.crs, target.ext){
   subdir_files <- dir(file.path(landisOutputDir, subdir))
   maps <- subdir_files[grepl(paste0('^', name_prefix), subdir_files)]  # get files in the directory that match the output map type
   
-  maps <- maps[order(as.numeric(str_extract(maps, "(\\d+)")))]  # sort by year
+  maps <- maps[order(as.numeric(str_extract(maps, "(?<=-)(\\d+)")))]  # sort by year
   map_paths <- file.path(landisOutputDir, subdir, maps)
   maprs <- rast(map_paths)
   
@@ -81,7 +81,7 @@ interpolateRaster <- function(r){
   prefix <- str_extract(names(r)[1], "^[^0-9]*")  # grab all text before numerals appear
   suffix <- str_extract(names(r)[1], "[^0-9]*$")
   
-  data.yrs <- names(r) |> str_extract("\\d+") |> as.integer()
+  data.yrs <- names(r) |> str_extract("(?<=-)(\\d+)") |> as.integer()
   missing.yrs <- seq(0, simLength)[!seq(0, simLength) %in% data.yrs]
   
   missing.lyrs <- rast(r, vals = NA, nlyrs = length(missing.yrs))

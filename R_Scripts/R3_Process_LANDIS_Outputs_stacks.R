@@ -46,8 +46,8 @@ source("./R_Scripts/Post_process/Post_functions.R") # load custom functions
 Sys.setenv(TMPDIR = "F:/R_TEMP")
 terraOptions(tempdir = "F:/R_TEMP")
 
-LANDIS.EXTENT<-'WenEnt'
-Dir <- file.path('F:/2025_Q4_Scenarios', LANDIS.EXTENT)
+LANDIS.EXTENT<-'OkaMet'
+Dir <- file.path('F:/2026_Q2_Scenarios', LANDIS.EXTENT)
 
 # LANDIS.EXTENT <- 'Tripod'
 # Dir <- file.path("F:", "LANDIS Runs", "Tripod_LANDIS_model")
@@ -177,8 +177,6 @@ if(!file.exists(file.path(dataDir, "MTBS_and_FOD_Fires", LANDIS.EXTENT, "Annual_
 annual_sev.df <- read.csv(file.path(dataDir, "MTBS_and_FOD_Fires", LANDIS.EXTENT, "Annual_severity_df.csv")) |> mutate(PWG = as.factor(PWG))
 
 
-
-
 #### Load elevation and hillshade: ----
 dem.r<-rast(file.path(dataDir,paste0("DEM_90m_", LANDIS.EXTENT, ".tif")))
 names(dem.r) <- "Elevation"
@@ -261,7 +259,7 @@ theme_set(theme_classic()+theme(panel.background = element_rect(color='black',fi
                                 legend.key.size=unit(0.4,'cm')))
 
 #### If testing on single run, run this line and then the code inside the for loop below.
-landisOutputDir <- landisRuns[43]
+landisOutputDir <- landisRuns[1]
 
 #### Compress runs in paralell
 # n_cores <- detectCores()
@@ -307,7 +305,7 @@ for(landisOutputDir in prioritize_uncompressed_runs(landisRuns)){
   cat(paste('Start time:', Sys.time(), '\n\n'), file=outFile)
   
 
-  if(length(list.files(landisOutputDir, pattern = '\\.img$', ignore.case = T, recursive = T))>0){
+  if(length(list.files(landisOutputDir, pattern = '\\.img$', ignore.case = T, recursive = T))>0 | file.exists(file.path(landisOutputDir, "NECN", "TotalC-2.tif"))){
     source("./R_Scripts/Post_process/Compress_LANDIS_outputs.R")  # Compress and make stacks if raw LANDIS outputs
   }
   
@@ -339,18 +337,20 @@ for(landisOutputDir in prioritize_uncompressed_runs(landisRuns)){
   # Define Map Folders: ----
   biomassOutput <- file.path(landisOutputDir, 'biomassOutput')
   ageOutput <- file.path(landisOutputDir, 'ageOutput')
+  ageBiomassOutput <- file.path(landisOutputDir, 'ageBiomassOutput')
   fireOutput <- file.path(landisOutputDir, 'social-climate-fire')
   harvestOutput <- file.path(landisOutputDir, 'Harvest')
   necnOutput <- file.path(landisOutputDir, "NECN")
   MHOutput <- file.path(landisOutputDir, 'MagicHarvest')
   
-  totalBiomass_stack.r <- rast(file.path(biomassOutput, "TotalBiomass-yr-biomass.tif"))
-  simLength <- totalBiomass_stack.r |> names() |> str_extract("\\d+") |> as.integer() |> max() 
+  LAI.stack <- rast(file.path(necnOutput, "LAI-yr.tif"))
+  # totalBiomass_stack.r <- rast(file.path(biomassOutput, "TotalBiomass-yr-biomass.tif"))
+  simLength <- LAI.stack |> names() |> str_extract("\\d+") |> as.integer() |> max() 
   
   zero.r <- rast(pwg.r, vals = 0, nlyrs = simLength + 1)
   
   ### Interpolate rasters
-  if (nlyr(totalBiomass_stack.r)<simLength|T){
+  if (nlyr(LAI.stack)<simLength|T){
     source("./R_Scripts/Post_process/Post_interpolate_outputs.R")
   }
   
@@ -360,19 +360,23 @@ for(landisOutputDir in prioritize_uncompressed_runs(landisRuns)){
   fireMaps<-dir(fireOutput)[grepl('.tif',dir(fireOutput))]
   harvestMaps<-dir(harvestOutput)[grepl('.tif',dir(harvestOutput))]
   
-  totalBiomass_stack.r <- rast(file.path(biomassOutput, "TotalBiomass-yr-biomass.tif"))
-  biomassStack.r <- rast(file.path(biomassOutput, dir(biomassOutput)[grepl("yr-biomass", dir(biomassOutput))]))  # one mega-stack with biomass of all species
+  # totalBiomass_stack.r <- rast(file.path(biomassOutput, "TotalBiomass-yr-biomass.tif"))
+  # biomassStack.r <- rast(file.path(biomassOutput, dir(biomassOutput)[grepl("yr-biomass", dir(biomassOutput))]))  # one mega-stack with biomass of all species
   
-  LAI.stack <- rast(file.path(necnOutput, "LAI-yr.tif"))
-  MedAgeAllspp.stack <- rast(file.path(ageOutput, dir(ageOutput)[grepl("yr-MED", dir(ageOutput))]))
-  MaxAgeAllspp.stack <- rast(file.path(ageOutput, dir(ageOutput)[grepl("yr-MAX", dir(ageOutput))]))
-  BiomassTrees.stack <- biomassStack.r |> select(!starts_with(c("Nfixer_Resprt","NonFxr_Resprt","NonFxr_Seed","Grass_Forb","TotalBiomass"))) 
   
+  # MedAgeAllspp.stack <- rast(file.path(ageOutput, dir(ageOutput)[grepl("yr-MED", dir(ageOutput))]))
+  # MaxAgeAllspp.stack <- rast(file.path(ageOutput, dir(ageOutput)[grepl("yr-MAX", dir(ageOutput))]))
+  # BiomassTrees.stack <- biomassStack.r |> select(!starts_with(c("Nfixer_Resprt","NonFxr_Resprt","NonFxr_Seed","Grass_Forb","TotalBiomass"))) 
+  # 
   ## List all years: ----
-  yrs <- totalBiomass_stack.r |> names() |> str_extract("\\d+") |> as.integer()
+  LAI.stack <- rast(file.path(necnOutput, "LAI-yr.tif"))  # reload after interpolation
+  yrs <- LAI.stack |> names() |> str_extract("\\d+") |> as.integer()
   
-  ### Crunch out age stacks 
-  source("./R_Scripts/Post_process/Post_ageClasses.R")
+  # ### Crunch out age stacks 
+  # if (file.exists(biomassOutput)){
+  #   source("./R_Scripts/Post_process/Post_ageClasses.R")
+  # }
+  
 
   #### Fires #### ----
   if(dir.exists(fireOutput)){
