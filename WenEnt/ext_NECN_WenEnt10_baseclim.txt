@@ -7,8 +7,8 @@ Timestep  2
 
 SeedingAlgorithm  WardSeedDispersal
 
-InitialCommunitiesCSV      ../WenEnt/INITIAL_COMMUNITIES_WenEnt.csv
-InitialCommunitiesMap   ../WenEnt/INITIAL_COMMUNITIES_WenEnt.tif
+InitialCommunitiesCSV      ../WenEnt/INITIAL_COMMUNITIES_2022_WenEnt.csv
+InitialCommunitiesMap   ../WenEnt/INITIAL_COMMUNITIES_2022_WenEnt.tif
 ClimateConfigFile 	../WenEnt/zClimate_Library/ClimateGenerator_baseline.txt	
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

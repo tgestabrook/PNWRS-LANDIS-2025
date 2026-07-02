@@ -7,8 +7,8 @@ Timestep  2
 
 SeedingAlgorithm  WardSeedDispersal
 
-InitialCommunitiesCSV      ../OkaMet/INITIAL_COMMUNITIES_OkaMet.csv
-InitialCommunitiesMap   ../OkaMet/INITIAL_COMMUNITIES_OkaMet.tif
+InitialCommunitiesCSV      ../OkaMet/INITIAL_COMMUNITIES_2022_OkaMet.csv
+InitialCommunitiesMap   ../OkaMet/INITIAL_COMMUNITIES_2022_OkaMet.tif
 ClimateConfigFile 	../OkaMet/zClimate_Library/ClimateGenerator_RCP85.txt	
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
