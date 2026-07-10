@@ -2,15 +2,15 @@ LandisData "Climate Config"
 		
 >> Future climate data
 ClimateTimeSeries			Daily_SequencedYears
-ClimateFile				../WenEnt/zClimate_Library/CLIMATE_2020-2120_rcp85_OkaMet.csv
+ClimateFile				../OkaMet/zClimate_Library/CLIMATE_2020-2120_rcp85_OkaMet.csv
 >>ClimateFileFormat			Daily_Temp-C_Precip-mmDay
 
 >> Historical climate data
 SpinUpClimateTimeSeries			Daily_SequencedYears
-SpinUpClimateFile			../WenEnt/zClimate_Library/CLIMATE_1980-2019_rcp85_OkaMet.csv
+SpinUpClimateFile			../OkaMet/zClimate_Library/CLIMATE_1980-2019_rcp85_OkaMet.csv
 >>SpinUpClimateFileFormat			Daily_Temp-C_Precip-mmDay
 
-
+GenerateClimateOutputFiles		no
 UsingFireClimate			yes << Indicates whether Climate Library prepares data for calculating Fire Weather Index
 FineFuelMoistureCode			85  << Initial value for FWI calculation 
 DuffMoistureCode			20  << Initial value for FWI calculation 
