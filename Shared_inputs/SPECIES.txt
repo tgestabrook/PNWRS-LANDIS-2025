@@ -14,6 +14,7 @@ LandisData  Species
 	ChamNoot	960			40		60			500			0.05		20	820	resprout
 	CornNutt	70			10		60			200			0.8			2	70	resprout
 	FraxLati	110			30		30			200			0.5			2	110	resprout
+	HardWood	130			15		180			500			0.9			2	110	resprout
 	JuniOcci	140			25		30			100			0			0	0	none
 	JuniScop	190			25		30			100			0			0	0	none
 	LariLyal	680			25		90			400			0			0	0	none

@@ -48,7 +48,8 @@ df <- biomass.df |>
   ) |>
   arrange(Biomass_MG)
 
-ggplot(data = biomass.df, aes(x = Species, y = Biomass_MG)) + geom_col() + ggtitle("Wenatchee-Entiat Year 0 Total Biomass by species.")
+ggplot(data = biomass.df, aes(x = Species, y = Biomass_MG)) + geom_col() + ggtitle("Wenatchee-Entiat Year 0 Total Biomass by species.")  +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
 
 
 if (!file.exists(file.path(landisOutputDir, "ageBiomassSecondary", "TotalBiomass.tif"))){

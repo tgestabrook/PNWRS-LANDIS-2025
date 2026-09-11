@@ -46,8 +46,8 @@ source("./R_Scripts/Post_process/Post_functions.R") # load custom functions
 Sys.setenv(TMPDIR = "F:/R_TEMP")
 terraOptions(tempdir = "F:/R_TEMP")
 
-LANDIS.EXTENT<-'OkaMet'
-Dir <- file.path('F:/2026_Q2_Scenarios', LANDIS.EXTENT)
+LANDIS.EXTENT<-'WenEnt'
+Dir <- file.path('F:/2026_Q4_Scenarios', LANDIS.EXTENT)
 
 # LANDIS.EXTENT <- 'Tripod'
 # Dir <- file.path("F:", "LANDIS Runs", "Tripod_LANDIS_model")
@@ -292,7 +292,7 @@ for(landisOutputDir in landisRuns){
 
 
 ### Core post-processing loop: ----
-for(landisOutputDir in prioritize_uncompressed_runs(landisRuns)){
+for(landisOutputDir in landisRuns){
   if(length(dir(landisOutputDir))==0) stop("LANDIS output folder is empty! Check file path...")
   
   #----------------------------------------------------------------------#
@@ -386,93 +386,93 @@ for(landisOutputDir in prioritize_uncompressed_runs(landisRuns)){
     gc()  # free up memory
   }
   
-  #### Harvest #### ----
-  if(dir.exists(harvestOutput)){
-    ### Load harvest maps: ----
-    cat('\nLoading harvest data...\n')
-    harvestPrescripts.r <- rast(file.path(harvestOutput, "biomass-harvest-prescripts-yr.tif"))
-    biomassRemoved.r <- rast(file.path(harvestOutput, "biomass-removed-yr.tif"))
-    standIDmaps.r <- rast(file.path(MHOutput, "MH_stands_yr.tif"))
-    names(standIDmaps.r) <- str_replace(names(standIDmaps.r), '.tif', '') |>
-      str_replace_all('_', '-')
-    
-    ### Load dataframe with merchantable fraction by species and harvest type
-    merch_partition.df <- read.csv(file.path(modelDir, 'Shared_inputs', 'Harvest_merch_table.csv')) |>  # table specifying merch/nonmerch breakdown
-      pivot_longer(cols = !starts_with("Species"), names_to = "Prescription", values_to = "Merch_frac")
-    
-    ### Load harvest logs
-    harvestEvents.df <- read.csv(file.path(landisOutputDir, "biomass-harvest-event-log.csv"))
-    harvestSum.df<-read.csv(file.path(landisOutputDir,'biomass-harvest-summary-log.csv')) |>
-      rename('Year' = 'Time')
-    
-    # Calculate available standing dead wood as dead wood from the previous two years!
-    # for a salvage in year n, the available wood is mass(year n-1) + mass(year n-2)
-    # thus the map represents total biomass that could be harvested that year.
-    standing_dead.r <- rast(file.path(fireOutput, "special-dead-wood-yr.tif"))
-    available_standing_dead.r <- c(zero.r[[1:2]], standing_dead.r[[1:(simLength - 2)]]) + c(zero.r[[1]], standing_dead.r[[1:(simLength - 1)]])  # the year one map is burned year 0 and year -1, the year 100 map is year 99 + year 98
-    names(available_standing_dead.r) <- paste0("harvestable_snag-", 1:100)
-    
-    salvage_harvest_yield.r <- ifel(harvestPrescripts.r %in% c(2, 3, 4, 5, 7, 8, 12, 13, 14, 15),  # three old protocols, industrial, salvage, WA DNR, new forest restoration thins. NOT PCT
-                                    available_standing_dead.r  * 0.01 * 0.81,  # Convert g/m2 to mg/ha to Mg.  
-                                    0
-    ) 
-    
-    if(nrow(harvestEvents.df>0)){
-      source('./R_Scripts/Post_process/Post_harvest.R')
-    } else {
-      rm(harvestEvents.df)  # remove so as not to break downstream code using harvestevents to plot outputs
-    }
-    
-    gc()  # free up memory
-  }
-  
-  #### Biomass #### ----
-  source('./R_Scripts/Post_process/Post_biomass.R')
-  gc()
-
-  # if (!file.exists(file.path(landisOutputDir, "Fire_Severity_fine_fuels.gif"))|
-  #     simOpts$remakeGifs){  # separate out GIFs since they're now the slowest to generate
-  #   source('./R_Scripts/Post_process/Make_gifs.R')
+  # #### Harvest #### ----
+  # if(dir.exists(harvestOutput)){
+  #   ### Load harvest maps: ----
+  #   cat('\nLoading harvest data...\n')
+  #   harvestPrescripts.r <- rast(file.path(harvestOutput, "biomass-harvest-prescripts-yr.tif"))
+  #   biomassRemoved.r <- rast(file.path(harvestOutput, "biomass-removed-yr.tif"))
+  #   standIDmaps.r <- rast(file.path(MHOutput, "MH_stands_yr.tif"))
+  #   names(standIDmaps.r) <- str_replace(names(standIDmaps.r), '.tif', '') |>
+  #     str_replace_all('_', '-')
+  #   
+  #   ### Load dataframe with merchantable fraction by species and harvest type
+  #   merch_partition.df <- read.csv(file.path(modelDir, 'Shared_inputs', 'Harvest_merch_table.csv')) |>  # table specifying merch/nonmerch breakdown
+  #     pivot_longer(cols = !starts_with("Species"), names_to = "Prescription", values_to = "Merch_frac")
+  #   
+  #   ### Load harvest logs
+  #   harvestEvents.df <- read.csv(file.path(landisOutputDir, "biomass-harvest-event-log.csv"))
+  #   harvestSum.df<-read.csv(file.path(landisOutputDir,'biomass-harvest-summary-log.csv')) |>
+  #     rename('Year' = 'Time')
+  #   
+  #   # Calculate available standing dead wood as dead wood from the previous two years!
+  #   # for a salvage in year n, the available wood is mass(year n-1) + mass(year n-2)
+  #   # thus the map represents total biomass that could be harvested that year.
+  #   standing_dead.r <- rast(file.path(fireOutput, "special-dead-wood-yr.tif"))
+  #   available_standing_dead.r <- c(zero.r[[1:2]], standing_dead.r[[1:(simLength - 2)]]) + c(zero.r[[1]], standing_dead.r[[1:(simLength - 1)]])  # the year one map is burned year 0 and year -1, the year 100 map is year 99 + year 98
+  #   names(available_standing_dead.r) <- paste0("harvestable_snag-", 1:100)
+  #   
+  #   salvage_harvest_yield.r <- ifel(harvestPrescripts.r %in% c(2, 3, 4, 5, 7, 8, 12, 13, 14, 15),  # three old protocols, industrial, salvage, WA DNR, new forest restoration thins. NOT PCT
+  #                                   available_standing_dead.r  * 0.01 * 0.81,  # Convert g/m2 to mg/ha to Mg.  
+  #                                   0
+  #   ) 
+  #   
+  #   if(nrow(harvestEvents.df>0)){
+  #     source('./R_Scripts/Post_process/Post_harvest.R')
+  #   } else {
+  #     rm(harvestEvents.df)  # remove so as not to break downstream code using harvestevents to plot outputs
+  #   }
+  #   
+  #   gc()  # free up memory
   # }
-  
-  #### DHSVM #### ----
-  existing_scenarios <- dir(Dir)[grepl("DHSVM_", dir(Dir))]
-  scenarioName <- landisOutputDir |> 
-    str_replace(dirToProcess, "") |>
-    str_replace_all("/", "") |>
-    str_replace("Sim.{6}", "DHSVM")
-
-  scenarioName_general <- paste(str_split_1(scenarioName, "_")[1:4], collapse = "_")  #limit to one instance since DHSVM is slow to run
-  
-  if((simOpts$RUN.DHSVM.MAPS&  # if we have said to run DHSVM AND the maps aren't generated AND there isn't output for this scenario already, run DHSVM, otherwise dont
-      (!file.exists(file.path(landisOutputDir,'DHSVM','DHSVM_yr-100.tif')))&
-      sum(grepl(scenarioName_general, existing_scenarios)) < simOpts$DHSVM_SIM_COUNT)|
-     simOpts$RERUN.DHSVM.MAPS){
-    source('./R_Scripts/Post_process/Post_DHSVM_stopgap.R')
-    
-    #### Zip results: ----
-    
-    if(simOpts$OVERWRITE.ZIP.FILES==T |
-       !file.exists(paste0(dirToProcess,'/',scenarioName,'.zip'))){
-      cat('\n***  ZIPPING DHSVM output maps for',landisOutputDir,'  ***\n')
-      zipr(paste0(dirToProcess,'/',scenarioName,'.zip'),files = file.path(landisOutputDir,'DHSVM',dir(file.path(landisOutputDir,'DHSVM'))))
-    }
-  }
-
-  
-  # stop()
   # 
-  if(file.exists(file.path(landisOutputDir,'DST','DST_Metrics_by_HUC12.csv')) & simOpts$RERUN.DST.MAPS == F){
-    cat('\nDST outputs already exist for',gsub(dirToProcess,"",landisOutputDir),'. Skipping to next sim...')
-  } else {
-    source('./R_Scripts/Post_process/Generate_DST_Maps.R')
-  }
-
-  if(!file.exists(file.path(landisOutputDir, "Diagnostics.html"))){
-    rmarkdown::render(input = "./R_Scripts/Post_process/Sim_diagnostics.Rmd",
-                    output_format = "html_document",
-                    output_file = file.path(landisOutputDir, "Diagnostics.html"), )
-  }
+  # #### Biomass #### ----
+  # source('./R_Scripts/Post_process/Post_biomass.R')
+  # gc()
+  # 
+  # # if (!file.exists(file.path(landisOutputDir, "Fire_Severity_fine_fuels.gif"))|
+  # #     simOpts$remakeGifs){  # separate out GIFs since they're now the slowest to generate
+  # #   source('./R_Scripts/Post_process/Make_gifs.R')
+  # # }
+  # 
+  # #### DHSVM #### ----
+  # existing_scenarios <- dir(Dir)[grepl("DHSVM_", dir(Dir))]
+  # scenarioName <- landisOutputDir |> 
+  #   str_replace(dirToProcess, "") |>
+  #   str_replace_all("/", "") |>
+  #   str_replace("Sim.{6}", "DHSVM")
+  # 
+  # scenarioName_general <- paste(str_split_1(scenarioName, "_")[1:4], collapse = "_")  #limit to one instance since DHSVM is slow to run
+  # 
+  # if((simOpts$RUN.DHSVM.MAPS&  # if we have said to run DHSVM AND the maps aren't generated AND there isn't output for this scenario already, run DHSVM, otherwise dont
+  #     (!file.exists(file.path(landisOutputDir,'DHSVM','DHSVM_yr-100.tif')))&
+  #     sum(grepl(scenarioName_general, existing_scenarios)) < simOpts$DHSVM_SIM_COUNT)|
+  #    simOpts$RERUN.DHSVM.MAPS){
+  #   source('./R_Scripts/Post_process/Post_DHSVM_stopgap.R')
+  #   
+  #   #### Zip results: ----
+  #   
+  #   if(simOpts$OVERWRITE.ZIP.FILES==T |
+  #      !file.exists(paste0(dirToProcess,'/',scenarioName,'.zip'))){
+  #     cat('\n***  ZIPPING DHSVM output maps for',landisOutputDir,'  ***\n')
+  #     zipr(paste0(dirToProcess,'/',scenarioName,'.zip'),files = file.path(landisOutputDir,'DHSVM',dir(file.path(landisOutputDir,'DHSVM'))))
+  #   }
+  # }
+  # 
+  # 
+  # # stop()
+  # # 
+  # if(file.exists(file.path(landisOutputDir,'DST','DST_Metrics_by_HUC12.csv')) & simOpts$RERUN.DST.MAPS == F){
+  #   cat('\nDST outputs already exist for',gsub(dirToProcess,"",landisOutputDir),'. Skipping to next sim...')
+  # } else {
+  #   source('./R_Scripts/Post_process/Generate_DST_Maps.R')
+  # }
+  # 
+  # if(!file.exists(file.path(landisOutputDir, "Diagnostics.html"))){
+  #   rmarkdown::render(input = "./R_Scripts/Post_process/Sim_diagnostics.Rmd",
+  #                   output_format = "html_document",
+  #                   output_file = file.path(landisOutputDir, "Diagnostics.html"), )
+  # }
   
   
   cat('\n\n###################################################################################################################################

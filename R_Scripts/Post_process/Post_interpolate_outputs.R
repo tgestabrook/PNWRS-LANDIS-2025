@@ -33,7 +33,8 @@ for (folder in c("ageOutput", "biomassOutput", "ageBiomassOutput", "NECN")){
     } else {
 
       if ((folder == 'NECN') & (names(s)[1] != str_replace(stack, 'yr', '0') |> str_replace(".tif", ''))){  # grab year zero NECN from single-year simulation
-        y0 <- rast(file.path(dataDir,'NECN_Outputs_Yr_0', LANDIS.EXTENT, str_replace(stack, 'yr', '1')))
+        # y0 <- rast(file.path(dataDir,'NECN_Outputs_Yr_0', LANDIS.EXTENT, str_replace(stack, 'yr', '1')))
+        y0 <- s[[1]]
         names(y0) <- str_replace(stack, 'yr', '0') |> str_replace(".tif", '')
         s <- c(y0, s)
       }

@@ -129,6 +129,7 @@ CohortsRemoved			SpeciesList
 	 PopuBals	1-500(100%)
 	 PopuTrem	1-500(100%)
 	 QuerGarr	1-500(100%)
+	 HardWood 	10-60 (100%)
 
 Plant 	PinuPond
 
@@ -166,6 +167,7 @@ CohortsRemoved			SpeciesList
 	 PopuBals	1-200(100%)
 	 PopuTrem	1-200(100%)
 	 QuerGarr	1-200(100%)
+	 HardWood 	10-60 (100%)
 
 
 >>-----------------------------------------------------------
@@ -202,6 +204,7 @@ CohortsRemoved			SpeciesList
 	 PopuBals	1-200(100%)
 	 PopuTrem	1-200(100%)
 	 QuerGarr	1-200(100%)
+	 HardWood 	10-60 (100%)
 
 >>-----------------------------------------------------------
 >>---- PRESCRIPTION MAP CODE 3; OUTPUT 11 -------------------
@@ -249,6 +252,7 @@ SiteSelection 			Complete
 	 PopuBals	1-120(20%)
 	 PopuTrem	1-120(20%)
 	 QuerGarr	1-120(20%)
+	 HardWood 	10-60 (20%)
 
 >>-----------------------------------------------------------
 >>---- PRESCRIPTION MAP CODE 2; OUTPUT 13 -------------------
@@ -284,6 +288,7 @@ CohortsRemoved			SpeciesList
 	 PopuBals	1-120(20%)
 	 PopuTrem	1-120(20%)
 	 QuerGarr	1-120(20%)
+	 HardWood 	10-60 (20%)
 
 >>-----------------------------------------------------------
 >>---- PRESCRIPTION MAP CODE 3; OUTPUT 14 -------------------
@@ -318,6 +323,7 @@ CohortsRemoved			SpeciesList
 	 JuniScop	1-500(100%)
 	 PopuBals	1-500(100%)
 	 QuerGarr	1-500(100%)
+	 HardWood 	10-60 (100%)
 
 >>-----------------------------------------------------------
 >>---- PRESCRIPTION MAP CODE 3; OUTPUT 15 -------------------
@@ -353,7 +359,7 @@ CohortsRemoved			SpeciesList
 	 JuniScop	1-500(100%)
 	 PopuBals	1-500(100%)
 	 QuerGarr	1-500(100%)
-
+	 HardWood 	10-60 (100%)
 
 
 

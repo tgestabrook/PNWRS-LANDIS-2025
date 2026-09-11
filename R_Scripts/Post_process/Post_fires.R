@@ -295,7 +295,7 @@ emp.fire.dnbr <- read.csv(file.path(dataDir,'MTBS_and_FOD_Fires', LANDIS.EXTENT,
   mutate(dNBR = ifelse(x>1000,1000,x))
 
 ev_log_comp <- fire.df |>
-  select(EventID, SimulationYear, InitialFireWeatherIndex, TotalSitesBurned, InitialDayOfYear, MaximumSpreadArea, MeanWindSpeed, MeanEffectiveWindSpeed, MeanFWI, MeanSpreadProbability, MeanPET, MeanWD, MeanFineFuels, MeanLadderFuels, MeanDNBR, TotalBiomassMortality) |>
+  select(EventID, SimulationYear, InitialFireWeatherIndex, TotalSitesBurned, InitialDayOfYear, MaximumSpreadArea, MeanWindSpeed, MeanEffectiveWindSpeed, MeanFWI, MeanSpreadProbability, MeanPET, MeanWindDirection, MeanFineFuels, MeanLadderFuels, MeanDNBR, TotalBiomassMortality) |>
   mutate(Severity = ifelse(MeanDNBR > 376, 'High (>376)', 'LowToMod')) |> 
   mutate(Severity_full = cut(MeanDNBR, c(0, 41,176,376,2001), c('Unburned','Low','Moderate','High'))) |>
   mutate(ev_Size = cut(TotalSitesBurned, c(0, 12.3, 123, 1234, 12345, 123456), c("<10", "<100", "<1000", "<10000", "<100000"))) |> 
