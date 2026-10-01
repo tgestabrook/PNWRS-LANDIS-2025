@@ -98,17 +98,22 @@ plot(TotalYoungTreeBiomass.r)
 
 # Now detect decreases and overlay with fire footprints
 
-YoungTreeLoss.r <- TotalYoungTreeBiomass.r[2:simLength] - TotalYoungTreeBiomass.r[[1:(simLength - 1)]]
+YoungTreeLoss.r <- TotalYoungTreeBiomass.r[[2:simLength]] - TotalYoungTreeBiomass.r[[1:(simLength - 1)]]
 YoungTreeLoss.r <- ifel(YoungTreeLoss.r > 0, 0, YoungTreeLoss.r)
-plot(YoungTreeLoss.r[[7]])
-plot(severityStackSmoothedClassified.r[[7]])
+plot(YoungTreeLoss.r[[11]])
+plot(severityStackSmoothedClassified.r[[11]])
 
 YoungTreeLowModFireMortality.r <- ifel(severityStackSmoothedClassified.r %in% c(1, 2, 3), YoungTreeLoss.r, 0)
 
-YoungTreeLowModFireMortality.df <- zonal(YoungTreeLowModFireMortality.r, pwg.r, fun = 'sum')
+YoungTreeLowModFireMortality.df <- zonal(YoungTreeLowModFireMortality.r, pwg.r, fun = 'sum') |>
+  pivot_longer(cols = starts_with("fire-dnbr-"), names_to = "Year", values_to = "Total_Mortality", names_prefix = "fire-dnbr-") |>
+  mutate(Year = as.numeric(Year), Total_Mortality_MG = Total_Mortality * -1 * 0.01 * 0.81) |>
+  group_by(PWG) |>
+  arrange(Year) |>
+  mutate(Cumulative_Mortality_MG = cumsum(Total_Mortality_MG))
 
-p <- ggplot(data = YoungTreeLowModFireMortality.df) + geom_line() + facet_wrap(~PWG)
-
+p <- ggplot(data = YoungTreeLowModFireMortality.df, aes(x = Year, y = Cumulative_Mortality_MG)) + geom_line() + facet_wrap(~PWG)
+p
 
 # TotalBiomass.r <- app(ageBiomass.sds, fun = "sum", na.rm = T)
 # plot(TotalBiomass.r)

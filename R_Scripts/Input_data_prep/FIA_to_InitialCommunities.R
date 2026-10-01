@@ -51,7 +51,7 @@ bigDataDir <- 'F:/LANDIS_Input_Data_Prep/BigData' # Location of WA_FIA data and 
 dataDir <- 'F:/LANDIS_Input_Data_Prep/Data' # Location of species codes, PWG raster, study area raster
 
 ### Set area of interest
-LANDIS.EXTENT <- 'WenEnt'  # name for saving files, etc.
+LANDIS.EXTENT <- 'OkaMet'  # name for saving files, etc.
 wdir <- file.path('F:/LANDIS_Input_Data_Prep', LANDIS.EXTENT)
 
 # LANDIS.EXTENT <- 'Oka'
@@ -169,10 +169,10 @@ loadFIA<-function(state,year = NA){
 
 
 ## Load data for plots from ID, MT, and OR: ----
-wa_trees<-loadFIA('WA',2005)
-id_trees<-loadFIA('ID',2005)
-or_trees<-loadFIA('OR',2005)
-mt_trees<-loadFIA('MT',2005)
+wa_trees<-loadFIA('WA',2000)
+id_trees<-loadFIA('ID',2000)
+or_trees<-loadFIA('OR',2000)
+mt_trees<-loadFIA('MT',2000)
 
 
 full_fia.df<-rbind(wa_trees,or_trees,mt_trees,id_trees)
@@ -318,7 +318,7 @@ if(file.exists(file.path(dataDir,paste0("TreeMap2022_NoExotics_",LANDIS.EXTENT,"
   empties <- sum(values(is.na(no_exotic.r))) +1
   win = 5
   
-  while (sum(values(is.na(no_exotic.r))) > 0 & win < 16) {
+  while (sum(values(is.na(no_exotic.r))) > 300 & win < 16) {
     if (sum(values(is.na(no_exotic.r))) == empties) {win <- win + 2; print("Widening focal window.")}  # widen window if it stops shrinking
   
     
@@ -333,11 +333,11 @@ if(file.exists(file.path(dataDir,paste0("TreeMap2022_NoExotics_",LANDIS.EXTENT,"
   
   ### Resample TreeMap to 90-m: ----
   Riley_no_exotics_90m<-project(no_exotic.r,ecos.r,method='near')
-  Riley_no_exotics_90m <- ifel(is.na(ecos.r), NA, Riley_no_exotics_90m)
+  Riley_no_exotics_90m <- ifel(is.na(ecos.r), 0, Riley_no_exotics_90m)
   
   ## Save modified Riley raster: 
   writeRaster(no_exotic.r,file.path(dataDir,paste0("TreeMap2022_NoExotics_",LANDIS.EXTENT,"_30m.tif")))#,overwrite=T)
-  writeRaster(Riley_no_exotics_90m,file.path(dataDir,paste0("TreeMap2022_NoExotics_",LANDIS.EXTENT,"_90m.tif")))#,overwrite=T)
+  writeRaster(Riley_no_exotics_90m,file.path(dataDir,paste0("TreeMap2022_NoExotics_",LANDIS.EXTENT,"_90m.tif")),overwrite=T)
   
   Riley_raster <- Riley_no_exotics_90m
   
@@ -452,7 +452,7 @@ pwg_cn.lookup
 t2<- as.data.frame(Riley_raster) |> filter(!is.na(TM_ID)) |> 
   group_by(TM_ID) |> summarise(count = n()) |> ungroup() |>
   mutate(percent = count / sum(count)) |>
-  arrange(count)
+  arrange(-count)
 # t2<-aggregate(t,by=list(t),FUN=NROW)
 # t2<-t2[order(t2$x,decreasing=TRUE),]
 # t2$percent<-t2$x / sum(t2$x)
@@ -473,7 +473,7 @@ cat('* The most abundant 1000 plots (',round(1000/nrow(t2)*100,1),'% of all plot
 ## For pixels that Riley_raster is NA (or 0) but ecos.r indicates the cell should be active (not 0, water, or bareground), assign code 99.
 # Code 99 will be assigned to an initial community of grass/forbs. Without this step, LANDIS-II has a big increase in vegetation at the first time step.
 # Most of these pixels are grasslands (pwg=12) or alpine meadows (pwg=15):
-Riley_raster <- ifel(Riley_raster == 0 & (ecos.r > 11), 99, Riley_raster)
+Riley_raster <- ifel(Riley_raster == 0 & (ecos.r > 11) & !is.na(ecos.r), 99, Riley_raster)
 
 ## Write raster:
 writeRaster(Riley_raster,file.path(wdir,paste0("INITIAL_COMMUNITIES_",LANDIS.EXTENT,".tif")), datatype = "INT4S", overwrite=T)
@@ -605,6 +605,16 @@ full_fia.df <- full_fia.df |>
   spp.grouper(spp='SESE3',new.spp='THPL') |>
   spp.grouper(spp='PIBR',new.spp='PIEN') |>
   spp.grouper(spp='SEGI2',new.spp='ABAM') |>
+  spp.grouper(spp='CHNO', new.spp='THPL') |>
+  spp.grouper(spp='ACMA3', new.spp='POTR5') |>  # reclass hardwoods to POTR to later reclass to special hardwood funcgroup
+  spp.grouper(spp='ALRU2', new.spp='POTR5') |>
+  spp.grouper(spp='BEOC2', new.spp='POTR5') |>
+  spp.grouper(spp='BEPA', new.spp='POTR5') |>
+  spp.grouper(spp='CONU4', new.spp='POTR5') |>
+  spp.grouper(spp='FRLA', new.spp='POTR5') |>
+  spp.grouper(spp='POBAT', new.spp='POTR5') |>
+  spp.grouper(spp='PREM', new.spp='POTR5') |>
+  spp.grouper(spp='QUGA4', new.spp='POTR5') |>
   group_by(SPEC) |>
   filter(n() >= 50) |> ## Drop species with <50 individuals
   ungroup() |>
@@ -632,12 +642,22 @@ if(nrow(full_fia.df[!full_fia.df$SpecCode %in% species.master$Name,])>0) {
 }
 
 #-----------------------------------------------------------------------------------------------------------------------
+##  Split data frame into trees with ages and trees without: ----
+full_fia.df <- full_fia.df |>
+  mutate(ECOSUBCD = ECOSUBCD |> replace_values(
+    "342Bi" ~ "342Bj"
+  ))
+
+trees_missing <- subset(full_fia.df, is.na(AGE))
+trees_notmissing <- subset(full_fia.df, !is.na(AGE))
+
+if (length(unique(trees_notmissing$ECOSUBCD)) != length(unique(full_fia.df$ECOSUBCD))){
+  stop("MISSING FACTOR LEVEL, FIX MANUALLY")
+}
+
 ### Create final model: ----
 age.lm <- lm(AGE ~ poly(DIA,2,raw=T) + factor(ECOSUBCD) + factor(SPEC), data = full_fia.df, na.action = na.exclude) # Same as m2 model, above.
 
-##  Split data frame into trees with ages and trees without: ----
-trees_missing <- subset(full_fia.df, is.na(AGE))
-trees_notmissing <- subset(full_fia.df, !is.na(AGE))
 
 ##  Predict age for missing trees: ----
 trees_missing$AGE <- as.numeric(round(predict.lm(age.lm, trees_missing, type='response'),0)) # Estimate age with new model
@@ -931,6 +951,9 @@ write.csv(landis_tree_shrub.df, file.path(wdir,paste0(LANDIS.EXTENT,"_tree_list_
 ## Aggregate by cohort: ----
 unique_cohort.df <- landis_tree_shrub.df |>
   select(TM_ID, SpecCode, AGE_limit_by_longevity, AG_biomass_gm2) |>
+  mutate(SpecCode = SpecCode |> replace_values(
+    "PopuTrem" ~ "HardWood",
+  )) |>
   group_by(TM_ID, SpecCode, AGE_limit_by_longevity) |>
   summarise(AG_biomass_gm2 = sum(AG_biomass_gm2)) |>
   na.omit() |>
