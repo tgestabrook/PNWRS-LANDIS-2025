@@ -259,7 +259,7 @@ theme_set(theme_classic()+theme(panel.background = element_rect(color='black',fi
                                 legend.key.size=unit(0.4,'cm')))
 
 #### If testing on single run, run this line and then the code inside the for loop below.
-landisOutputDir <- landisRuns[1]
+landisOutputDir <- landisRuns[2]
 
 #### Compress runs in paralell
 # n_cores <- detectCores()
@@ -468,11 +468,11 @@ for(landisOutputDir in landisRuns){
   #   source('./R_Scripts/Post_process/Generate_DST_Maps.R')
   # }
   # 
-  # if(!file.exists(file.path(landisOutputDir, "Diagnostics.html"))){
-  #   rmarkdown::render(input = "./R_Scripts/Post_process/Sim_diagnostics.Rmd",
-  #                   output_format = "html_document",
-  #                   output_file = file.path(landisOutputDir, "Diagnostics.html"), )
-  # }
+  if(!file.exists(file.path(landisOutputDir, "Diagnostics.html"))){
+    rmarkdown::render(input = "./R_Scripts/Post_process/Sim_diagnostics.Rmd",
+                    output_format = "html_document",
+                    output_file = file.path(landisOutputDir, "Diagnostics.html"), )
+  }
   
   
   cat('\n\n###################################################################################################################################
