@@ -26,7 +26,7 @@ LandisData  Species
 	PinuPond	470			20		90			500			0			0	0	none
 >>	PopuBals	280			15		180			500			0.7			2	240	resprout
 >>	PopuTrem	130			15		180			500			0.9			2	110	resprout
-	PrunEmar	70			15		60			200			0.5			2	70	resprout
+>>	PrunEmar	70			15		60			200			0.5			2	70	resprout
 	PseuMenz	500			25		180			500			0			0	0	none
 >>	QuerGarr	200			40		90			500			0.8			3	180	resprout
 	TaxuBrev	290			20		30			300			0			0	0	none

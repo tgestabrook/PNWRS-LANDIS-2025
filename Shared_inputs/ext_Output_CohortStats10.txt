@@ -1,7 +1,7 @@
 LandisData  "Output Cohort Statistics"
 
 
-Timestep   2
+Timestep   10
 
 
 >>--------------------------------
@@ -14,8 +14,8 @@ SpeciesAgeStats
 MapNames   ageOutput/{species}-{timestep}-{statistic}.tif
 
 >>MIN 		PseuMenz PinuCont AbieLasi AbieGran PinuPond AbieAmab TsugHete ThujPlic LariOcci PiceEnge TsugMert PinuAlbi AcerMacr PinuMont AlnuRubr BetuPapy QuerGarr ChamNoot AbieProc PopuTrem LariLyal PopuBals TaxuBrev PrunEmar JuniScop FraxLati JuniOcci BetuOcci CornNutt << minimum age for each species
-MED		NonFxr_Resprt Nfixer_Resprt NonFxr_Seed PseuMenz PinuCont AbieLasi AbieGran PinuPond AbieAmab TsugHete ThujPlic LariOcci PiceEnge TsugMert PinuAlbi AcerMacr PinuMont AlnuRubr BetuPapy QuerGarr ChamNoot AbieProc PopuTrem LariLyal PopuBals TaxuBrev PrunEmar JuniScop FraxLati JuniOcci BetuOcci CornNutt << median age for each species
-MAX		PseuMenz PinuCont AbieLasi AbieGran PinuPond AbieAmab TsugHete ThujPlic LariOcci PiceEnge TsugMert PinuAlbi AcerMacr PinuMont AlnuRubr BetuPapy QuerGarr ChamNoot AbieProc PopuTrem LariLyal PopuBals TaxuBrev PrunEmar JuniScop FraxLati JuniOcci BetuOcci CornNutt << maximum age across all species on site
+MED		NonFxr_Resprt Nfixer_Resprt NonFxr_Seed PseuMenz PinuCont AbieLasi AbieGran PinuPond AbieAmab TsugHete ThujPlic LariOcci PiceEnge TsugMert PinuAlbi PinuMont AbieProc LariLyal TaxuBrev JuniScop JuniOcci HardWood << median age for each species
+MAX		PseuMenz PinuCont AbieLasi AbieGran PinuPond AbieAmab TsugHete ThujPlic LariOcci PiceEnge TsugMert PinuAlbi PinuMont AbieProc PopuTrem LariLyal PopuBals TaxuBrev JuniScop JuniOcci HardWood << maximum age across all species on site
 >>SD		PseuMenz PinuCont AbieLasi AbieGran PinuPond AbieAmab TsugHete ThujPlic LariOcci PiceEnge TsugMert PinuAlbi AcerMacr PinuMont AlnuRubr BetuPapy QuerGarr ChamNoot AbieProc PopuTrem LariLyal PopuBals TaxuBrev PrunEmar JuniScop FraxLati JuniOcci BetuOcci CornNutt << standard deviation age for each species
 >> AVG		PseuMenz PinuCont AbieLasi AbieGran PinuPond AbieAmab TsugHete ThujPlic LariOcci PiceEnge TsugMert PinuAlbi AcerMacr PinuMont AlnuRubr BetuPapy QuerGarr ChamNoot AbieProc PopuTrem LariLyal PopuBals TaxuBrev PrunEmar JuniScop FraxLati JuniOcci BetuOcci CornNutt << average age for each species
 

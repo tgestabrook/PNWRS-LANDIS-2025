@@ -296,11 +296,11 @@ if(exists("fire.df")){
 if(exists("emp.fire.dnbr")){
   df <- emp.fire.dnbr |>
     mutate(Severity = cut(x, breaks=c(0,41,176,366,750,2001), labels=c('Unburned (0-41)', 'Low (42-176)', 'Moderate (177-366)', 'High (367-750)', 'Extreme (751+)')))
-  
-  ks.result <- ks.test(x=sample(emp.fire.dnbr$x[emp.fire.dnbr$Source=="LANDIS"], 10000),
-          y=sample(emp.fire.dnbr$x[emp.fire.dnbr$Source=="MTBS"], 10000),
+
+  ks.result <- ks.test(x=sample(emp.fire.dnbr$x[emp.fire.dnbr$Source=="LANDIS"], 10000, replace = T),
+          y=sample(emp.fire.dnbr$x[emp.fire.dnbr$Source=="MTBS"], 10000, replace = T),
           alternative='two.sided')
-  
+
   ggplot(data = df, aes(x=x, fill=Source)) + geom_density(alpha=0.5) + xlab('Pseudo-dNBR')+
     scale_x_continuous(breaks=seq(0,1000,100)) + ggtitle(paste("Kolmogorov-Smirnov Dist:", ks.result$statistic))
 }
@@ -332,7 +332,7 @@ if(exists("fire.df")){
 ```{r, fig.cap = "Severity predictors by simulation year."}
 if(exists("fire.df")){
   df <- fire.df |>
-    pivot_longer(cols = c(MeanPET, MeanFineFuels, MeanWD, MeanLadderFuels, MeanEffectiveWindSpeed, MeanClay), names_to = "SeverityPredictor", values_to = "Value") 
+    pivot_longer(cols = c(MeanPET, MeanFineFuels, MeanWaterDeficit, MeanLadderFuels, MeanEffectiveWindSpeed, MeanClay), names_to = "SeverityPredictor", values_to = "Value") 
   
   ggplot(data = df, aes(x = SimulationYear, y = Value, size=log(TotalSitesBurned)/5,fill=MeanDNBR)) +
     geom_point(shape = 21, colour=alpha('black',0.3))+
@@ -471,22 +471,22 @@ if(exists("harvestEvents.df")){
 
 
 ```{r, fig.cap = "Mortality due to harvest (black line), wildfire (red bars), Rx fire (orange bars):"}
-df <- biomass.dynamics.df |> filter(Species == "TotalBiomass")
-
-ggplot(data=df) +
-  geom_col(aes(x=Year,y=BiomassKilledByFire_Mg),fill='darkred') +
-  geom_col(aes(x=Year,y=BiomassKilledByRxFire_Mg),fill='goldenrod') +
-  geom_line(aes(x=Year,y=Harvested_Mg),size=1, col='black') +
-  scale_y_continuous(expression(paste('Harvested Biomass (Mg)')),expand=c(0.01,0))+
-  scale_x_continuous('Year',breaks=seq(0,simLength,simLength/5),labels=seq(simOpts$base.year,simOpts$base.year+simLength,simLength/5),limits=c(0,simLength)) +
-  # facet_wrap(~PWG,nrow=2,labeller=labeller(PWG=function(x) return(paste('Pathway group',x))))+
-  facet_wrap(~PWG,nrow=2,labeller=labeller(PWG=function(x) return(ecos[x])))+
-  theme_classic() + 
-  theme(axis.text = element_text(size=6,color='black'),axis.title = element_text(size=7),legend.text = element_text(size=6.5),legend.position='right',
-        panel.border =element_rect(fill=NA,color='black',linewidth=0.5),
-        axis.line = element_line(color='black',size=0.25),
-        strip.background = element_rect(fill=NA,color='black',linewidth=0.5),strip.text = element_text(size=6,face='bold',margin=margin(1,0,1,0)),
-        plot.margin = margin(0,0,0,0)) 
+# df <- biomass.dynamics.df |> filter(Species == "TotalBiomass")
+# 
+# ggplot(data=df) +
+#   geom_col(aes(x=Year,y=BiomassKilledByFire_Mg),fill='darkred') +
+#   geom_col(aes(x=Year,y=BiomassKilledByRxFire_Mg),fill='goldenrod') +
+#   geom_line(aes(x=Year,y=Harvested_Mg),size=1, col='black') +
+#   scale_y_continuous(expression(paste('Harvested Biomass (Mg)')),expand=c(0.01,0))+
+#   scale_x_continuous('Year',breaks=seq(0,simLength,simLength/5),labels=seq(simOpts$base.year,simOpts$base.year+simLength,simLength/5),limits=c(0,simLength)) +
+#   # facet_wrap(~PWG,nrow=2,labeller=labeller(PWG=function(x) return(paste('Pathway group',x))))+
+#   facet_wrap(~PWG,nrow=2,labeller=labeller(PWG=function(x) return(ecos[x])))+
+#   theme_classic() + 
+#   theme(axis.text = element_text(size=6,color='black'),axis.title = element_text(size=7),legend.text = element_text(size=6.5),legend.position='right',
+#         panel.border =element_rect(fill=NA,color='black',linewidth=0.5),
+#         axis.line = element_line(color='black',size=0.25),
+#         strip.background = element_rect(fill=NA,color='black',linewidth=0.5),strip.text = element_text(size=6,face='bold',margin=margin(1,0,1,0)),
+#         plot.margin = margin(0,0,0,0)) 
 ```
 
 
@@ -495,95 +495,95 @@ ggplot(data=df) +
 
 
 ```{r, fig.cap = "Overall biomass trend by PWG (MG/Ha)"}
-df <- biomass.dynamics.df |> filter(Species != "TotalBiomass") 
-
-ggplot(data=df) +
-  geom_area(aes(x=Year,y=Biomass_mean_MgHaEco,fill=Species,color=Species),size=0.5,linetype='dotdash') +
-  geom_line(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year,y=Biomass_mean_MgHaEco),size=0.5,linetype='solid',col='grey20') +
-  geom_bar(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year,y=BiomassKilledByFire_MgHaEco),width=0.5,stat='identity',fill='darkred',colour=NA,alpha=0.5) +
-  geom_bar(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year+0.5,y=Harvested_MgHaEco),width=0.5,stat='identity',fill='darkgreen',colour=NA,alpha=0.5) +
-  scale_fill_viridis_d(alpha=0.7,direction=-1)+
-  scale_color_viridis_d(alpha=0.6,direction=-1)+
-  scale_y_continuous(expression(paste('Biomass (Mg  ',ha^-1,')')),expand=c(c(0.01,0),c(0.08,0)))+
-  scale_x_continuous('Year',breaks=seq(0,simLength,simLength/5),labels=c(seq(simOpts$base.year,simOpts$base.year+simLength-1,simLength/5),""),limits=c(0,simLength),expand=c(0.01,0)) +
-  facet_wrap(~PWG_Name,nrow=2)
+# df <- biomass.dynamics.df |> filter(Species != "TotalBiomass") 
+# 
+# ggplot(data=df) +
+#   geom_area(aes(x=Year,y=Biomass_mean_MgHaEco,fill=Species,color=Species),size=0.5,linetype='dotdash') +
+#   geom_line(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year,y=Biomass_mean_MgHaEco),size=0.5,linetype='solid',col='grey20') +
+#   geom_bar(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year,y=BiomassKilledByFire_MgHaEco),width=0.5,stat='identity',fill='darkred',colour=NA,alpha=0.5) +
+#   geom_bar(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year+0.5,y=Harvested_MgHaEco),width=0.5,stat='identity',fill='darkgreen',colour=NA,alpha=0.5) +
+#   scale_fill_viridis_d(alpha=0.7,direction=-1)+
+#   scale_color_viridis_d(alpha=0.6,direction=-1)+
+#   scale_y_continuous(expression(paste('Biomass (Mg  ',ha^-1,')')),expand=c(c(0.01,0),c(0.08,0)))+
+#   scale_x_continuous('Year',breaks=seq(0,simLength,simLength/5),labels=c(seq(simOpts$base.year,simOpts$base.year+simLength-1,simLength/5),""),limits=c(0,simLength),expand=c(0.01,0)) +
+#   facet_wrap(~PWG_Name,nrow=2)
 ```
 
 
 ```{r, fig.cap = "Overall biomass trend by PWG (MG/Ha) with FVS"}
-df <- biomass.dynamics.df |> filter(Species != "TotalBiomass") 
-
-ggplot(data=df) +
-  geom_area(aes(x=Year,y=Biomass_mean_MgHaEco,fill=Species,color=Species),size=0.5,linetype='dotdash') +
-  geom_line(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year,y=Biomass_mean_MgHaEco),size=0.5,linetype='solid',col='grey20') +
-  geom_line(data = fvsSimToPlot |> filter(Species == "TotalBiomass"), aes(x = Year, y=Biomass_MgHa), col='red') +
-  geom_bar(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year,y=BiomassKilledByFire_MgHaEco),width=0.5,stat='identity',fill='darkred',colour=NA,alpha=0.5) +
-  geom_bar(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year+0.5,y=Harvested_MgHaEco),width=0.5,stat='identity',fill='darkgreen',colour=NA,alpha=0.5) +
-  scale_fill_viridis_d(alpha=0.7,direction=-1)+
-  scale_color_viridis_d(alpha=0.6,direction=-1)+
-  scale_y_continuous(expression(paste('Biomass (Mg  ',ha^-1,')')),expand=c(c(0.01,0),c(0.08,0)))+
-  scale_x_continuous('Year',breaks=seq(0,simLength,simLength/5),labels=c(seq(simOpts$base.year,simOpts$base.year+simLength-1,simLength/5),""),limits=c(0,simLength),expand=c(0.01,0)) +
-  facet_wrap(~PWG_Name,nrow=2)
+# df <- biomass.dynamics.df |> filter(Species != "TotalBiomass") 
+# 
+# ggplot(data=df) +
+#   geom_area(aes(x=Year,y=Biomass_mean_MgHaEco,fill=Species,color=Species),size=0.5,linetype='dotdash') +
+#   geom_line(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year,y=Biomass_mean_MgHaEco),size=0.5,linetype='solid',col='grey20') +
+#   geom_line(data = fvsSimToPlot |> filter(Species == "TotalBiomass"), aes(x = Year, y=Biomass_MgHa), col='red') +
+#   geom_bar(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year,y=BiomassKilledByFire_MgHaEco),width=0.5,stat='identity',fill='darkred',colour=NA,alpha=0.5) +
+#   geom_bar(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year+0.5,y=Harvested_MgHaEco),width=0.5,stat='identity',fill='darkgreen',colour=NA,alpha=0.5) +
+#   scale_fill_viridis_d(alpha=0.7,direction=-1)+
+#   scale_color_viridis_d(alpha=0.6,direction=-1)+
+#   scale_y_continuous(expression(paste('Biomass (Mg  ',ha^-1,')')),expand=c(c(0.01,0),c(0.08,0)))+
+#   scale_x_continuous('Year',breaks=seq(0,simLength,simLength/5),labels=c(seq(simOpts$base.year,simOpts$base.year+simLength-1,simLength/5),""),limits=c(0,simLength),expand=c(0.01,0)) +
+#   facet_wrap(~PWG_Name,nrow=2)
 ```
 
 
 
 ```{r, fig.cap = "Overall biomass trend by PWG (Mg)"}
-ggplot(data=df) +
-  geom_area(aes(x=Year,y=Biomass_sum_Mg,fill=Species,color=Species),size=0.5,linetype='dotdash') +
-  geom_line(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year,y=Biomass_sum_Mg),size=0.5,linetype='solid',col='grey20') +
-  geom_bar(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year,y=BiomassKilledByFire_Mg),width=0.5,stat='identity',fill='darkred',colour=NA,alpha=0.5) +
-  geom_bar(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year+0.5,y=Harvested_Mg),width=0.5,stat='identity',fill='darkgreen',colour=NA,alpha=0.5) +
-  scale_fill_viridis_d(alpha=0.7,direction=-1)+
-  scale_color_viridis_d(alpha=0.6,direction=-1)+
-  scale_y_continuous(expression(paste('Biomass (Mg)')),expand=c(c(0.01,0),c(0.08,0)))+
-  scale_x_continuous('Year',breaks=seq(0,simLength,simLength/5),labels=c(seq(simOpts$base.year,simOpts$base.year+simLength-1,simLength/5),""),limits=c(0,simLength),expand=c(0.01,0)) +
-  facet_wrap(~PWG_Name,nrow=2)
+# ggplot(data=df) +
+#   geom_area(aes(x=Year,y=Biomass_sum_Mg,fill=Species,color=Species),size=0.5,linetype='dotdash') +
+#   geom_line(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year,y=Biomass_sum_Mg),size=0.5,linetype='solid',col='grey20') +
+#   geom_bar(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year,y=BiomassKilledByFire_Mg),width=0.5,stat='identity',fill='darkred',colour=NA,alpha=0.5) +
+#   geom_bar(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year+0.5,y=Harvested_Mg),width=0.5,stat='identity',fill='darkgreen',colour=NA,alpha=0.5) +
+#   scale_fill_viridis_d(alpha=0.7,direction=-1)+
+#   scale_color_viridis_d(alpha=0.6,direction=-1)+
+#   scale_y_continuous(expression(paste('Biomass (Mg)')),expand=c(c(0.01,0),c(0.08,0)))+
+#   scale_x_continuous('Year',breaks=seq(0,simLength,simLength/5),labels=c(seq(simOpts$base.year,simOpts$base.year+simLength-1,simLength/5),""),limits=c(0,simLength),expand=c(0.01,0)) +
+#   facet_wrap(~PWG_Name,nrow=2)
 ```
 
 ```{r, fig.cap = "Living/dead trend by PWG (Mg)"}
-df <- biomass.dynamics.df |> filter(Species == "TotalBiomass") |>
-  pivot_longer(cols = c(Biomass_sum_Mg, DeadWoodMg, FineFuelsMg), names_to = "BiomassPool", values_to = "BiomassMg")
-
-ggplot(data=df) +
-  geom_area(aes(x=Year,y=BiomassMg,fill=BiomassPool,color=BiomassPool),size=0.5,linetype='dotdash') +
-  geom_bar(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year,y=BiomassKilledByFire_Mg),width=0.5,stat='identity',fill='darkred',colour=NA,alpha=0.5) +
-  geom_bar(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year+0.5,y=Harvested_Mg),width=0.5,stat='identity',fill='darkgreen',colour=NA,alpha=0.5) +
-  scale_y_continuous(expression(paste('Biomass (Mg)')),expand=c(c(0.01,0),c(0.08,0)))+
-  scale_x_continuous('Year',breaks=seq(0,simLength,simLength/5),labels=c(seq(simOpts$base.year,simOpts$base.year+simLength-1,simLength/5),""),limits=c(0,simLength),expand=c(0.01,0)) +
-  facet_wrap(~PWG_Name,nrow=2)
+# df <- biomass.dynamics.df |> filter(Species == "TotalBiomass") |>
+#   pivot_longer(cols = c(Biomass_sum_Mg, DeadWoodMg, FineFuelsMg), names_to = "BiomassPool", values_to = "BiomassMg")
+# 
+# ggplot(data=df) +
+#   geom_area(aes(x=Year,y=BiomassMg,fill=BiomassPool,color=BiomassPool),size=0.5,linetype='dotdash') +
+#   geom_bar(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year,y=BiomassKilledByFire_Mg),width=0.5,stat='identity',fill='darkred',colour=NA,alpha=0.5) +
+#   geom_bar(data = biomass.dynamics.df |> filter(Species == "TotalBiomass"), aes(x=Year+0.5,y=Harvested_Mg),width=0.5,stat='identity',fill='darkgreen',colour=NA,alpha=0.5) +
+#   scale_y_continuous(expression(paste('Biomass (Mg)')),expand=c(c(0.01,0),c(0.08,0)))+
+#   scale_x_continuous('Year',breaks=seq(0,simLength,simLength/5),labels=c(seq(simOpts$base.year,simOpts$base.year+simLength-1,simLength/5),""),limits=c(0,simLength),expand=c(0.01,0)) +
+#   facet_wrap(~PWG_Name,nrow=2)
 ```
 
 #### Biomass maps at 20-year intervals
 
 
 ```{r, fig.cap = "Douglass Fir"}
-plotAllYrs("PseuMenz")
+# plotAllYrs("PseuMenz")
 ```
 
 
 
 ```{r, fig.cap = "Ponderosa Pine"}
-plotAllYrs("PinuPond")
+# plotAllYrs("PinuPond")
 ```
 
 
 
 
 ```{r, fig.cap = "Pacific Silver Fir"}
-plotAllYrs("AbieAmab")
+# plotAllYrs("AbieAmab")
 ```
 
 
 
 
 ```{r, fig.cap = "Grass:"}
-plotAllYrs("Grass_Forb")
+# plotAllYrs("Grass_Forb")
 ```
 
 
 ```{r, fig.cap = "Total biomass"}
-plotAllYrs("TotalBiomass")
+# plotAllYrs("TotalBiomass")
 ```
 
 
