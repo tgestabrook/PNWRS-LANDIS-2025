@@ -11,5 +11,5 @@
 9,50,Thin_Rx_Wrx_5pct,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_Rx_EXTENT.txt,../Shared_inputs/ext_BiomassHarvest_mh.txt,../Shared_inputs/ext_magic_harvest_thin_wRx_high.txt,../Shared_inputs/SPECIES.txt
 10,50,Thin_Rx_WFU_5pct,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_WFU_EXTENT.txt,../Shared_inputs/ext_BiomassHarvest_mh.txt,../Shared_inputs/ext_magic_harvest_thin_high.txt,../Shared_inputs/SPECIES.txt
 11,50,Lanzatech,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_Rx_EXTENT.txt,../Shared_inputs/ext_BiomassHarvest_mh.txt,../Shared_inputs/ext_magic_harvest_thin_high.txt,../Shared_inputs/SPECIES.txt
-51,5,GrowOut5Year,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,NA,NA,NA,../Shared_inputs/SPECIES.txt
+51,20,GrowOut5Year,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,NA,NA,NA,../Shared_inputs/SPECIES.txt
 99,500,Longterm,../EXTENT/ext_NECN_EXTENT10_CLIMATE.txt,../EXTENT/ext_SCRAPPLE_NoSupp_EXTENT.txt,NA,NA,../Shared_inputs/SPECIES.txt
