@@ -3,7 +3,7 @@ LandisData    "Scenario"
 
 Duration     16
 
-Species    ../SPECIES.txt
+Species    ../Shared_inputs/SPECIES.txt
 
 Ecoregions      ../Tripod/ECOREGIONS_Tripod.txt
 
@@ -30,7 +30,7 @@ DisturbancesRandomOrder  no
 
 >> Other Extensions   Initialization File
 >> ----------------------   -------------------
-"Output Biomass" ../ext_Output_Biomass10.txt
+"Output Biomass" ../Shared_inputs/ext_Output_Biomass10.txt
 >>"Output Cohort Statistics" ../ext_Output_CohortStats10.txt
 
 RandomNumberSeed 50
