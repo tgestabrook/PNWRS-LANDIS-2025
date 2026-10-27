@@ -424,7 +424,8 @@ if (!file.exists(file.path(landisOutputDir, "Annual_severity_total_df.csv"))){
   
   write.csv(annual_sev.df, file.path(landisOutputDir, "Annual_severity_total_df.csv"))
 } else{
-  annual_sev.df <- read.csv(file.path(landisOutputDir, "Annual_severity_total_df.csv"))
+  annual_sev.df <- read.csv(file.path(landisOutputDir, "Annual_severity_total_df.csv")) |>
+    mutate(sev_class = factor(sev_class, levels = c('UB', 'Low', 'Moderate', 'High')))
 }
 #-----------------------------------------------------------------------------------------------------------------------
 ## Attach PWG to fire events log: ----

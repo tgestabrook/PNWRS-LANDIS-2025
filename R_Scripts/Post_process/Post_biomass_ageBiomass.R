@@ -157,6 +157,103 @@ for (yr in 0:simLength){
 }
 
 
+### Filter biomass by in road network
+mgmt.r <- rast(file.path(modelDir, LANDIS.EXTENT, paste0("ext_BiomassHarvestMgmt_", LANDIS.EXTENT, ".tif")))
+mgt_forest.r <- ifel(mgmt.r <=3, 1, 0) 
+
+roads.no.wild.r<-rast(file.path(dataDir,'PWG',paste0("roads_noWild_",LANDIS.EXTENT,"_45m.tif"))) |>
+  buffer(183)  # 800 feet yarding distance
+roads_mgmt.r <- ifel(mgt_forest.r == 1 & roads.no.wild.r, 1, 0)
+# mgmt_access.r <- roads_mgmt.r + mgt_forest.r
+
+fire_in_mgmt_footprint.r <- terra::mask(severityStackSmoothedClassified.r, roads_mgmt.r)
+plot(fire_in_mgmt_footprint.r)
+
+
+tree_biomass.r <- rast(file.path(landisOutputDir, "ageBiomassOutput", treeStacks))
+tree_biomass_mgmt.r <- ifel(roads_mgmt.r == 1, tree_biomass.r, NA)
+names(tree_biomass_mgmt.r) <- names(tree_biomass.r)
+
+
+# zones.r <- ifel(mgmt_access.r == 2, mtbs_mgmt.r + 1, (mtbs_mgmt.r * -1) - 1)  # if the area is managed but unreachable by road, invert the severity scale
+# zones.r <- ifel(mgmt_access.r == 0, NA, zones.r)
+
+summary.df <- data.frame()
+
+for (yr in 2:40){
+  print(yr)
+  yr_biomass.r <- tree_biomass.r |> select(ends_with(paste0("-", yr)))
+  last_yr_biomass.r <- tree_biomass.r |> select(ends_with(paste0("-", yr-1)))
+  
+  biomass_delta.r <- last_yr_biomass.r - yr_biomass.r
+  # biomass_delta.r <- ifel()
+  
+  yr_fire.r <- fire_in_mgmt_footprint.r[[yr]]
+  
+  # yr_biomass_footprint.r <- ifel(!is.na(yr_fire.r), yr_biomass.r, 0)
+  # names(yr_biomass_footprint.r) <- names(yr_biomass.r)
+  
+  year_fire_summary.df <- zonal(yr_biomass.r, yr_fire.r, fun = "sum", na.rm = T) |>
+    rename("Severity" = paste0("fire-dnbr-", yr)) |>
+    pivot_longer(ends_with(paste0("-", yr)), names_to = c("Species", "Cohort", "Year"), names_sep = "-", values_to = "Biomass_gm2") |>
+    mutate(Age = str_replace(Cohort, "age", "") |> as.numeric(), BiomassMG = Biomass_gm2 * 0.01 * 0.81, Year = as.numeric(Year)) |>
+    mutate(Partition = case_when(
+      Species == "HardWood" & Age == 10 ~ "Saplings & Hardwoods",
+      Species == "Hardwood" ~ NA,
+      Age <= 30 ~ "Saplings & Hardwoods",
+      Age <= 120 ~ "Mature",
+      .default = NA
+    )) |>
+    filter_out(is.na(Partition)) |>
+    mutate(
+      MerchMG = ifelse(Partition == "Mature", BiomassMG * 0.55, 0),
+      ChipMG = ifelse(Partition == "Mature", BiomassMG * 0.45, BiomassMG),
+      Status = "Live"
+    )
+  
+  year_mortality_summary.df <- zonal(biomass_delta.r, yr_fire.r, fun = "sum", na.rm = T) |>
+    rename("Severity" = paste0("fire-dnbr-", yr)) |>
+    pivot_longer(ends_with(paste0("-", yr-1)), names_to = c("Species", "Cohort", "Year"), names_sep = "-", values_to = "Biomass_gm2") |>
+    mutate(Age = str_replace(Cohort, "age", "") |> as.numeric(), BiomassMG = Biomass_gm2 * 0.01 * 0.81, Year = as.numeric(Year)) |>
+    mutate(Partition = case_when(
+      Species == "HardWood" & Age == 10 ~ "Saplings & Hardwoods",
+      Species == "Hardwood" ~ NA,
+      Age <= 30 ~ "Saplings & Hardwoods",
+      Age <= 120 ~ "Mature",
+      .default = NA
+    )) |>
+    filter_out(is.na(Partition)) |>
+    mutate(
+      MerchMG = ifelse(Partition == "Mature", BiomassMG * 0.55, 0),
+      ChipMG = ifelse(Partition == "Mature", BiomassMG * 0.45, BiomassMG),
+      Status = "Dead"
+    )
+  
+  summary.df <- summary.df |> bind_rows(year_fire_summary.df, year_mortality_summary.df)
+  
+}
+
+df <- summary.df |> 
+  mutate(Year = as.numeric(Year)) |>
+  group_by(Partition, Year, Severity, Status) |>
+  summarise(ChipMG = sum(ChipMG), MerchMG = sum(MerchMG)) |>
+  ungroup() |>
+  pivot_longer(cols = c(ChipMG, MerchMG), names_to = "Product", values_to = "BiomassMG") |>
+  group_by(Product, Severity, Status) |>
+  arrange(Year) |>
+  mutate(BiomassMG_cumulative = cumsum(BiomassMG)) 
+
+ggplot(data = df, aes(x = Year, y = BiomassMG_cumulative, color = Product, linetype = Status)) + geom_line() + facet_wrap(~Severity) + ylab("Cumulative Biomass (MG)")
+
+
+
+
+
+
+
+
+
+
 
 
 
