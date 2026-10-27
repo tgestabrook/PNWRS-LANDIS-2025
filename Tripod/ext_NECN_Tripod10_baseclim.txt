@@ -7,8 +7,8 @@ Timestep  2
 
 SeedingAlgorithm  WardSeedDispersal
 
-InitialCommunitiesCSV      ../Tripod/INITIAL_COMMUNITIES_Tripod.csv
-InitialCommunitiesMap   ../Tripod/INITIAL_COMMUNITIES_Tripod.tif
+InitialCommunitiesCSV      ../Tripod/INITIAL_COMMUNITIES_2022_Tripod.csv
+InitialCommunitiesMap   ../Tripod/INITIAL_COMMUNITIES_2022_Tripod.tif
 ClimateConfigFile 	../Tripod/zClimate_Library/ClimateGenerator_baseline.txt	
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
