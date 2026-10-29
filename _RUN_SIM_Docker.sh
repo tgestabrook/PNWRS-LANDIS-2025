@@ -71,7 +71,7 @@ do
     echo Running LANDIS-II scenario...
 
     docker run --cpus=4 --memory=64g --mount type=bind,src=".",dst="/scenarioFolder" --name Container$scenarioFile_$date_time \
-  landis-ii-8-uclv2-release:release /bin/sh -c "cd /scenarioFolder/${dirName}_$date_time && dotnet \$LANDIS_CONSOLE ./scenario.txt"
+  landis-ii-8-uclv2-release:speedup /bin/sh -c "cd /scenarioFolder/${dirName}_$date_time && dotnet \$LANDIS_CONSOLE ./scenario.txt"
 
     #dotnet $LANDIS_CONSOLE ./scenario.txt
     # dotnet $HOME/Core-Model-v7-LINUX/build/Release/Landis.Console ./Input_file_archive/$scenarioFile
