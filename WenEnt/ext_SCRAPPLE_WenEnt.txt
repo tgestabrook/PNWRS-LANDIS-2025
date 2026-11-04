@@ -39,9 +39,9 @@ ClayMap                         ../WenEnt/NECN_input_maps/SoilPercentClay.tif
 
 >>>>>>>>   Count model coefs   <<<<<<<< UPDATED ON July 25, 2022
 LightningIgnitionsB0             0.5336  << Fit for WenEnt. Fit for WenEnt-OkaMet: 1.07168  << Lower B0 decreases # of ignitions
-LightningIgnitionsB1             0.0043  << Fit for WenEnt. Fit for WenEnt-OkaMet: 0.01448  << Lower B1 decreases # of ignitions and flattens response to FWI.
+LightningIgnitionsB1             0.005  << Fit for WenEnt. Fit for WenEnt-OkaMet: 0.01448  << Lower B1 decreases # of ignitions and flattens response to FWI.
 AccidentalIgnitionsB0           -2.3410  << Fit for WenEnt. Fit for WenEnt-OkaMet: -0.75033 
-AccidentalIgnitionsB1            0.0085  << Fit for WenEnt. Fit for WenEnt-OkaMet: 0.02279 
+AccidentalIgnitionsB1            0.009  << Fit for WenEnt. Fit for WenEnt-OkaMet: 0.02279 
 
 IgnitionDistribution ZeroInflatedPoisson << Poisson or ZeroInflatedPoisson. If using Poisson comment out the following beta values.
 
@@ -98,7 +98,7 @@ SiteMortalityB1    0.04    << The parameter fit for site level clay % in Soil.
 SiteMortalityB2   -0.00003     << The parameter fit for site level previous years annual ET. 
 SiteMortalityB3   -0.00011      << The parameter fit for site level Effective Windspeed. 
 SiteMortalityB4   -0.00005    << The parameter fit for site level Climatic Water Deficit (PET-AET). 
-SiteMortalityB5   -0.001    << The parameter fit for fine fuels (a percentage of the maximum, from above). 
+SiteMortalityB5   -0.0012    << The parameter fit for fine fuels (a percentage of the maximum, from above). 
 SiteMortalityB6   -0.0000004    << The parameter fit for ladder fuels.
 
 >>>>>>>>> Cohort level mortality << Parameters updated on 01/31/2022
