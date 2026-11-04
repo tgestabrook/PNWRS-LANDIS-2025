@@ -414,7 +414,7 @@ if (!file.exists(file.path(landisOutputDir, "Annual_severity_total_df.csv"))){
     group_by(year, PWG, sev_class) |>
     summarise(count = n())
   
-  annual_sev.df <- annual_sev.df |>
+  annual_sev.df <- read.csv(file.path(dataDir, "MTBS_and_FOD_Fires", LANDIS.EXTENT, "Annual_severity_df.csv")) |> mutate(PWG = as.factor(PWG)) |>
     bind_rows(landis_sev.df) |>
     mutate(sev_class = factor(sev_class, levels = c('UB', 'Low', 'Moderate', 'High')),
            area_ha = count * 0.81) |>
@@ -423,10 +423,11 @@ if (!file.exists(file.path(landisOutputDir, "Annual_severity_total_df.csv"))){
            PWG = ifelse(PWG == 30, "Dry & Moist Mixed Conifer (PWG 20, 30)", "Cold Forest (PWG 40, 50)"))
   
   write.csv(annual_sev.df, file.path(landisOutputDir, "Annual_severity_total_df.csv"))
-} else{
-  annual_sev.df <- read.csv(file.path(landisOutputDir, "Annual_severity_total_df.csv")) |>
-    mutate(sev_class = factor(sev_class, levels = c('UB', 'Low', 'Moderate', 'High')))
-}
+} 
+
+annual_sev.df <- read.csv(file.path(landisOutputDir, "Annual_severity_total_df.csv")) |>
+  mutate(sev_class = factor(sev_class, levels = c('UB', 'Low', 'Moderate', 'High')))
+
 #-----------------------------------------------------------------------------------------------------------------------
 ## Attach PWG to fire events log: ----
 # #---------------------------------------------------------------------#

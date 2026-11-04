@@ -174,9 +174,6 @@ if(!file.exists(file.path(dataDir, "MTBS_and_FOD_Fires", LANDIS.EXTENT, "Annual_
   write.csv(annual_sev.df, file.path(dataDir, "MTBS_and_FOD_Fires", LANDIS.EXTENT, "Annual_severity_df.csv"))
 } 
 
-annual_sev.df <- read.csv(file.path(dataDir, "MTBS_and_FOD_Fires", LANDIS.EXTENT, "Annual_severity_df.csv")) |> mutate(PWG = as.factor(PWG))
-
-
 #### Load elevation and hillshade: ----
 dem.r<-rast(file.path(dataDir,paste0("DEM_90m_", LANDIS.EXTENT, ".tif")))
 names(dem.r) <- "Elevation"
