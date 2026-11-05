@@ -338,7 +338,7 @@ CohortsRemoved			SpeciesList
 	 PiceEnge	1-200(100%) <<
 	 PinuCont	1-150(100%) <<	 
 	 AbieLasi	1-150(100%) <<
-	 PopuTrem	60-100(100%)
+	 HardWood	60-100(100%)
 
 	 PinuMont	1-400(85%)
 	 LariOcci	1-400(85%)
@@ -359,7 +359,6 @@ CohortsRemoved			SpeciesList
 	 JuniScop	1-500(100%)
 >>	 PopuBals	1-500(100%)
 >>	 QuerGarr	1-500(100%)
-	 HardWood 	10-60 (100%)
 
 
 
