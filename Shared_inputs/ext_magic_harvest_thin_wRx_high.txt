@@ -6,4 +6,4 @@ HarvestExtensionParameterFile ./Input_file_archive/ext_BiomassHarvest_mh.txt
 
 ProcessToLaunch python
 
-ProcessArguments "../R2_Rx_Magic_Marvest.py {timestep} RxIgnProb_high.tif 25 ext_BiomassHarvest_mh.txt"
+ProcessArguments "../R2_Rx_Magic_Harvest.py {timestep} RxIgnProb_high.tif 25 ext_BiomassHarvest_mh.txt"
