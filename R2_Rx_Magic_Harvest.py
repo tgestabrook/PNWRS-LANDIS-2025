@@ -327,7 +327,7 @@ if not salvageable_stands_df.empty:
     new_zones_r[salv_mask] = 6
 
 with rasterio.open(magic_harvest_dir + "/MH_mgmt_areas_" + str(timestep) + ".tif", 'w', **kwargs) as dst:
-    dst.write(new_zones_r)
+    dst.write(new_zones_r, 1)
 
 
 '''Find patches eligible for Rx fire'''
