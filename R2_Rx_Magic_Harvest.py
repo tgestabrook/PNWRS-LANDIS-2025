@@ -89,7 +89,8 @@ with rasterio.open(input_file_archive + "/ECOREGIONS_" + LANDIS_EXTENT + ".tif")
     ecos_rast = src.read(1)
     ecos_transform = src.transform
     ecos_crs = src.crs
-    kwargs = src.profile
+    kwargs = src.profile.copy()
+    kwargs["count"] = 1
 
 with rasterio.open("./Input_file_archive/ext_BiomassHarvestStands_" + LANDIS_EXTENT + ".tif") as src:
     base_stands_rast = src.read(1)
@@ -114,32 +115,32 @@ if timestep == 1:
     with rasterio.open(input_file_archive + "/MH_Stand_age" + LANDIS_EXTENT + ".tif") as src:
         stand_age_rast = src.read(1)
     with rasterio.open(magic_harvest_dir + "/stand_age.tif", 'w', **kwargs) as dst:
-        dst.write(stand_age_rast)
+        dst.write(stand_age_rast, 1)
 
     # copy base Rx area into MH directory
     with rasterio.open(os.path.join('..', LANDIS_EXTENT, 'SCRAPPLE_input_maps', scenario_rx_name)) as src:
         rx_dynamic_rast = src.read(1)
     with rasterio.open(magic_harvest_dir + "/Rx_base.tif", 'w', **kwargs) as dst:
-        dst.write(rx_dynamic_rast)
+        dst.write(rx_dynamic_rast, 1)
 
     # initialize fire cooldown
     fire_cooldown_rast = make_zero_raster(ecos_rast, dtype=np.int16)
     with rasterio.open("./MagicHarvest/fire_cooldown.tif", "w", **kwargs) as dst:
-        dst.write(fire_cooldown_rast)
+        dst.write(fire_cooldown_rast, 1)
 
     # initialize thinning cooldown
     thinning_cooldown_rast = make_zero_raster(ecos_rast, dtype=np.int16)
     with rasterio.open("./MagicHarvest/thinning_cooldown.tif", "w", **kwargs) as dst:
-        dst.write(thinning_cooldown_rast)
+        dst.write(thinning_cooldown_rast, 1)
 
     year_zero_fire_rast = make_zero_raster(ecos_rast, dtype=np.int16)
     with rasterio.open(fire_dir + "/fire-dnbr-0.tif", "w", **kwargs) as dst:
-        dst.write(year_zero_fire_rast)
+        dst.write(year_zero_fire_rast, 1)
 
     year_zero_harvest_rast = make_zero_raster(ecos_rast, dtype=np.int16)
     year_zero_harvest_rast[year_zero_harvest_rast == 0] = 1  #1 denotes no harvest happened.
     with rasterio.open(harvest_dir + "/biomass-harvest-prescripts-0.tif", "w", **kwargs) as dst:
-        dst.write(year_zero_harvest_rast)
+        dst.write(year_zero_harvest_rast, 1)
 
 '''Load this year's rasters'''
 # Load fires from two years ago, needed to prioritize post-fire restoration
@@ -157,7 +158,7 @@ with rasterio.open(fire_dir + "/fire-dnbr-" + str(last_year) + ".tif") as src:
 # smooth and classify fire severity to prevent over-divided patches
 last_year_fire_severity_rast = smooth_fires(last_year_fire_severity_rast)
 with rasterio.open(fire_dir + "/fire-dnbr-classified-" + str(last_year) + ".tif", "w", **kwargs) as dst:
-    dst.write(last_year_fire_severity_rast)
+    dst.write(last_year_fire_severity_rast, 1)
 
 with rasterio.open(harvest_dir + "/biomass-harvest-prescripts-" + str(last_year) + ".tif") as src:
     last_year_harvest_prescrip_rast = src.read(1)
@@ -183,7 +184,7 @@ stand_age_rast[last_year_harvest_prescrip_rast == 8] = 1 # ditto
 # to exclude from salvage zone, so we set to one so we only need to exclude last year
 
 with rasterio.open(magic_harvest_dir + "/stand_age.tif", 'w', **kwargs) as dst:
-    dst.write(stand_age_rast)
+    dst.write(stand_age_rast, 1)
 
 # Update fire cooldown
 print("Updating fire cooldown...")
@@ -193,7 +194,7 @@ fire_cooldown_rast[last_year_fire_severity_rast > 3] = 5  # shorter timer for hi
 fire_cooldown_rast[last_year_harvest_prescrip_rast > 1] = rx_fire_cooldown  # areas that were thinned get slash burned, which resets fire timer
 
 with rasterio.open(magic_harvest_dir + "/fire_cooldown.tif", "w", **kwargs) as dst:
-    dst.write(fire_cooldown_rast)
+    dst.write(fire_cooldown_rast, 1)
 
 # Update thinning cooldown
 print("Updating thinning cooldown...")
@@ -210,7 +211,7 @@ thinning_cooldown_rast[last_year_harvest_prescrip_rast == 14] = cold_cooldown  #
 thinning_cooldown_rast[last_year_harvest_prescrip_rast == 15] = cold_cooldown  # wildland clearcut (unused)
 
 with rasterio.open(magic_harvest_dir + "/thinning_cooldown.tif", "w", **kwargs) as dst:
-    dst.write(thinning_cooldown_rast)
+    dst.write(thinning_cooldown_rast, 1)
 
 '''Determine harvest eligibility'''
 # Calculate zones elegible for salvage
@@ -247,7 +248,7 @@ new_patches_rast = make_contiguous_patches(new_patches_rast)
 
 # Save new patches
 with rasterio.open(magic_harvest_dir + "/MH_stands_" + str(timestep) + ".tif", 'w', **kwargs) as dst:
-    dst.write(new_patches_rast)
+    dst.write(new_patches_rast, 1)
 
 
 # Read and alter harvest input file to point it toward the new management areas
@@ -403,4 +404,4 @@ new_rx_rast[rx_zone_rast == 0] = 0  # don't burn patches outside the area define
 new_rx_rast[fire_cooldown_rast > 0] = 0 # don't start fires in areas with an ongoing cooldown. Might be redundant.
 
 with rasterio.open(magic_harvest_dir + "/RxIgnProb_dynamic.tif", 'w', **kwargs) as dst:
-    dst.write(new_rx_rast)
+    dst.write(new_rx_rast, 1)
