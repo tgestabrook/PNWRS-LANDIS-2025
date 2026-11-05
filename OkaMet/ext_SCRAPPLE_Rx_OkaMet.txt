@@ -18,7 +18,7 @@ Species_CSV_File	../Shared_inputs/ext_SCRAPPLE_Species_Table.csv    << Replaces 
 >>>>>> Ignition maps <<<<<
 AccidentalIgnitionsMap            ../OkaMet/SCRAPPLE_input_maps/AccIgnProb.tif
 LightningIgnitionsMap             ../OkaMet/SCRAPPLE_input_maps/NatIgnProb.tif
-RxIgnitionsMap                    ../OkaMet/SCRAPPLE_input_maps/RxIgnProb.tif
+RxIgnitionsMap                    ../OkaMet/SCRAPPLE_input_maps/RxIgnProb_low.tif
 
 DynamicRxIgnitionMaps << Optional these initiate new probability surfaces at set time steps. 
 1    ./MagicHarvest/RxIgnProb_dynamic.tif
