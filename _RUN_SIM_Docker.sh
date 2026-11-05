@@ -36,8 +36,8 @@ do
     ## SET DIRECTORY
     echo Creating directory: ${dirName}_$date_time
     mkdir ${dirName}_$date_time
-    # python ./Build_Scenario.py $scenarioFile ${dirName}_$date_time
-    Rscript ./Build_Scenario.R $scenarioFile ${dirName}_$date_time
+    /usr/bin/python3 ./Build_Scenario.py $scenarioFile ${dirName}_$date_time
+    # Rscript ./Build_Scenario.R $scenarioFile ${dirName}_$date_time
     cd ./${dirName}_$date_time
 
     ## CREATE SCENARIO FILE WITH CORRECT EXTENT
