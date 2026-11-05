@@ -26,9 +26,10 @@ def make_zero_raster(template_rast, dtype = np.float64):
 
 # Smooth LANDIS fire output and classify by severit category
 def smooth_fires(fire_severity_rast):
+    fire_severity_rast = np.asarray(fire_severity_rast, dtype=np.float64)
     fire_severity_rast = np.where(fire_severity_rast > 1, fire_severity_rast, np.nan)
     is_nan = np.isnan(fire_severity_rast)
-    focal_median = generic_filter(fire_severity_rast, np.nanmedian, size=(1, 3, 3), mode='constant', cval=np.nan)
+    focal_median = generic_filter(fire_severity_rast, np.nanmedian, size=(3, 3), mode='constant', cval=np.nan)
     fire_severity_rast[is_nan] = focal_median[is_nan]
     fire_severity_rast = np.digitize(fire_severity_rast, severity_thresholds, right = True)
     fire_severity_rast[fire_severity_rast == 5] = -1  # these areas should be NA but np.nan doesn't mix with ints
@@ -36,6 +37,9 @@ def smooth_fires(fire_severity_rast):
 
 # Assign a unique id to contiguous patches in another raster
 def make_contiguous_patches(patch_id_rast):
+    patch_id_rast = np.asarray(patch_id_rast)
+    patch_id_rast = np.squeeze(patch_id_rast)
+
     results = (
         {'properties': {'val': v}, 'geometry': s}
         for i, (s, v) in enumerate(features.shapes(patch_id_rast, transform=kwargs['transform']))
@@ -49,18 +53,13 @@ def make_contiguous_patches(patch_id_rast):
 
     # 5. Rasterize back to grid
     # Burn the 'ID' column back into a raster array
-    print(ecos_rast.shape)
-    print(np.squeeze(ecos_rast).shape)
-
     patch_id_rast = features.rasterize(
         ((geom, id_val) for geom, id_val in zip(gdf.geometry, gdf.ID)),
-        out_shape=np.squeeze(np.squeeze(ecos_rast).shape),
+        out_shape=patch_id_rast.shape,
         transform=ecos_transform,
         fill=-999,
         dtype='int32'
     )
-    # patch_id_rast = np.expand_dims(patch_id_rast, axis = 0)
-
     return patch_id_rast
 
 '''Load command arguments.'''
@@ -82,24 +81,24 @@ rx_fire_cooldown = 10  # years till a stand is eligible for Rx fire
 
 # get name of extent from the ecoregion file in the input file archive
 files = os.listdir(input_file_archive)
-ecos_file = [f for f in files if "ECOREGIONS" in f][0]  
+ecos_file = [f for f in files if "ECOREGIONS" in f][0]
 LANDIS_EXTENT = ecos_file.replace("ECOREGIONS_", "").replace(".tif", "").replace(".txt", "")
 
 # load ecoregion raster for use as template
 with rasterio.open(input_file_archive + "/ECOREGIONS_" + LANDIS_EXTENT + ".tif") as src:
-    ecos_rast = src.read()
+    ecos_rast = src.read(1)
     ecos_transform = src.transform
     ecos_crs = src.crs
     kwargs = src.profile
 
 with rasterio.open("./Input_file_archive/ext_BiomassHarvestStands_" + LANDIS_EXTENT + ".tif") as src:
-    base_stands_rast = src.read()
+    base_stands_rast = src.read(1)
 
 with rasterio.open("./Input_file_archive/ext_BiomassHarvestMgmt_" + LANDIS_EXTENT + ".tif") as src:
-    base_mgmt_rast = src.read()
+    base_mgmt_rast = src.read(1)
 
 with rasterio.open(os.path.join('..', LANDIS_EXTENT, 'TopoAsp_' + LANDIS_EXTENT + '.tif')) as src:
-    topo_asp_rast = src.read()  # topo-aspect layer for picking larger patches to treat
+    topo_asp_rast = src.read(1)  # topo-aspect layer for picking larger patches to treat
 
 # Calculate maximum treatable area
 max_annual_thin = (1 / thin_cooldown) * np.isin(base_mgmt_rast, [1, 2, 3]).sum()
@@ -113,13 +112,13 @@ if timestep == 1:
 
     # copy stand age from input file archive
     with rasterio.open(input_file_archive + "/MH_Stand_age" + LANDIS_EXTENT + ".tif") as src:
-        stand_age_rast = src.read()
+        stand_age_rast = src.read(1)
     with rasterio.open(magic_harvest_dir + "/stand_age.tif", 'w', **kwargs) as dst:
         dst.write(stand_age_rast)
 
     # copy base Rx area into MH directory
-    with rasterio.open("../" + LANDIS_EXTENT + "/SCRAPPLE_input_maps/" + scenario_rx_name) as src:
-        rx_dynamic_rast = src.read()
+    with rasterio.open(os.path.join('..', LANDIS_EXTENT, 'SCRAPPLE_input_maps', scenario_rx_name)) as src:
+        rx_dynamic_rast = src.read(1)
     with rasterio.open(magic_harvest_dir + "/Rx_base.tif", 'w', **kwargs) as dst:
         dst.write(rx_dynamic_rast)
 
@@ -149,11 +148,11 @@ if timestep == 1:
     last_last_year_fire_severity_rast = make_zero_raster(ecos_rast, dtype=np.int16)
 else:
     with rasterio.open(fire_dir + "/fire-dnbr-" + str(last_year-1) + ".tif") as src:
-        last_last_year_fire_severity_rast = src.read()
+        last_last_year_fire_severity_rast = src.read(1)
 
 print("Loading last year's fires and prescriptions.")
 with rasterio.open(fire_dir + "/fire-dnbr-" + str(last_year) + ".tif") as src:
-    last_year_fire_severity_rast = src.read()
+    last_year_fire_severity_rast = src.read(1)
 
 # smooth and classify fire severity to prevent over-divided patches
 last_year_fire_severity_rast = smooth_fires(last_year_fire_severity_rast)
@@ -161,17 +160,17 @@ with rasterio.open(fire_dir + "/fire-dnbr-classified-" + str(last_year) + ".tif"
     dst.write(last_year_fire_severity_rast)
 
 with rasterio.open(harvest_dir + "/biomass-harvest-prescripts-" + str(last_year) + ".tif") as src:
-    last_year_harvest_prescrip_rast = src.read()
+    last_year_harvest_prescrip_rast = src.read(1)
 
 # Load cooldown rasters
 with rasterio.open(magic_harvest_dir + "/fire_cooldown.tif") as src:
-    fire_cooldown_rast = src.read()
+    fire_cooldown_rast = src.read(1)
 with rasterio.open(magic_harvest_dir + "/thinning_cooldown.tif") as src:
-    thinning_cooldown_rast = src.read()
+    thinning_cooldown_rast = src.read(1)
 
 # load stand age
 with rasterio.open(magic_harvest_dir + "/stand_age.tif") as src:
-    stand_age_rast = src.read()
+    stand_age_rast = src.read(1)
 
 '''Update tracking rasters'''
 # Calculate this year's stand age
@@ -243,12 +242,10 @@ recent_fire_rast[eligible_thin_rast == 0] = 0  # weights can't sum to zero, see 
 # Create a new stand map by grouping patches
 print("Generating new patches...")
 # Generate new patch IDs from unique combinations of stand age and management zone
-new_patches_rast = np.char.add(stand_age_rast.astype(str), base_mgmt_rast.astype(str), ecos_rast.astype(str)).astype(int)
+new_patches_rast = np.char.add(np.char.add(stand_age_rast.astype(str), base_mgmt_rast.astype(str)), ecos_rast.astype(str)).astype(int)
 new_patches_rast = make_contiguous_patches(new_patches_rast)
-new_patches_rast = np.expand_dims(new_patches_rast, axis = 0)
 
 # Save new patches
-# kwargs.update(dtype='int32', count=1, nodata=-999)
 with rasterio.open(magic_harvest_dir + "/MH_stands_" + str(timestep) + ".tif", 'w', **kwargs) as dst:
     dst.write(new_patches_rast)
 
@@ -322,14 +319,10 @@ new_zones_r[base_mgmt_rast == 7] = 7
 
 if not thinnable_stands_df.empty:  # in Rx only scenarios, the thinnable stands list will be null
     thin_mask = np.isin(new_patches_rast, thinnable_stands_df['Patch'])
-    # thin_mask = np.expand_dims(thin_mask, 0)  # dims of ecos template are (1, nrow, ncol)
     new_zones_r[thin_mask] = base_mgmt_rast[thin_mask]  # thinnable stands get a value corresponding to thinning type (DMC, MMC, or cold)
 
 if not salvageable_stands_df.empty:  
     salv_mask = np.isin(new_patches_rast, salvageable_stands_df['Patch'])
-    # salv_mask = np.expand_dims(salv_mask, 0)
-    print(salv_mask.shape)
-    print(new_zones_r.shape)
     new_zones_r[salv_mask] = 6
 
 with rasterio.open(magic_harvest_dir + "/MH_mgmt_areas_" + str(timestep) + ".tif", 'w', **kwargs) as dst:
@@ -340,12 +333,12 @@ with rasterio.open(magic_harvest_dir + "/MH_mgmt_areas_" + str(timestep) + ".tif
 print("Generating new Rx allocation...")
 
 with rasterio.open(magic_harvest_dir + "/Rx_base.tif") as src:
-    rx_zone_rast = src.read()  # area that can be burned, either mgmt or mgmt + wildland
+    rx_zone_rast = src.read(1)  # area that can be burned, either mgmt or mgmt + wildland
 
 # We use the original map of forest stands, not the one used for thinning. 
 # This is because we want to keep them divided by topoasp
 with rasterio.open(os.path.join('..', LANDIS_EXTENT, 'ext_BiomassHarvestStands_' + LANDIS_EXTENT + '.tif')) as src:
-    rx_stands_rast = src.read()  # original map of forest stands
+    rx_stands_rast = src.read(1)  # original map of forest stands
 
 # get a maximum burnable area value that keeps a steady cycle of burning
 max_annual_Rx = np.sum(rx_zone_rast > 0) / rx_fire_cooldown
@@ -405,7 +398,6 @@ print(topo_asp_selected_df)
 
 new_rx_rast = make_zero_raster(ecos_rast)
 selected_patch_mask = np.isin(topo_asp_rast, topo_asp_selected_df['TopoAspID'])
-selected_patch_mask = np.expand_dims(selected_patch_mask, 0)
 new_rx_rast[selected_patch_mask] = 1  # burn the topo-asp patches selected via the process above
 new_rx_rast[rx_zone_rast == 0] = 0  # don't burn patches outside the area defined as burnable
 new_rx_rast[fire_cooldown_rast > 0] = 0 # don't start fires in areas with an ongoing cooldown. Might be redundant.
