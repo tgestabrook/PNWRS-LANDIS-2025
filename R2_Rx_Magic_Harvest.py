@@ -7,6 +7,9 @@ import rasterio
 from rasterio import features
 import numpy as np
 from scipy.ndimage import generic_filter
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 '''Directories'''
 fire_dir = './social-climate-fire'
@@ -61,6 +64,51 @@ def make_contiguous_patches(patch_id_rast):
         dtype='int32'
     )
     return patch_id_rast
+
+
+def plot_raster_panel(ax, arr, title, cmap, vmin=None, vmax=None, mask_value=None):
+    arr = np.asarray(arr, dtype=np.float64)
+    arr = np.squeeze(arr)
+    if mask_value is not None:
+        arr = np.ma.masked_where(arr == mask_value, arr)
+    if vmin is None:
+        finite = np.asarray(arr)[np.isfinite(arr)]
+        vmin = finite.min() if finite.size else 0
+    if vmax is None:
+        finite = np.asarray(arr)[np.isfinite(arr)]
+        vmax = finite.max() if finite.size else 1
+    im = ax.imshow(arr, cmap=cmap, vmin=vmin, vmax=vmax, interpolation='nearest')
+    ax.set_title(title, fontsize=10)
+    ax.set_xticks([])
+    ax.set_yticks([])
+    return im
+
+
+def save_diagnostic_plots(timestep):
+    out_path = os.path.join(magic_harvest_dir, f'diagnostic_plots_{timestep}.png')
+
+    fig, axes = plt.subplots(3, 4, figsize=(18, 12))
+    axes = axes.ravel()
+
+    plot_raster_panel(axes[0], last_year_harvest_prescrip_rast, 'Last harvest', plt.cm.get_cmap('tab20', 15), vmin=1, vmax=14)
+    plot_raster_panel(axes[1], last_year_fire_severity_rast, 'Last fire severity', plt.cm.get_cmap('RdYlGn', 5), vmin=0, vmax=4)
+    plot_raster_panel(axes[2], stand_age_rast, 'Stand age', plt.cm.viridis, vmin=0, vmax=max(50, int(np.nanmax(stand_age_rast))))
+    plot_raster_panel(axes[3], new_patches_rast, 'New patches', plt.cm.get_cmap('tab20', 20), vmin=0, vmax=max(1, int(np.nanmax(new_patches_rast))))
+    plot_raster_panel(axes[4], fire_cooldown_rast, 'Fire cooldown', plt.cm.get_cmap('RdYlGn_r'), vmin=0, vmax=max(10, int(np.nanmax(fire_cooldown_rast))))
+    plot_raster_panel(axes[5], thinning_cooldown_rast, 'Thin cooldown', plt.cm.get_cmap('viridis'), vmin=0, vmax=max(10, int(np.nanmax(thinning_cooldown_rast))))
+    plot_raster_panel(axes[6], new_zones_r, 'Planned harvest', plt.cm.get_cmap('Set3', 10), vmin=0, vmax=9)
+    plot_raster_panel(axes[7], new_rx_rast, 'Planned Rx', plt.cm.binary, vmin=0, vmax=1)
+    plot_raster_panel(axes[8], eligible_thin_rast, 'Eligible to thin', plt.cm.Blues, vmin=0, vmax=1)
+    plot_raster_panel(axes[9], eligible_salvage_rast, 'Eligible to salvage', plt.cm.Oranges, vmin=0, vmax=1)
+    axes[10].axis('off')
+    axes[11].axis('off')
+
+    fig.suptitle(f'Magic Harvest diagnostics - timestep {timestep}', y=0.98, fontsize=14)
+    fig.tight_layout(rect=[0, 0, 1, 0.96])
+    fig.savefig(out_path, dpi=200)
+    plt.close(fig)
+    return out_path
+
 
 '''Load command arguments.'''
 timestep = int(sys.argv[1])  # timestep of LANDIS simulation
@@ -405,3 +453,5 @@ new_rx_rast[fire_cooldown_rast > 0] = 0 # don't start fires in areas with an ong
 
 with rasterio.open(magic_harvest_dir + "/RxIgnProb_dynamic.tif", 'w', **kwargs) as dst:
     dst.write(new_rx_rast, 1)
+
+save_diagnostic_plots(timestep)
