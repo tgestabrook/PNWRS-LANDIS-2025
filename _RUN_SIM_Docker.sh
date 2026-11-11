@@ -7,12 +7,10 @@ extent=$2
 climate=$3
 maxsims=$4
 GIT_ID=$(git rev-parse --short=6 HEAD)
+script_instance_id="${GIT_ID}_$(date +'%Y%m%d_%H%M%S')_$$"
 
 # Fix Rscript command in magic_harvest
 sed -i 's|"C:\\Program Files\\R\\R-4.4.1\\bin\\Rscript.exe"|Rscript|g' ./ext_magic_harvest*
-
-#re="^scenario_(.+).txt$"
-#if [[ $scenarioFile =~ $re ]]; then scenarioname=${BASH_REMATCH[1]}; fi
 
 dirName="Sim${GIT_ID}_${2}_${3}_Sc${1}"
 
@@ -70,7 +68,7 @@ do
     cd $back
     echo Running LANDIS-II scenario...
 
-    docker run --cpus=4 --memory=64g --mount type=bind,src=".",dst="/scenarioFolder" --name Container$scenarioFile_$date_time \
+    docker run --cpus=4 --memory=64g --mount type=bind,src=".",dst="/scenarioFolder" --name Container${scenarioFile}_${script_instance_id}_${date_time} \
   landis-ii-8-uclv2-release:speedup /bin/sh -c "cd /scenarioFolder/${dirName}_$date_time && dotnet \$LANDIS_CONSOLE ./scenario.txt"
 
     #dotnet $LANDIS_CONSOLE ./scenario.txt
@@ -84,17 +82,25 @@ do
     echo Simulation number $repeat complete!
     echo ----------------------------------------
 
-    
-
-
-    
-    
     echo Exporting to cloud...
     zip -q -r ${dirName}_$date_time.zip ${dirName}_$date_time
-    gsutil -m cp -r ${dirName}_$date_time.zip gs://usfs_landis_outputs
-    rm -r -f ${dirName}_$date_time
-    echo Done!
+    if [ $? -eq 0 ]; then
+        gsutil -m cp -r ${dirName}_$date_time.zip gs://usfs_landis_outputs
+        if [ $? -eq 0 ]; then
+            rm -r -f ${dirName}_$date_time
+            echo Done!
+        else
+            echo "Upload failed for ${dirName}_$date_time.zip; keeping folder for inspection."
+        fi
+    else
+        echo "Zip failed for ${dirName}_$date_time; keeping folder for inspection."
+    fi
 done
+
+# Remove any remaining Docker containers created for this script instance only
+if command -v docker >/dev/null 2>&1; then
+    docker rm -f $(docker ps -aq --filter "name=Container${scenarioFile}_${script_instance_id}_") 2>/dev/null || true
+fi
 
 # ## ZIP RUNS AND EXPORT TO THE CLOUD
 # for dir in ./LANDIS_*/; do 
