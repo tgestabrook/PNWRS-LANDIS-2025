@@ -63,7 +63,7 @@ if not selected_scenario.empty:
             ">> Other Extensions Initialization File\n"
             ">> ---------------------- -------------------\n"
             ">>\"Output Biomass\" ../Shared_inputs/ext_Output_Biomass10.txt\n"
-            ">>\"Output Cohort Statistics\" ../Shared_inputs/ext_Output_CohortStats10.txt"
+            ">>\"Output Cohort Statistics\" ../Shared_inputs/ext_Output_CohortStats10.txt\n"
             "\"Output Biomass-by-Age\" ../Shared_inputs/ext_Output_Biomass_by_Age.txt"
         )
 else:
