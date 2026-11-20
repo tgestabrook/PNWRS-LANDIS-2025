@@ -350,7 +350,7 @@ salvageable_stands_df = (elig_df
 
 thinnable_stands_df = (elig_df
                          .query('Thin_elig > 0.75')
-                         .sort_values(by = ['Recent_fire', 'Patch'], ascending = False)
+                        # .sort_values(by = ['Recent_fire', 'Patch'], ascending = False)
                         #  .sample(frac=1, weights="Recent_fire")  # Shuffle the dataframe (n=nrow in R)
                          .assign(Area_cumsum = lambda x: x['Pixels'].cumsum())
                          .query('Area_cumsum <= @max_annual_thin'))
